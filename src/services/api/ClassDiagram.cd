@@ -1,0 +1,294 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1" MembersFormat="NameAndType">
+  <Class Name="api.Core.Models.Address">
+    <Position X="34.75" Y="7.75" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAIIAAAAAAAAAIAAAAAAAIAQAAAAAA=</HashCode>
+      <FileName>Core\Models\Address.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="api.Core.Models.Adventure">
+    <Position X="22.75" Y="13.5" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAIAAACAAAAAAAAAAAAAAAAAAAAEA=</HashCode>
+      <FileName>Core\Models\Adventure.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="api.Core.Models.BoatCharacteristics">
+    <Position X="29" Y="10.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAIAAAAAAAAAAAAAgEAIABAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Core\Models\Boat.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="api.Core.Models.BoatEquipment">
+    <Position X="31" Y="11.25" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAACAIAAAAAAAAAAAA=</HashCode>
+      <FileName>Core\Models\Boat.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="api.Core.Models.Boat">
+    <Position X="28" Y="13.5" Width="2.75" />
+    <AssociationLine Name="Equipment" Type="api.Core.Models.BoatEquipment" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="30.75" Y="14.25" />
+        <Point X="31.938" Y="14.25" />
+        <Point X="31.938" Y="12.546" />
+      </Path>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAKAAACAQAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Core\Models\Boat.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Characteristics" />
+      <Property Name="Equipment" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="api.Core.Models.Service">
+    <Position X="21.5" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAQAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Core\Models\Business.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="api.Core.Models.Business">
+    <Position X="25" Y="5.25" Width="2" />
+    <AssociationLine Name="Address" Type="api.Core.Models.Address" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="26.688" Y="8.858" />
+        <Point X="26.688" Y="9.312" />
+        <Point X="34.75" Y="9.312" />
+      </Path>
+    </AssociationLine>
+    <AssociationLine Name="Services" Type="api.Core.Models.Service" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="25" Y="5.958" />
+        <Point X="24.625" Y="5.958" />
+        <Point X="24.625" Y="5.187" />
+        <Point X="23" Y="5.187" />
+      </Path>
+    </AssociationLine>
+    <AssociationLine Name="Reviews" Type="api.Core.Models.Review" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="27" Y="6.203" />
+        <Point X="28.75" Y="6.203" />
+        <Point X="28.75" Y="6.5" />
+      </Path>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>ggAAAECAAQAgAAAAMAABAAQAAAAAABECAACAAYEEAAA=</HashCode>
+      <FileName>Core\Models\Business.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Address" />
+      <Property Name="PricePerUnit" />
+    </ShowAsAssociation>
+    <ShowAsCollectionAssociation>
+      <Property Name="Rules" />
+      <Property Name="Services" />
+      <Property Name="Availability" />
+      <Property Name="Reviews" />
+      <Property Name="Subscribers" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="api.Core.Models.Cabin">
+    <Position X="25.75" Y="13.5" Width="2" />
+    <InheritanceLine Type="api.Core.Models.Business" ManuallyRouted="true">
+      <Path>
+        <Point X="26" Y="8.858" />
+        <Point X="26" Y="13.124" />
+        <Point X="26.75" Y="13.124" />
+        <Point X="26.75" Y="13.5" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>AAAAAEAAAAAAAAAAIAAAAAACAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Core\Models\Cabin.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="Rooms" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="api.Core.Models.Tax">
+    <Position X="26.5" Y="10.75" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Core\Models\Tax.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="api.Core.Models.Loyalty">
+    <Position X="32.25" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAgAAACAAA=</HashCode>
+      <FileName>Core\Models\Loyalty.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="api.Core.Models.Money">
+    <Position X="24" Y="9.75" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAACACAAAAAAAAAAAAAQACAA=</HashCode>
+      <FileName>Core\Models\Money.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="api.Core.Models.Payment">
+    <Position X="20.75" Y="10" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAQAAAAAAAAACAAAAAAAAABAAAAAAAAACAAA=</HashCode>
+      <FileName>Core\Models\Payment.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Price" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="api.Core.Models.Reservation">
+    <Position X="17.5" Y="5.25" Width="2.25" />
+    <Compartments>
+      <Compartment Name="Nested Types" Collapsed="false" />
+    </Compartments>
+    <NestedTypes>
+      <Enum Name="api.Core.Models.Reservation.ReservationStatus">
+        <TypeIdentifier>
+          <NewMemberFileName>Core\Models\Reservation.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+    </NestedTypes>
+    <AssociationLine Name="Payment" Type="api.Core.Models.Payment" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="19.75" Y="8.377" />
+        <Point X="20.5" Y="8.377" />
+        <Point X="20.5" Y="10.812" />
+        <Point X="20.75" Y="10.812" />
+      </Path>
+    </AssociationLine>
+    <AssociationLine Name="Services" Type="api.Core.Models.Service" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="19.75" Y="5.812" />
+        <Point X="20.125" Y="5.812" />
+        <Point X="20.125" Y="5.148" />
+        <Point X="21.5" Y="5.148" />
+      </Path>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>gAIBAAAEQGAAAAAAAIACAAAAAAJAAAAAAAAAAAACBAA=</HashCode>
+      <FileName>Core\Models\Reservation.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Business" />
+      <Property Name="Payment" />
+      <Property Name="Report" />
+      <Property Name="Complaint" />
+    </ShowAsAssociation>
+    <ShowAsCollectionAssociation>
+      <Property Name="Services" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="api.Core.Models.Review">
+    <Position X="27.75" Y="6.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAgBAAACAkAAAAAAAAACAAAAAAAAAAEAAAAAAAAAAAA=</HashCode>
+      <FileName>Core\Models\Review.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="api.Core.Models.Room">
+    <Position X="26" Y="16.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Core\Models\Room.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="api.Core.Models.Rule">
+    <Position X="25.25" Y="3" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAIAAAAAQAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Core\Models\Rule.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="api.Core.Models.Sale">
+    <Position X="17.75" Y="10.75" Width="1.5" />
+    <InheritanceLine Type="api.Core.Models.Reservation" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="18.375" Y="10.131" />
+        <Point X="18.375" Y="10.75" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAYAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Core\Models\Sale.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="api.Core.Models.Slot">
+    <Position X="21.5" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAAAACAAAAAAAAAAAABAAAAAAAAAAAAAAAAQAIA=</HashCode>
+      <FileName>Core\Models\Slot.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="api.Core.Models.DeletionRequest">
+    <Position X="30.25" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAgAAAACAAAAAAIAAAAAAAAAAAAAAAAAAAEAAgAAAAA=</HashCode>
+      <FileName>Core\Models\User.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="api.Core.Models.Penalty">
+    <Position X="34.75" Y="5.25" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAhAAAIAABAAAAAAAAAAAAIAAAAAAAAAA=</HashCode>
+      <FileName>Core\Models\User.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="api.Core.Models.User">
+    <Position X="32" Y="5" Width="2" />
+    <AssociationLine Name="Address" Type="api.Core.Models.Address" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="34" Y="6.625" />
+        <Point X="34.375" Y="6.625" />
+        <Point X="34.375" Y="8.686" />
+        <Point X="34.75" Y="8.686" />
+      </Path>
+    </AssociationLine>
+    <AssociationLine Name="Level" Type="api.Core.Models.Loyalty" FixedToPoint="true">
+      <Path>
+        <Point X="33" Y="7.002" />
+        <Point X="33" Y="7.5" />
+      </Path>
+    </AssociationLine>
+    <AssociationLine Name="DeletionRequest" Type="api.Core.Models.DeletionRequest" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="32" Y="6.188" />
+        <Point X="31" Y="6.188" />
+        <Point X="31" Y="7" />
+      </Path>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>AACAAEAAACAIAAAAAAAAAAAAAAAAAAADAAAEAAgAAAg=</HashCode>
+      <FileName>Core\Models\User.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Address" />
+      <Property Name="Penalty" />
+      <Property Name="Level" />
+      <Property Name="DeletionRequest" />
+    </ShowAsAssociation>
+    <ShowAsCollectionAssociation>
+      <Property Name="Subscriptions" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="api.Core.Models.Report">
+    <Position X="14.75" Y="5.75" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAACAAAAAAAAIAAAAAAAAAAAAAAAACAAAAAAAAAAA=</HashCode>
+      <FileName>Core\Models\Reservation.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="api.Core.Models.Complaint">
+    <Position X="14.5" Y="7.75" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAQIAAAACAAAAAAAAAAAAAAAAAgABAAA=</HashCode>
+      <FileName>Core\Models\Reservation.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
