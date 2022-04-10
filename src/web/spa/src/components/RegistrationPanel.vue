@@ -18,7 +18,6 @@
       <KeepAlive>
         <Component
           :is="panels[selectedPanel]"
-          :role="selectedRole"
           @selectedRole="changeRole"
           @next="forward"
           @register="register"
@@ -79,8 +78,7 @@ const changeRole = role => {
       RolePanel,
       UserInformationForm,
       AddressForm,
-      AccountInformationForm,
-      VerificationPanel
+      AccountInformationForm
     ]
   } else if (selectedRole.value === 'advertiser') {
     panels.value = [
@@ -117,7 +115,7 @@ const register = async newData => {
   formError.value = error
 
   if (!error && selectedRole.value === 'customer') {
-    router.replace(`/verification/${data.email}`)
+    router.push({ name: 'verification', query: { email: data.email } })
   } else !error && forward()
 }
 </script>

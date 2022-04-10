@@ -78,10 +78,14 @@ const onKeyUp = (index, event) => {
 const verifyCode = async event => {
   const data = formData(event)
   const code = Object.values(data).join('')
-  const email = route.params.email
+  const email = route.query.email
   const [res, error] = await api.auth.confirmEmail(email, code)
   formError.value = error
 }
 
-const resendCode = () => console.log('resend')
+const resendCode = async () => {
+  const email = route.params.email
+  const [res, error] = await api.auth.sendConfirmation(email)
+  formError.value = error
+}
 </script>
