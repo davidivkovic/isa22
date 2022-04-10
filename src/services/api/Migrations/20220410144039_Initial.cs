@@ -88,7 +88,6 @@ namespace API.Migrations
                     Address_Latitude = table.Column<double>(type: "double precision", nullable: false),
                     PricePerUnit_Amount = table.Column<decimal>(type: "numeric", nullable: true),
                     PricePerUnit_Currency = table.Column<string>(type: "text", nullable: true),
-                    PricePerUnit_Symbol = table.Column<string>(type: "text", nullable: true),
                     OwnerId = table.Column<Guid>(type: "uuid", nullable: true),
                     Images = table.Column<List<string>>(type: "text[]", nullable: true),
                     NumberOfReviews = table.Column<int>(type: "integer", nullable: false),
@@ -121,8 +120,7 @@ namespace API.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "text", nullable: true),
                     Price_Amount = table.Column<decimal>(type: "numeric", nullable: true),
-                    Price_Currency = table.Column<string>(type: "text", nullable: true),
-                    Price_Symbol = table.Column<string>(type: "text", nullable: true)
+                    Price_Currency = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -298,7 +296,6 @@ namespace API.Migrations
                     Timestamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Payment_Price_Amount = table.Column<decimal>(type: "numeric", nullable: true),
                     Payment_Price_Currency = table.Column<string>(type: "text", nullable: true),
-                    Payment_Price_Symbol = table.Column<string>(type: "text", nullable: true),
                     Payment_DiscountPercentage = table.Column<double>(type: "double precision", nullable: true),
                     Payment_TaxPercentage = table.Column<double>(type: "double precision", nullable: true),
                     Payment_Timestamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -334,6 +331,7 @@ namespace API.Migrations
                     Content = table.Column<string>(type: "text", nullable: true),
                     Timestamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Approved = table.Column<bool>(type: "boolean", nullable: false),
+                    Rejected = table.Column<bool>(type: "boolean", nullable: false),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
@@ -446,8 +444,7 @@ namespace API.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "text", nullable: true),
                     Price_Amount = table.Column<decimal>(type: "numeric", nullable: true),
-                    Price_Currency = table.Column<string>(type: "text", nullable: true),
-                    Price_Symbol = table.Column<string>(type: "text", nullable: true)
+                    Price_Currency = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
