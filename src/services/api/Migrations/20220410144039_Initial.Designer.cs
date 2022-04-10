@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20220408163012_Initial")]
+    [Migration("20220410144039_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -152,6 +152,9 @@ namespace API.Migrations
 
                     b.Property<double>("Rating")
                         .HasColumnType("double precision");
+
+                    b.Property<bool>("Rejected")
+                        .HasColumnType("boolean");
 
                     b.Property<DateTime>("Timestamp")
                         .HasColumnType("timestamp with time zone");
@@ -537,9 +540,6 @@ namespace API.Migrations
                             b1.Property<string>("Currency")
                                 .HasColumnType("text");
 
-                            b1.Property<string>("Symbol")
-                                .HasColumnType("text");
-
                             b1.HasKey("BusinessId");
 
                             b1.ToTable("Businesses");
@@ -581,9 +581,6 @@ namespace API.Migrations
                                         .HasColumnType("numeric");
 
                                     b2.Property<string>("Currency")
-                                        .HasColumnType("text");
-
-                                    b2.Property<string>("Symbol")
                                         .HasColumnType("text");
 
                                     b2.HasKey("ServiceBusinessId", "ServiceId");
@@ -637,7 +634,7 @@ namespace API.Migrations
             modelBuilder.Entity("API.Core.Model.Reservation", b =>
                 {
                     b.HasOne("API.Core.Model.Business", "Business")
-                        .WithMany()
+                        .WithMany("Reservations")
                         .HasForeignKey("BusinessId");
 
                     b.HasOne("API.Core.Model.User", "User")
@@ -699,9 +696,6 @@ namespace API.Migrations
                                         .HasColumnType("numeric");
 
                                     b2.Property<string>("Currency")
-                                        .HasColumnType("text");
-
-                                    b2.Property<string>("Symbol")
                                         .HasColumnType("text");
 
                                     b2.HasKey("PaymentReservationId");
@@ -770,9 +764,6 @@ namespace API.Migrations
                                         .HasColumnType("numeric");
 
                                     b2.Property<string>("Currency")
-                                        .HasColumnType("text");
-
-                                    b2.Property<string>("Symbol")
                                         .HasColumnType("text");
 
                                     b2.HasKey("ServiceReservationId", "ServiceId");
@@ -1109,6 +1100,8 @@ namespace API.Migrations
             modelBuilder.Entity("API.Core.Model.Business", b =>
                 {
                     b.Navigation("Availability");
+
+                    b.Navigation("Reservations");
 
                     b.Navigation("Reviews");
 

@@ -86,6 +86,7 @@ public class User : IdentityUser<Guid>, IDeletable
     public List<Role>      Roles           { get; set; } = new();
     public bool            LockedOut       { get; set; }
 
+    public string FullName => $"{FirstName} {LastName}";
     public bool IsAdmin => Roles.Contains(Role.Admin);
     public bool IsCustomer => Roles.Contains(Role.Customer);
     public bool IsBusinessOwner => Roles.Any(r => new Role[] 

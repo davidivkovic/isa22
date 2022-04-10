@@ -17,10 +17,37 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Services\EmailTemplates\**" />
+    <Content Remove="Services\EmailTemplates\**" />
+    <EmbeddedResource Remove="Services\EmailTemplates\**" />
+    <None Remove="Services\EmailTemplates\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Services\Email\Templates\confirm-email.html" />
+    <None Remove="Services\Email\Templates\registration-approved.html" />
+    <None Remove="Services\Email\Templates\registration-declined.html" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Services\Email\Templates\confirm-email.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Services\Email\Templates\registration-approved.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Services\Email\Templates\registration-declined.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="..\..\.editorconfig" Link=".editorconfig" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="FastExpressionCompiler" Version="3.2.2" />
+    <PackageReference Include="MailKit" Version="3.2.0" />
     <PackageReference Include="Mapster" Version="7.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.3" />
@@ -32,6 +59,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.15.0" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.2" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.3" />
+    <PackageReference Include="Scriban" Version="5.4.4" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.3.0" />
   </ItemGroup>
 

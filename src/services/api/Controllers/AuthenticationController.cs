@@ -16,31 +16,39 @@ using API.DTO;
 using System.Linq;
 
 using Mapster;
+using API.Services.Email;
+using API.Services.Email.Messages;
 
-[ApiController]
 [Route("/auth")]
+[ApiController]
 public class AuthenticationController : ControllerBase
 {
     private readonly AppDbContext _context;
     private readonly UserManager<User> _userManager;
     private readonly SignInManager<User> _signInManager;
+    private readonly Mailer _mailer;
 
     public AuthenticationController(
         AppDbContext dbContext,
         UserManager<User> userService,
-        SignInManager<User> signInManager
+        SignInManager<User> signInManager,
+        Mailer mailer
     )
     {
         _context = dbContext;
         _userManager = userService;
         _signInManager = signInManager;
+        _mailer = mailer;
     }
 
     [Authorize]
     [HttpGet]
-    public string Test()
+    public ActionResult Test()
     {
-        return "Hello";
+        var user = _context.Users.Find(User.Id());
+        _mailer.Send(user, new ConfirmEmail(user.FirstName, "784320"));
+
+        return Ok();
     }
 
     [HttpPost("password/set")]
@@ -241,7 +249,8 @@ public class AuthenticationController : ControllerBase
         }
 
         var availableRoles = Enum.GetNames(typeof(Role)).ToList();
-        bool roleValid = request.Roles.All(r => availableRoles.Contains(r));
+        bool roleValid = request.Roles.Any() &&
+                         request.Roles.All(r => availableRoles.Contains(r));
 
         if(!roleValid)
         {
@@ -285,7 +294,7 @@ public class AuthenticationController : ControllerBase
         if (user.Roles.Count == 1 && user.IsCustomer)
         {
             string token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            // message bus send email
+            _mailer.Send(user, new ConfirmEmail(user.FirstName, token));
             return Ok(token); //remove for deploy
         }
 
@@ -308,8 +317,7 @@ public class AuthenticationController : ControllerBase
         }
 
         string token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-
-        //SERVICE BUS SEND EMAIL
+        _mailer.Send(user, new ConfirmEmail(user.FirstName, token));
 
         return Ok(token);
     }
@@ -349,50 +357,5 @@ public class AuthenticationController : ControllerBase
         }
 
         return BadRequest("The code you entered is invalid or expired, please try again.");
-    }
-
-    [Authorize(Roles = "Admin")]
-    [HttpPost("registration/accept")]
-    public async Task<ActionResult> AcceptRegistration(AcceptRegistrationRequest request)
-    {
-        var user = await _userManager.FindByEmailAsync(request.Email);
-
-        if (user is null)
-        {
-            return BadRequest("The email you entered doesn't belong to an account. Please check the email and try again.");
-        }
-
-        if (user.EmailConfirmed)
-        {
-            return BadRequest("The email you entered is already confirmed.");
-        }
-
-        if (string.IsNullOrWhiteSpace(request.DenialReason))
-        {
-            user.JoinRequest.Approve();
-            user.EmailConfirmed = true;
-        }
-        else
-        {
-            user.JoinRequest.Deny(request.DenialReason);
-        }
-
-        var result = await _userManager.UpdateAsync(user);
-
-        if (!result.Succeeded)
-        {
-            BadRequest("Could not accept the registration at this time. Please try again later.");
-        }
-
-        if (user.JoinRequest.Approved) 
-        {
-            // send welcome email
-        }
-        else if (user.JoinRequest.Rejected)
-        {
-            // send piss off email
-        }
-
-        return Ok();
     }
 }
