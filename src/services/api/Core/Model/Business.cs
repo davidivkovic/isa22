@@ -14,21 +14,22 @@ public class Service
 
 public abstract class Business : Entity
 {
-    public string        Name            { get; set; }
-    public string        Description     { get; set; }
-    public Address       Address         { get; set; }
-    public Money         PricePerUnit    { get; set; }
-    public User          Owner           { get; set; }
-    public List<string>  Images          { get; set; } = new();
-    public List<Rule>    Rules           { get; set; } = new();
-    public List<Service> Services        { get; set; } = new();
-    public List<Slot>    Availability    { get; set; } = new();
-    public List<Review>  Reviews         { get; set; } = new();
-    public List<User>    Subscribers     { get; set; } = new();
-    public int           NumberOfReviews { get; set; }
-    public int           Rating          { get; set; }
-    public double        CancellationFee { get; set; }
-    public virtual       TimeSpan Unit   { get; }
+    public string            Name            { get; set; }
+    public string            Description     { get; set; }
+    public Address           Address         { get; set; }
+    public Money             PricePerUnit    { get; set; }
+    public User              Owner           { get; set; }
+    public List<string>      Images          { get; set; } = new();
+    public List<Rule>        Rules           { get; set; } = new();
+    public List<Service>     Services        { get; set; } = new();
+    public List<Slot>        Availability    { get; set; } = new();
+    public List<Review>      Reviews         { get; set; } = new();
+    public List<User>        Subscribers     { get; set; } = new();
+    public List<Reservation> Reservations    { get; set; } = new();
+    public int               NumberOfReviews { get; set; }
+    public int               Rating          { get; set; }
+    public double            CancellationFee { get; set; }
+    public virtual           TimeSpan Unit   { get; }
 
     public Business() {}
 

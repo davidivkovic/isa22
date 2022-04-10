@@ -2,6 +2,6 @@
 
 public class AcceptRegistrationRequest
 {
-    public string Email { get; set; }
+    public Guid UserId{ get; set; }
     public string DenialReason { get; set; }
 }

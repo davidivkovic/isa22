@@ -12,6 +12,8 @@ services:
       - POSTGRES_CONNECTION=Server=postgres;Port=5432;Database=api;User ID=postgres;Password=postgres
     ports:
       - 5000:80
+    volumes:
+      - ../data/images:/data/images
     depends_on:
       - postgres
 

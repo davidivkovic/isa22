@@ -8,9 +8,15 @@ public class Review : Entity
     public string   Content   { get; set; }
     public DateTime Timestamp { get; set; }
     public bool     Approved  { get; set; }
+    public bool     Rejected  { get; set; }
 
     public void Approve()
     {
         Approved = true;
+    }
+
+    public void Deny()
+    {
+        Rejected = true;
     }
 }
