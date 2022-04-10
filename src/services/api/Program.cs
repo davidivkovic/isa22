@@ -1,14 +1,21 @@
 using System.Text.Json.Serialization;
 
+using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
+using Mapster;
+
+using FastExpressionCompiler;
+
 using API.Core.Model;
 using API.Infrastructure.Data;
 using API.Security;
-using Microsoft.OpenApi.Models;
 using API.Infrastructure.Swagger;
+using API.Services.Email;
+
+TypeAdapterConfig.GlobalSettings.Compiler = exp => exp.CompileFast();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,7 +36,6 @@ builder.Services.AddSwaggerGen(options =>
     });
 
     options.OperationFilter<AuthFilter>();
-
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "API", Version = "v1" });
 });
 
@@ -79,6 +85,8 @@ builder.Services
         IssuerSigningKey = JWTProvider.Key
     };
 });
+
+builder.Services.AddSingleton<Mailer>();
 
 var app = builder.Build();
 
