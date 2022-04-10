@@ -1,10 +1,15 @@
 <template>
   <div>
-    <label class=""
-      >Why do you want to make this account? Explain in a couple of
-      sentences.</label
+    <label
+      >We can't wait for you to get started! How you plan to use our
+      platform?</label
     >
-    <TextArea required v-model="reason"> </TextArea>
+    <TextArea
+      required
+      v-model="reason"
+      placeholder="I want to advertise my business, etc."
+    >
+    </TextArea>
     <p class="mt-3 text-sm text-red-500">{{ error }}</p>
     <div class="flex justify-end">
       <Button
@@ -22,7 +27,7 @@ import { ref } from 'vue'
 import Button from '../ui/Button.vue'
 import TextArea from '../ui/TextArea.vue'
 import { ArrowNarrowRightIcon } from 'vue-tabler-icons'
-const reason = ref('I would like to advertise and make some money.')
+const reason = ref('')
 const error = ref('')
 const emit = defineEmits(['next'])
 const forward = () => {

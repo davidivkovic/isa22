@@ -34,7 +34,7 @@
         >
           <div class="flex h-screen items-center justify-center">
             <div
-              class="transform rounded-2xl transition-all duration-500"
+              class="transform rounded-lg transition-all duration-500"
               style="box-shadow: 0 6px 50px 0 rgb(0 0 0 / 25%)"
               v-bind="$attrs"
             >

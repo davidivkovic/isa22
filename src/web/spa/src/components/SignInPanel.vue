@@ -1,8 +1,9 @@
 <template>
   <form @submit.prevent class="relative text-left">
-    <h1 class="mt-10 text-3xl font-medium">Welcome back.</h1>
-    <div class="mt-6">
+    <h1 class="mt-4 text-3xl font-medium tracking-tight">Welcome back.</h1>
+    <div class="mt-10">
       <Input
+        placeholder="Email"
         class="h-12 w-full"
         v-model="email"
         type="email"
@@ -10,7 +11,12 @@
       />
     </div>
     <div class="mt-3">
-      <PasswordInput class="h-12 w-full" v-model="password" label="Password" />
+      <PasswordInput
+        placeholder="Password"
+        class="h-12 w-full"
+        v-model="password"
+        label="Password"
+      />
     </div>
     <div class="mt-5 text-sm text-red-500">{{ formError }}</div>
     <div class="mt-3">

@@ -31,6 +31,7 @@ public class BusinessDTO : BaseBusinessDTO
     public List<string> Images { get; set; }
     public int NumberOfReviews { get; set; }
     public int Rating { get; set; }
+    public new Money PricePerUnit { get; set; }
 
     public void WithImages(Func<Guid, string, string> imageUrl)
     {

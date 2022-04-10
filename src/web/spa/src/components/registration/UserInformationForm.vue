@@ -1,11 +1,24 @@
 <template>
   <form @submit.prevent="forward" class="w-full space-y-3">
     <div class="flex space-x-2">
-      <Input required class="h-12 w-full" name="firstName" label="First name" />
-      <Input required class="h-12 w-full" name="lastName" label="Last name" />
+      <Input
+        required
+        placeholder="First Name"
+        class="h-12 w-full"
+        name="firstName"
+        label="First Name"
+      />
+      <Input
+        required
+        placeholder="Last Name"
+        class="h-12 w-full"
+        name="lastName"
+        label="Last Name"
+      />
     </div>
     <Input
       required
+      placeholder="Phone number"
       class="h-12 w-full"
       name="phoneNumber"
       type="tel"
@@ -28,7 +41,6 @@
 import { ref } from 'vue'
 import Input from '../ui/Input.vue'
 import Button from '../ui/Button.vue'
-import PasswordInput from '../ui/PasswordInput.vue'
 import { ArrowNarrowRightIcon } from 'vue-tabler-icons'
 import { formData } from '../utility/forms.js'
 

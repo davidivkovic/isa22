@@ -2,22 +2,47 @@
   <form @submit.prevent="forward" class="w-full space-y-3">
     <div class="flex space-x-2">
       <div class="w-full">
-        <Input required class="h-12 w-full" name="street" label="Street" />
+        <Input
+          required
+          class="h-12 w-full"
+          name="street"
+          placeholder="Street"
+          label="Street"
+        />
       </div>
-      <Input required class="h-12 w-full" name="apartment" label="Apartment" />
+      <Input
+        required
+        class="h-12 w-full"
+        name="apartment"
+        placeholder="Apartment"
+        label="Apartment"
+      />
     </div>
     <div class="flex space-x-2">
       <Input
         required
         class="h-12 w-full"
         name="postalCode"
-        label="Postal code"
+        placeholder="Postal Code"
+        label="Postal Code"
         type="number"
         min="0"
       />
-      <Input required class="h-12 w-full" name="city" label="City" />
+      <Input
+        required
+        class="h-12 w-full"
+        name="city"
+        placeholder="City"
+        label="City"
+      />
     </div>
-    <Input required class="h-12 w-full" name="country" label="Country" />
+    <Input
+      required
+      class="h-12 w-full"
+      name="country"
+      placeholder="Country"
+      label="Country"
+    />
     <p class="mt-5 text-sm text-red-500">{{ error }}</p>
     <div class="flex justify-end">
       <Button
