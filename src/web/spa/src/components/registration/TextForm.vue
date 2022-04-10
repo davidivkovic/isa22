@@ -5,7 +5,6 @@
       platform?</label
     >
     <TextArea
-      required
       v-model="reason"
       placeholder="I want to advertise my business, etc."
     >
