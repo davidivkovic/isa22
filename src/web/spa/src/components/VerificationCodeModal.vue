@@ -1,0 +1,87 @@
+<template>
+  <Modal
+    :isOpen="isModalOpen"
+    @modalClosed="closeModal"
+    :light="true"
+    class="w-[500px] space-y-3 bg-white px-14 py-16 text-left"
+  >
+    <XIcon
+      @click="closeModal()"
+      class="absolute top-3 right-3 h-6 w-6 cursor-pointer text-black"
+    ></XIcon>
+    <h1 class="text-3xl font-medium">Welcome.</h1>
+    <h2 class="mt-5 text-base leading-6 text-gray-700">
+      Please enter the 6 digit confirmation code we sent you to your email to
+      verify your account.
+    </h2>
+    <form
+      @submit.prevent="verifyCode"
+      class="mx-auto !mt-10 flex flex-col space-y-8"
+    >
+      <div class="mx-auto flex space-x-2">
+        <Input
+          required
+          @keyup="e => onKeyUp(i, e)"
+          v-for="i in [1, 2, 3, 4, 5, 6]"
+          :key="i"
+          :id="`box${i}`"
+          maxlength="1"
+          :name="i"
+          autocomplete="new-password"
+          class="h-12 w-10 border text-center text-base"
+        />
+      </div>
+      <div class="flex justify-center">
+        <Button
+          type="submit"
+          class="bg-emerald-600 !px-24 !py-3.5 text-lg text-white"
+          >Verify account</Button
+        >
+      </div>
+      <div class="!mt-3 text-center text-sm text-red-500">{{ formError }}</div>
+    </form>
+    <h3 class="!mt-10 text-center text-sm">
+      Didn't get the code?
+      <button @click="resendCode()" class="text-emerald-600 hover:underline">
+        Resend code.
+      </button>
+    </h3>
+  </Modal>
+</template>
+<script setup>
+import { ref } from 'vue'
+import Modal from './ui/Modal.vue'
+import Input from './ui/Input.vue'
+import Button from './ui/Button.vue'
+import { XIcon } from 'vue-tabler-icons'
+import { useModal } from '../stores/modalStore'
+import { formData } from './utility/forms'
+import { useRoute } from 'vue-router'
+import api from '../api/api'
+const { isModalOpen, closeModal } = useModal()
+
+const route = useRoute()
+const formError = ref('')
+
+const onKeyUp = (index, event) => {
+  if (
+    event.keyCode === 8 &&
+    index > 1 &&
+    document.getElementById(`box${index}`).value === ''
+  ) {
+    document.getElementById(`box${index - 1}`).focus()
+  } else if (event.keyCode != 8 && index < 6) {
+    document.getElementById(`box${index + 1}`).focus()
+  }
+}
+
+const verifyCode = async event => {
+  const data = formData(event)
+  const code = Object.values(data).join('')
+  const email = route.params.email
+  const [res, error] = await api.auth.confirmEmail(email, code)
+  formError.value = error
+}
+
+const resendCode = () => console.log('resend')
+</script>
