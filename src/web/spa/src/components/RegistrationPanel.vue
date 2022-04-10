@@ -3,12 +3,17 @@
     <h1 class="mt-10 text-2xl font-medium leading-7">
       {{ title }}
     </h1>
-    <div v-if="showPrevious" class="mt-8">
-      <button @click="back()" class="group flex space-x-2">
-        <ArrowNarrowLeftIcon stroke-width="1.25" class="group-hover:stroke-2" />
-        <div class="group-hover:font-semibold">Previous</div>
-      </button>
-    </div>
+    <Transition mode="out-in">
+      <div v-if="showPrevious" class="mt-8">
+        <button @click="back()" class="group flex space-x-2">
+          <ArrowNarrowLeftIcon
+            stroke-width="1.25"
+            class="group-hover:stroke-2"
+          />
+          <div class="group-hover:font-semibold">Previous</div>
+        </button>
+      </div>
+    </Transition>
     <Transition mode="out-in">
       <KeepAlive>
         <Component

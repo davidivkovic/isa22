@@ -3,7 +3,7 @@
     <label
       v-if="$attrs.label"
       :for="$attrs.id"
-      class="mb-1 block pl-px text-[13.5px] text-neutral-700"
+      class="mb-1 block pl-px text-[15px] font-medium tracking-tight text-neutral-700"
     >
       {{ $attrs.label }}
     </label>

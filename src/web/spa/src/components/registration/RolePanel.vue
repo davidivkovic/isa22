@@ -14,7 +14,13 @@
           <img :src="images[role]" alt="Icon" class="h-10 w-10 object-cover" />
           <p>I want to be {{ addArticle(role) }}</p>
         </div>
-        <ChevronRightIcon class="h-8 w-8 text-black" stroke-width="1.5" />
+        <ChevronRightIcon
+          class="h-8 w-8 text-black"
+          :class="{
+            '!text-emerald-700': selectedRole === role
+          }"
+          stroke-width="1.5"
+        />
       </div>
     </button>
     <div class="flex justify-end">
