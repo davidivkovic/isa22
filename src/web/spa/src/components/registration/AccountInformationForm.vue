@@ -5,12 +5,14 @@
       class="h-12 w-full"
       type="email"
       name="email"
+      placeholder="Email"
       label="Email address"
     />
     <PasswordInput
       required
       class="h-12 w-full"
       name="password"
+      placeholder="Password"
       label="Enter password"
     />
     <div class="flex justify-end">
