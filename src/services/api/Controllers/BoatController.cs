@@ -121,4 +121,28 @@ public class BoatController : ControllerBase
 
         return Ok(boat.Id);
     }
+
+    [HttpGet("update")]
+    [Authorize(Roles = "BoatOwner")]
+    public async Task<ActionResult> Update(UpdateBoatDTO dto)
+    {
+        var boat = await _dbContext.Boats
+                            .Include(a => a.Owner)
+                            .FirstOrDefaultAsync(a => a.Id == dto.Id);
+
+        if (boat.Owner.Id != User.Id())
+        {
+            return StatusCode(403);
+        }
+
+        dto.Adapt(boat);
+        bool success = await _dbContext.SaveChangesAsync() > 0;
+
+        if (!success)
+        {
+            BadRequest("Could not update your adventure at this time. Please try again later.");
+        }
+
+        return Ok(boat.Adapt<BoatDTO>());
+    }
 }
