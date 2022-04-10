@@ -1,18 +1,22 @@
 <template>
-  <label 
-  @focusin="showDatePicker()"
-  :for="props.name" class="group relative cursor-pointer">
+  <label
+    @focusin="showDatePicker()"
+    :for="props.name"
+    class="group relative cursor-pointer"
+  >
     <input
       @change="formatInput()"
       required
       :id="props.name"
       ref="dateInput"
       :type="props.hasTime ? 'datetime-local' : 'date'"
-      class="peer ml-5 w-[210px] -z-10 select-none border-0 py-0 text-[1.075rem] font-semibold text-white valid:translate-y-3 valid:text-black focus-within:translate-y-3 focus-within:text-black focus:outline-none focus:ring-0"
+      class="peer -z-10 ml-5 w-[210px] select-none border-0 py-0 text-[1.075rem] font-semibold text-white valid:translate-y-3 valid:text-black focus-within:translate-y-3 focus-within:text-black focus:outline-none focus:ring-0"
     />
-    <div :v-if="props.hasTime"
-      class="absolute text-[1.075rem]  top-2.5 ml-8 h-7 w-full bg-white font-semibold text-black"
-    >{{dateValue}}
+    <div
+      :v-if="props.hasTime"
+      class="absolute top-2.5 ml-8 h-7 w-full bg-white text-[1.075rem] font-semibold text-black"
+    >
+      {{ dateValue }}
     </div>
     <div
       class="visited:peer absolute top-0 flex cursor-pointer items-center space-x-2 text-[22px] transition-all group-focus-within:-translate-y-4 group-focus-within:text-base peer-valid:-translate-y-4 peer-valid:text-base"
@@ -25,7 +29,7 @@
       </p>
     </div>
     <div
-      class="mt-1 fixed ml-8 whitespace-nowrap text-sm text-gray-400 transition-all group-focus-within:translate-y-2 peer-valid:translate-y-2"
+      class="fixed mt-1 ml-8 whitespace-nowrap text-sm text-gray-400 transition-all group-focus-within:translate-y-2 peer-valid:translate-y-2"
     >
       <p class="">{{ props.description }}</p>
     </div>
@@ -50,7 +54,7 @@ const formatInput = () => {
   dateValue.value = newDate
 }
 const showDatePicker = () => {
-    dateInput.value.showPicker()
+  dateInput.value.showPicker()
 }
 </script>
 
