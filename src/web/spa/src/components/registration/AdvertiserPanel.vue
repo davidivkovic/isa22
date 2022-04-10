@@ -39,6 +39,10 @@
 import { ref } from 'vue'
 import Button from '../ui/Button.vue'
 import { ChevronRightIcon, ArrowNarrowRightIcon } from 'vue-tabler-icons'
+import cabinsURL from '@/assets/images/cabins-icon.png'
+import boatsURL from '@/assets/images/boats-icon.png'
+import fishingURL from '@/assets/images/fishing-icon.png'
+
 const services = ['cabins', 'boats', 'fishing adventures']
 const roles = {
   cabins: 'CabinOwner',
@@ -46,10 +50,9 @@ const roles = {
   'fishing adventures': 'Fisher'
 }
 const images = {
-  cabins: 'https://cdn-icons-png.flaticon.com/512/4264/4264183.png',
-  boats: 'https://cdn-icons-png.flaticon.com/512/186/186181.png',
-  'fishing adventures':
-    'https://cdn-icons-png.flaticon.com/512/1027/1027716.png'
+  cabins: cabinsURL,
+  boats: boatsURL,
+  'fishing adventures': fishingURL
 }
 
 const selectedService = ref('')
