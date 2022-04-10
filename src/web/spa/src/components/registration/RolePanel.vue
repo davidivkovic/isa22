@@ -40,6 +40,8 @@
 import { ref } from 'vue'
 import Button from '../ui/Button.vue'
 import { ChevronRightIcon, ArrowNarrowRightIcon } from 'vue-tabler-icons'
+import customerURL from '@/assets/images/customer.png'
+import advertiserURL from '@/assets/images/advertiser.png'
 
 const selectedRole = ref('')
 const roles = ['customer', 'advertiser']
@@ -53,8 +55,8 @@ const forward = () => {
   emit('next')
 }
 const images = {
-  customer: 'https://cdn-icons-png.flaticon.com/512/6714/6714037.png',
-  advertiser: 'https://cdn-icons-png.flaticon.com/512/5692/5692207.png'
+  customer: customerURL,
+  advertiser: advertiserURL
 }
 const addArticle = role =>
   role === 'customer' ? 'a customer' : 'an advertiser'
