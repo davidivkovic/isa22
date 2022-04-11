@@ -116,5 +116,29 @@ public class CabinController : ControllerBase
 
         return Ok(cabin.Id);
     }
+
+    [HttpGet("update")]
+    [Authorize(Roles = "CabinOwner")]
+    public async Task<ActionResult> Update(UpdateCabinDTO dto)
+    {
+        var cabin = await _dbContext.Cabins
+                            .Include(a => a.Owner)
+                            .FirstOrDefaultAsync(a => a.Id == dto.Id);
+
+        if (cabin.Owner.Id != User.Id())
+        {
+            return StatusCode(403);
+        }
+
+        dto.Adapt(cabin);
+        bool success = await _dbContext.SaveChangesAsync() > 0;
+
+        if (!success)
+        {
+            BadRequest("Could not update your cabin at this time. Please try again later.");
+        }
+
+        return Ok(cabin.Adapt<CabinDTO>());
+    }
 }
 
