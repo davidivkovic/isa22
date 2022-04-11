@@ -1,23 +1,22 @@
 ﻿namespace API.Controllers;
 
+using System.Linq;
 using System.ComponentModel.DataAnnotations;
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 
-using API.Infrastructure.Data;
-using API.Core.Model;
-using API.Infrastructure.Extensions;
-using API.Security;
-using API.DTO.Authentication;
-using API.DTO;
-
-using System.Linq;
-
 using Mapster;
+
+using API.DTO;
+using API.Security;
+using API.Core.Model;
 using API.Services.Email;
+using API.DTO.Authentication;
+using API.Infrastructure.Data;
 using API.Services.Email.Messages;
+using API.Infrastructure.Extensions;
 
 [Route("/auth")]
 [ApiController]
@@ -248,9 +247,8 @@ public class AuthenticationController : ControllerBase
             return BadRequest($"Another account is using {request.Email}.");
         }
 
-        var availableRoles = Enum.GetNames(typeof(Role)).ToList();
         bool roleValid = request.Roles.Any() &&
-                         request.Roles.All(r => availableRoles.Contains(r));
+                         request.Roles.All(r => Role.IsValid(r));
 
         if(!roleValid)
         {

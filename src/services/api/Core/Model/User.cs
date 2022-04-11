@@ -61,13 +61,24 @@ public class OneTimePassword
     public bool Validate(string value) => Value == value && Expires >= DateTimeOffset.UtcNow;
 }
 
-public enum Role
+public static class Role
 {
-    Admin,
-    Customer,
-    BoatOwner,
-    CabinOwner,
-    Fisher
+    public const string Admin = "Admin";
+    public const string Customer = "Customer";
+    public const string BoatOwner = "Boat Owner";
+    public const string CabinOwner = "Cabin Owner";
+    public const string Fisher = "Fisher";
+
+    public static readonly List<string> Available = new()
+    {
+        Admin,
+        Customer,
+        BoatOwner,
+        CabinOwner,
+        Fisher
+    };
+
+    public static bool IsValid(string role) => Available.Contains(role);
 }
 
 public class User : IdentityUser<Guid>, IDeletable
@@ -83,13 +94,13 @@ public class User : IdentityUser<Guid>, IDeletable
     public List<Business>  Subscriptions   { get; set; } = new();
     public bool            IsDeleted       { get; set; }
     public OneTimePassword OneTimePassword { get; set; }
-    public List<Role>      Roles           { get; set; } = new();
+    public List<string>    Roles           { get; set; } = new();
     public bool            LockedOut       { get; set; }
 
     public string FullName => $"{FirstName} {LastName}";
     public bool IsAdmin => Roles.Contains(Role.Admin);
     public bool IsCustomer => Roles.Contains(Role.Customer);
-    public bool IsBusinessOwner => Roles.Any(r => new Role[] 
+    public bool IsBusinessOwner => Roles.Any(r => new string[] 
     { 
         Role.Fisher,
         Role.CabinOwner,

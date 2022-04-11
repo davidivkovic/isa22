@@ -1,18 +1,15 @@
 ﻿namespace API.Controllers;
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using API.DTO;
-using API.Infrastructure.Data;
-using API.Services;
-using Mapster;
 using Microsoft.AspNetCore.Authorization;
+
+using Mapster;
+
+using API.DTO;
+using API.Services;
 using API.Core.Model;
+using API.Infrastructure.Data;
 using API.Infrastructure.Extensions;
 
 [ApiController]
@@ -32,7 +29,8 @@ public class BoatController : ControllerBase
             nameof(GetImage),
             ControllerContext.ActionDescriptor.ControllerName,
             new { id, image },
-            Request.Scheme);
+            Request.Scheme
+        );
     }
 
     [HttpGet("{id}/images/{image}")]
@@ -51,8 +49,8 @@ public class BoatController : ControllerBase
     public async Task<ActionResult> GetImages(Guid id)
     {
         var boat = await _dbContext.Boats
-                                        .AsNoTracking()
-                                        .FirstOrDefaultAsync(a => a.Id == id);
+                                   .AsNoTracking()
+                                   .FirstOrDefaultAsync(a => a.Id == id);
         if (boat is null)
         {
             return BadRequest("The requested adventure does not exist.");
@@ -81,7 +79,7 @@ public class BoatController : ControllerBase
     }
 
     [HttpPost("create")]
-    [Authorize(Roles = "BoatOwner")]
+    [Authorize(Roles = Role.BoatOwner)]
     public async Task<ActionResult> Create([FromForm] CreateBoatDTO dto)
     {
         User user = await _dbContext.Users.FindAsync(User.Id());
@@ -123,7 +121,7 @@ public class BoatController : ControllerBase
     }
 
     [HttpGet("update")]
-    [Authorize(Roles = "BoatOwner")]
+    [Authorize(Roles = Role.BoatOwner)]
     public async Task<ActionResult> Update(UpdateBoatDTO dto)
     {
         var boat = await _dbContext.Boats

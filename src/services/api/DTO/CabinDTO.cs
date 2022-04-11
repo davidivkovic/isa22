@@ -1,6 +1,6 @@
-﻿using API.Core.Model;
+﻿namespace API.DTO;
 
-namespace API.DTO;
+using API.Core.Model;
 
 public class CreateCabinDTO : CreateBusinessDTO
 {

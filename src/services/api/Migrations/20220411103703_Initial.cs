@@ -226,7 +226,7 @@ namespace API.Migrations
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     OneTimePassword_Value = table.Column<string>(type: "text", nullable: true),
                     OneTimePassword_Expires = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                    Roles = table.Column<int[]>(type: "integer[]", nullable: true),
+                    Roles = table.Column<List<string>>(type: "text[]", nullable: true),
                     LockedOut = table.Column<bool>(type: "boolean", nullable: false),
                     BusinessId = table.Column<Guid>(type: "uuid", nullable: true),
                     UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
@@ -288,7 +288,7 @@ namespace API.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Status = table.Column<int>(type: "integer", nullable: false),
+                    Status = table.Column<string>(type: "text", nullable: true),
                     UserId = table.Column<Guid>(type: "uuid", nullable: true),
                     BusinessId = table.Column<Guid>(type: "uuid", nullable: true),
                     Start = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
