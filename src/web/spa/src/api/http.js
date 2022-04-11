@@ -66,16 +66,12 @@ const fetch = async (request, onSuccess, onError) => {
 const reactiveFetch = request => {
   const data = ref()
   const error = ref()
-  // const state = reactive({
-  //   data: undefined,
-  //   error: undefined
-  // })
+
   request
     .then(res => (data.value = res.data))
     .catch(err => (error.value = err.response.data))
 
   return {
-    // ...toRefs(state)
     data,
     error
   }

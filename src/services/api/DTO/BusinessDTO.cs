@@ -27,7 +27,7 @@ public class UpdateBusinessDTO : BaseBusinessDTO
 public class BusinessDTO : BaseBusinessDTO
 {
     public Guid Id { get; set; }
-    public User Owner { get; set; }
+    public UserDTO Owner { get; set; }
     public List<string> Images { get; set; }
     public int NumberOfReviews { get; set; }
     public int Rating { get; set; }

@@ -6,12 +6,12 @@ using Microsoft.EntityFrameworkCore;
 
 using Mapster;
 
-using API.Core.Model;
 using API.DTO;
+using API.Services;
+using API.Core.Model;
 using API.Infrastructure.Data;
 using API.Infrastructure.Extensions;
 using API.Infrastructure.Data.Queries;
-using API.Services;
 
 [ApiController]
 [Route("adventures")]
@@ -81,7 +81,7 @@ public class AdventureController : ControllerBase
 
 
     [HttpPost("create")]
-    [Authorize(Roles = "Fisher")]
+    [Authorize(Roles = Role.Fisher)]
     public async Task<ActionResult> Create([FromForm] CreateAdventureDTO dto)
     {
         User user = await _dbContext.Users.FindAsync(User.Id());
@@ -123,7 +123,7 @@ public class AdventureController : ControllerBase
     }
 
     [HttpPut("update")]
-    [Authorize(Roles = "Fisher")]
+    [Authorize(Roles = Role.Fisher)]
     public async Task<ActionResult> Update(UpdateAdventureDTO dto)
     {
         var adventure = await _dbContext.Adventures

@@ -2,7 +2,6 @@
 
 using System;
 using System.Text;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -49,9 +48,9 @@ public class JWTProvider
 
     public static string GetAccessToken(User user)
     {
-        var claims = user.Roles.Select(r => 
-            new Claim(ClaimTypes.Role, r.ToString())
-        ).ToList();
+        var claims = user.Roles
+            .Select(r => new Claim(ClaimTypes.Role, r))
+            .ToList();
         claims.Add(new(JwtRegisteredClaimNames.Sub, user.Id.ToString()));
 
         SecurityTokenDescriptor tokenDescriptor = new()

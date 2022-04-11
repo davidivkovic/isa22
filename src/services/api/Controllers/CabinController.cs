@@ -1,14 +1,16 @@
-﻿using API.Core.Model;
-using API.DTO;
-using API.Infrastructure.Data;
-using API.Infrastructure.Extensions;
-using API.Services;
-using Mapster;
+﻿namespace API.Controllers;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace API.Controllers;
+using Mapster;
+
+using API.DTO;
+using API.Services;
+using API.Core.Model;
+using API.Infrastructure.Data;
+using API.Infrastructure.Extensions;
 
 [ApiController]
 [Route("cabins")]
@@ -27,7 +29,8 @@ public class CabinController : ControllerBase
             nameof(GetImage),
             ControllerContext.ActionDescriptor.ControllerName,
             new { id, image },
-            Request.Scheme);
+            Request.Scheme
+        );
     }
 
     [HttpGet("{id}/images/{image}")]
@@ -76,7 +79,7 @@ public class CabinController : ControllerBase
     }
 
     [HttpPost("create")]
-    [Authorize(Roles = "CabinOwner")]
+    [Authorize(Roles = Role.CabinOwner)]
     public async Task<ActionResult> Create([FromForm] CreateCabinDTO dto)
     {
         User user = await _dbContext.Users.FindAsync(User.Id());
@@ -118,7 +121,7 @@ public class CabinController : ControllerBase
     }
 
     [HttpGet("update")]
-    [Authorize(Roles = "CabinOwner")]
+    [Authorize(Roles = Role.CabinOwner)]
     public async Task<ActionResult> Update(UpdateCabinDTO dto)
     {
         var cabin = await _dbContext.Cabins
@@ -141,4 +144,3 @@ public class CabinController : ControllerBase
         return Ok(cabin.Adapt<CabinDTO>());
     }
 }
-

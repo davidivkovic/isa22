@@ -23,25 +23,25 @@ public class Report
 
 public class Reservation : Entity
 {
-    public enum ReservationStatus
+    public static class ReservationStatus
     {
-        None,
-        Created,
-        Fulfilled,
-        Cancelled
+        public const string None = "None";
+        public const string Created = "Created";
+        public const string Fulfilled = "Fulfilled";
+        public const string Cancelled = "Cancelled";
     }
 
-    public ReservationStatus Status             { get; set; }
-    public User              User               { get; set; }
-    public Business          Business           { get; set; }
-    public DateTime          Start              { get; set; }
-    public DateTime          End                { get; set; }
-    public DateTime          Timestamp          { get; set; }
-    public Payment           Payment            { get; set; }
-    public double            DiscountPercentage { get; set; }
-    public List<Service>     Services           { get; set; }
-    public Report            Report             { get; set; }
-    public Complaint         Complaint          { get; set; }
+    public string        Status             { get; set; }
+    public User          User               { get; set; }
+    public Business      Business           { get; set; }
+    public DateTime      Start              { get; set; }
+    public DateTime      End                { get; set; }
+    public DateTime      Timestamp          { get; set; }
+    public Payment       Payment            { get; set; }
+    public double        DiscountPercentage { get; set; }
+    public List<Service> Services           { get; set; }
+    public Report        Report             { get; set; }
+    public Complaint     Complaint          { get; set; }
 
     public Reservation() {}
 

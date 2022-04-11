@@ -6,11 +6,11 @@ using Microsoft.AspNetCore.Mvc;
 
 using Mapster;
 
-using API.Infrastructure.Data;
+using API.DTO;
 using API.Services.Email;
 using API.DTO.Authentication;
+using API.Infrastructure.Data;
 using API.Services.Email.Messages;
-using API.DTO;
 
 [Route("users")]
 [ApiController]

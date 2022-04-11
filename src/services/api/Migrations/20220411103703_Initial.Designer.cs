@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20220410144039_Initial")]
+    [Migration("20220411103703_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -110,8 +110,8 @@ namespace API.Migrations
                     b.Property<DateTime>("Start")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
+                    b.Property<string>("Status")
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("Timestamp")
                         .HasColumnType("timestamp with time zone");
@@ -284,8 +284,8 @@ namespace API.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("boolean");
 
-                    b.Property<int[]>("Roles")
-                        .HasColumnType("integer[]");
+                    b.Property<List<string>>("Roles")
+                        .HasColumnType("text[]");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");

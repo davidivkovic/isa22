@@ -108,8 +108,8 @@ namespace API.Migrations
                     b.Property<DateTime>("Start")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
+                    b.Property<string>("Status")
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("Timestamp")
                         .HasColumnType("timestamp with time zone");
@@ -282,8 +282,8 @@ namespace API.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("boolean");
 
-                    b.Property<int[]>("Roles")
-                        .HasColumnType("integer[]");
+                    b.Property<List<string>>("Roles")
+                        .HasColumnType("text[]");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
