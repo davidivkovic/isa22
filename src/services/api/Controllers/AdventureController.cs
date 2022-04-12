@@ -99,7 +99,12 @@ public class AdventureController : ControllerBase
             return BadRequest("The requested adventure does not exist.");
         }
 
-        if (files.Count > 10)
+        if (files.Count == 0)
+        {
+            return BadRequest("No images to add!");
+        }
+
+        if (files.Count + adventure.Images.Count > 10)
         {
             return BadRequest("A maximum of 10 images can be uploaded.");
         }
@@ -118,7 +123,9 @@ public class AdventureController : ControllerBase
             )
         );
 
-        adventure.Images = new(images);
+        List<string> imgs = new(images);
+
+        adventure.Images.AddRange(imgs);
         await _dbContext.SaveChangesAsync();
 
         return Ok();

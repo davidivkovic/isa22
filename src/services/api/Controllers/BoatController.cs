@@ -64,6 +64,8 @@ public class BoatController : ControllerBase
     {
         var boatDTO = await _dbContext.Boats
             .AsNoTracking()
+            .Include(a => a.Services)
+            .Include(a => a.Rules)
             .Where(a => a.Id == id)
             .ProjectToType<BoatDTO>()
             .FirstOrDefaultAsync();
@@ -78,47 +80,75 @@ public class BoatController : ControllerBase
         return Ok(boatDTO);
     }
 
-    //[HttpPost("create")]
-    //[Authorize(Roles = Role.BoatOwner)]
-    //public async Task<ActionResult> Create([FromForm] CreateBoatDTO dto)
-    //{
-    //    User user = await _dbContext.Users.FindAsync(User.Id());
-    //    if (user is null)
-    //    {
-    //        return BadRequest($"The user with email {user.Email} does not exist.");
-    //    }
+    [HttpPost("{id}/images/add")]
+    [Authorize(Roles = Role.BoatOwner)]
+    public async Task<ActionResult> AddImage(Guid id, [FromForm] List<IFormFile> files)
+    {
+        if (files.Count == 0)
+        {
+            return BadRequest("No images to add!");
+        }
 
-    //    dto.ImageData ??= new();
+        var boat = await _dbContext.Boats
+                            .Include(a => a.Owner)
+                            .FirstOrDefaultAsync(a => a.Id == id);
 
-    //    if (dto.ImageData.Count > 10)
-    //    {
-    //        return BadRequest("A maximum of 10 images can be uploaded.");
-    //    }
+        if (boat.Owner.Id != User.Id())
+        {
+            return BadRequest("Cannot update someone else's boat.");
+        }
 
-    //    foreach (var image in dto.ImageData)
-    //    {
-    //        if (!ImageService.IsValid(image.FileName, image.OpenReadStream()))
-    //        {
-    //            return BadRequest($"The file {image.FileName} is not a valid image file.");
-    //        }
-    //    }
+        if (boat is null)
+        {
+            return BadRequest("The requested boat does not exist.");
+        }
 
-    //    var boat = dto.Adapt<Boat>();
-    //    boat.Id = Guid.NewGuid();
-    //    boat.Owner = user;
+        if (files.Count + boat.Images.Count > 10)
+        {
+            return BadRequest("A maximum of 10 images can be uploaded.");
+        }
 
-    //    var images = await Task.WhenAll(
-    //        dto.ImageData.Select(image =>
-    //            ImageService.Persist(boat.Id, image.FileName, fs => image.CopyToAsync(fs))
-    //        )
-    //    );
+        foreach (var file in files)
+        {
+            if (!ImageService.IsValid(file.FileName, file.OpenReadStream()))
+            {
+                return BadRequest($"The file {file.FileName} is not a valid image.");
+            }
+        }
 
-    //    boat.Images = new(images);
-    //    _dbContext.Boats.Add(boat);
-    //    await _dbContext.SaveChangesAsync();
+        var images = await Task.WhenAll(
+            files.Select(image =>
+            ImageService.Persist(boat.Id, image.FileName, fs => image.CopyToAsync(fs))
+            )
+        );
 
-    //    return Ok(boat.Id);
-    //}
+        List<string> imgs = new(images);
+
+        boat.Images.AddRange(imgs);
+        await _dbContext.SaveChangesAsync();
+
+        return Ok();
+    }
+
+    [HttpPost("create")]
+    [Authorize(Roles = Role.BoatOwner)]
+    public async Task<IActionResult> Create(CreateBoatDTO dto)
+    {
+        User user = await _dbContext.Users.FindAsync(User.Id());
+        if(user is null)
+        {
+            return BadRequest($"The user with email {user.Email} does not exist.");
+        }
+
+        var boat = dto.Adapt<Boat>();
+        boat.Id = Guid.NewGuid();
+        boat.Owner = user;
+
+        _dbContext.Boats.Add(boat);
+        await _dbContext.SaveChangesAsync();
+
+        return Ok(boat.Id);
+    }
 
     [HttpGet("update")]
     [Authorize(Roles = Role.BoatOwner)]
@@ -138,7 +168,7 @@ public class BoatController : ControllerBase
 
         if (!success)
         {
-            BadRequest("Could not update your adventure at this time. Please try again later.");
+            BadRequest("Could not update your boat at this time. Please try again later.");
         }
 
         return Ok(boat.Adapt<BoatDTO>());

@@ -64,6 +64,8 @@ public class CabinController : ControllerBase
     {
         var cabinDTO = await _dbContext.Cabins
             .AsNoTracking()
+            .Include(a => a.Services)
+            .Include(a => a.Rules)
             .Where(a => a.Id == id)
             .ProjectToType<CabinDTO>()
             .FirstOrDefaultAsync();
@@ -78,47 +80,75 @@ public class CabinController : ControllerBase
         return Ok(cabinDTO);
     }
 
-    //[HttpPost("create")]
-    //[Authorize(Roles = Role.CabinOwner)]
-    //public async Task<ActionResult> Create([FromForm] CreateCabinDTO dto)
-    //{
-    //    User user = await _dbContext.Users.FindAsync(User.Id());
-    //    if (user is null)
-    //    {
-    //        return BadRequest($"The user with email {user.Email} does not exist.");
-    //    }
+    [HttpPost("{id}/images/add")]
+    [Authorize(Roles = Role.CabinOwner)]
+    public async Task<ActionResult> AddImage(Guid id, [FromForm] List<IFormFile> files)
+    {
+        if (files.Count == 0)
+        {
+            return BadRequest("No images to add!");
+        }
 
-    //    dto.ImageData ??= new();
+        var cabin = await _dbContext.Cabins
+                            .Include(a => a.Owner)
+                            .FirstOrDefaultAsync(a => a.Id == id);
 
-    //    if (dto.ImageData.Count > 10)
-    //    {
-    //        return BadRequest("A maximum of 10 images can be uploaded.");
-    //    }
+        if (cabin.Owner.Id != User.Id())
+        {
+            return BadRequest("Cannot update someone else's cabin.");
+        }
 
-    //    foreach (var image in dto.ImageData)
-    //    {
-    //        if (!ImageService.IsValid(image.FileName, image.OpenReadStream()))
-    //        {
-    //            return BadRequest($"The file {image.FileName} is not a valid image file.");
-    //        }
-    //    }
+        if (cabin is null)
+        {
+            return BadRequest("The requested cabin does not exist.");
+        }
 
-    //    var cabin = dto.Adapt<Cabin>();
-    //    cabin.Id = Guid.NewGuid();
-    //    cabin.Owner = user;
+        if (files.Count + cabin.Images.Count > 10)
+        {
+            return BadRequest("A maximum of 10 images can be uploaded.");
+        }
 
-    //    var images = await Task.WhenAll(
-    //        dto.ImageData.Select(image =>
-    //            ImageService.Persist(cabin.Id, image.FileName, fs => image.CopyToAsync(fs))
-    //        )
-    //    );
+        foreach (var file in files)
+        {
+            if (!ImageService.IsValid(file.FileName, file.OpenReadStream()))
+            {
+                return BadRequest($"The file {file.FileName} is not a valid image.");
+            }
+        }
 
-    //    cabin.Images = new(images);
-    //    _dbContext.Cabins.Add(cabin);
-    //    await _dbContext.SaveChangesAsync();
+        var images = await Task.WhenAll(
+            files.Select(image =>
+            ImageService.Persist(cabin.Id, image.FileName, fs => image.CopyToAsync(fs))
+            )
+        );
 
-    //    return Ok(cabin.Id);
-    //}
+        List<string> imgs = new(images);
+
+        cabin.Images.AddRange(imgs);
+        await _dbContext.SaveChangesAsync();
+
+        return Ok();
+    }
+
+    [HttpPost("create")]
+    [Authorize(Roles = Role.CabinOwner)]
+    public async Task<IActionResult> Create(CreateCabinDTO dto)
+    {
+        User user = await _dbContext.Users.FindAsync(User.Id());
+        if (user is null)
+        {
+            return BadRequest($"The user with email {user.Email} does not exist.");
+        }
+
+        var cabin = dto.Adapt<Cabin>();
+        cabin.Id = Guid.NewGuid();
+        cabin.Owner = user;
+
+        _dbContext.Cabins.Add(cabin);
+        await _dbContext.SaveChangesAsync();
+
+        return Ok(cabin.Id);
+    }
 
     [HttpGet("update")]
     [Authorize(Roles = Role.CabinOwner)]
