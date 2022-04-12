@@ -16,7 +16,7 @@ public abstract class BaseBusinessDTO
 
 public class CreateBusinessDTO : BaseBusinessDTO
 {
-    public List<IFormFile> ImageData { get; set; }
+    //public List<IFormFile> ImageData { get; set; }
 }
 
 public class UpdateBusinessDTO : BaseBusinessDTO
