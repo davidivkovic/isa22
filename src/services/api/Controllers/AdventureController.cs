@@ -37,14 +37,6 @@ public class AdventureController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult> Get(Guid id)
     {
-
-        var a = await _dbContext.Adventures
-     .AsNoTracking()
-     .Include(a => a.Services)
-     .Include(a => a.Rules)
-     .Where(a => a.Id == id)
-     .FirstOrDefaultAsync();
-
         var adventureDTO = await _dbContext.Adventures
             .AsNoTracking()
             .Include(a => a.Services)
