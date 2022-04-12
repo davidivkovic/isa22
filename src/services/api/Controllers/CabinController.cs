@@ -34,10 +34,10 @@ public class CabinController : ControllerBase
     }
 
     [HttpGet("{id}/images/{image}")]
-    private ActionResult GetImage([FromRoute] Guid id, [FromRoute] string image)
+    public ActionResult GetImage([FromRoute] Guid id, [FromRoute] string image)
     {
         string imagePath = ImageService.GetPath(id, image);
-        if (image is null)
+        if (imagePath is null)
         {
             return BadRequest();
         }
