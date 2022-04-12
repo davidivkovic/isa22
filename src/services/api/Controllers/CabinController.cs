@@ -78,47 +78,47 @@ public class CabinController : ControllerBase
         return Ok(cabinDTO);
     }
 
-    [HttpPost("create")]
-    [Authorize(Roles = Role.CabinOwner)]
-    public async Task<ActionResult> Create([FromForm] CreateCabinDTO dto)
-    {
-        User user = await _dbContext.Users.FindAsync(User.Id());
-        if (user is null)
-        {
-            return BadRequest($"The user with email {user.Email} does not exist.");
-        }
+    //[HttpPost("create")]
+    //[Authorize(Roles = Role.CabinOwner)]
+    //public async Task<ActionResult> Create([FromForm] CreateCabinDTO dto)
+    //{
+    //    User user = await _dbContext.Users.FindAsync(User.Id());
+    //    if (user is null)
+    //    {
+    //        return BadRequest($"The user with email {user.Email} does not exist.");
+    //    }
 
-        dto.ImageData ??= new();
+    //    dto.ImageData ??= new();
 
-        if (dto.ImageData.Count > 10)
-        {
-            return BadRequest("A maximum of 10 iamges can be uploaded.");
-        }
+    //    if (dto.ImageData.Count > 10)
+    //    {
+    //        return BadRequest("A maximum of 10 images can be uploaded.");
+    //    }
 
-        foreach (var image in dto.ImageData)
-        {
-            if (!ImageService.IsValid(image.FileName, image.OpenReadStream()))
-            {
-                return BadRequest($"The file {image.FileName} is not a valid image file.");
-            }
-        }
+    //    foreach (var image in dto.ImageData)
+    //    {
+    //        if (!ImageService.IsValid(image.FileName, image.OpenReadStream()))
+    //        {
+    //            return BadRequest($"The file {image.FileName} is not a valid image file.");
+    //        }
+    //    }
 
-        var cabin = dto.Adapt<Cabin>();
-        cabin.Id = Guid.NewGuid();
-        cabin.Owner = user;
+    //    var cabin = dto.Adapt<Cabin>();
+    //    cabin.Id = Guid.NewGuid();
+    //    cabin.Owner = user;
 
-        var images = await Task.WhenAll(
-            dto.ImageData.Select(image =>
-                ImageService.Persist(cabin.Id, image.FileName, fs => image.CopyToAsync(fs))
-            )
-        );
+    //    var images = await Task.WhenAll(
+    //        dto.ImageData.Select(image =>
+    //            ImageService.Persist(cabin.Id, image.FileName, fs => image.CopyToAsync(fs))
+    //        )
+    //    );
 
-        cabin.Images = new(images);
-        _dbContext.Cabins.Add(cabin);
-        await _dbContext.SaveChangesAsync();
+    //    cabin.Images = new(images);
+    //    _dbContext.Cabins.Add(cabin);
+    //    await _dbContext.SaveChangesAsync();
 
-        return Ok(cabin.Id);
-    }
+    //    return Ok(cabin.Id);
+    //}
 
     [HttpGet("update")]
     [Authorize(Roles = Role.CabinOwner)]

@@ -37,8 +37,18 @@ public class AdventureController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult> Get(Guid id)
     {
+
+        var a = await _dbContext.Adventures
+     .AsNoTracking()
+     .Include(a => a.Services)
+     .Include(a => a.Rules)
+     .Where(a => a.Id == id)
+     .FirstOrDefaultAsync();
+
         var adventureDTO = await _dbContext.Adventures
             .AsNoTracking()
+            .Include(a => a.Services)
+            .Include(a => a.Rules)
             .Where(a => a.Id == id)
             .ProjectToType<AdventureDT0>()
             .FirstOrDefaultAsync();
@@ -79,10 +89,52 @@ public class AdventureController : ControllerBase
         return PhysicalFile(imagePath, "image/*");
     }
 
+    [HttpPost("{id}/images/add")]
+    [Authorize(Roles = Role.Fisher)]
+    public async Task<ActionResult> AddImage(Guid id, [FromForm] List<IFormFile> files)
+    {
+        var adventure = await _dbContext.Adventures
+                                        .Include(a => a.Owner)
+                                        .FirstOrDefaultAsync(a => a.Id == id);
+
+        if (adventure.Owner.Id != User.Id())
+        {
+            return BadRequest("Cannot update someone else's adventure");
+        }
+
+        if (adventure is null)
+        {
+            return BadRequest("The requested adventure does not exist.");
+        }
+
+        if (files.Count > 10)
+        {
+            return BadRequest("A maximum of 10 images can be uploaded.");
+        }
+
+        foreach (var file in files)
+        {
+            if (!ImageService.IsValid(file.FileName, file.OpenReadStream()))
+            {
+                return BadRequest($"The file { file.FileName } is not a valid image.");
+            }
+        }
+
+        var images = await Task.WhenAll(
+            files.Select(image =>
+                ImageService.Persist(adventure.Id, image.FileName, fs => image.CopyToAsync(fs))
+            )
+        );
+
+        adventure.Images = new(images);
+        await _dbContext.SaveChangesAsync();
+
+        return Ok();
+    }
 
     [HttpPost("create")]
     [Authorize(Roles = Role.Fisher)]
-    public async Task<ActionResult> Create([FromForm] CreateAdventureDTO dto)
+    public async Task<ActionResult> Create(CreateAdventureDTO dto)
     {
         User user = await _dbContext.Users.FindAsync(User.Id());
         if (user is null)
@@ -90,32 +142,10 @@ public class AdventureController : ControllerBase
             return BadRequest($"The user with email {user.Email} does not exist.");
         }
 
-        dto.ImageData ??= new();
-
-        if (dto.ImageData.Count > 10)
-        {
-            return BadRequest("A maximum of 10 images can be uploaded.");
-        }
-
-        foreach (var image in dto.ImageData)
-        {
-            if (!ImageService.IsValid(image.FileName, image.OpenReadStream()))
-            {
-                return BadRequest($"The file { image.FileName } is not a valid image.");
-            }
-        }
-
         var adventure = dto.Adapt<Adventure>();
         adventure.Id = Guid.NewGuid();
         adventure.Owner = user;
 
-        var images = await Task.WhenAll(
-            dto.ImageData.Select(image => 
-                ImageService.Persist(adventure.Id, image.FileName, fs => image.CopyToAsync(fs))
-            )
-        );
-
-        adventure.Images = new(images);
         _dbContext.Adventures.Add(adventure);
         await _dbContext.SaveChangesAsync();
 

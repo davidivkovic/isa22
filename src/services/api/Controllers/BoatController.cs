@@ -78,47 +78,47 @@ public class BoatController : ControllerBase
         return Ok(boatDTO);
     }
 
-    [HttpPost("create")]
-    [Authorize(Roles = Role.BoatOwner)]
-    public async Task<ActionResult> Create([FromForm] CreateBoatDTO dto)
-    {
-        User user = await _dbContext.Users.FindAsync(User.Id());
-        if (user is null)
-        {
-            return BadRequest($"The user with email {user.Email} does not exist.");
-        }
+    //[HttpPost("create")]
+    //[Authorize(Roles = Role.BoatOwner)]
+    //public async Task<ActionResult> Create([FromForm] CreateBoatDTO dto)
+    //{
+    //    User user = await _dbContext.Users.FindAsync(User.Id());
+    //    if (user is null)
+    //    {
+    //        return BadRequest($"The user with email {user.Email} does not exist.");
+    //    }
 
-        dto.ImageData ??= new();
+    //    dto.ImageData ??= new();
 
-        if (dto.ImageData.Count > 10)
-        {
-            return BadRequest("A maximum of 10 iamges can be uploaded.");
-        }
+    //    if (dto.ImageData.Count > 10)
+    //    {
+    //        return BadRequest("A maximum of 10 images can be uploaded.");
+    //    }
 
-        foreach (var image in dto.ImageData)
-        {
-            if (!ImageService.IsValid(image.FileName, image.OpenReadStream()))
-            {
-                return BadRequest($"The file {image.FileName} is not a valid image file.");
-            }
-        }
+    //    foreach (var image in dto.ImageData)
+    //    {
+    //        if (!ImageService.IsValid(image.FileName, image.OpenReadStream()))
+    //        {
+    //            return BadRequest($"The file {image.FileName} is not a valid image file.");
+    //        }
+    //    }
 
-        var boat = dto.Adapt<Boat>();
-        boat.Id = Guid.NewGuid();
-        boat.Owner = user;
+    //    var boat = dto.Adapt<Boat>();
+    //    boat.Id = Guid.NewGuid();
+    //    boat.Owner = user;
 
-        var images = await Task.WhenAll(
-            dto.ImageData.Select(image =>
-                ImageService.Persist(boat.Id, image.FileName, fs => image.CopyToAsync(fs))
-            )
-        );
+    //    var images = await Task.WhenAll(
+    //        dto.ImageData.Select(image =>
+    //            ImageService.Persist(boat.Id, image.FileName, fs => image.CopyToAsync(fs))
+    //        )
+    //    );
 
-        boat.Images = new(images);
-        _dbContext.Boats.Add(boat);
-        await _dbContext.SaveChangesAsync();
+    //    boat.Images = new(images);
+    //    _dbContext.Boats.Add(boat);
+    //    await _dbContext.SaveChangesAsync();
 
-        return Ok(boat.Id);
-    }
+    //    return Ok(boat.Id);
+    //}
 
     [HttpGet("update")]
     [Authorize(Roles = Role.BoatOwner)]
