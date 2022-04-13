@@ -9,7 +9,7 @@
       @click="closeModal()"
       class="absolute top-3 right-3 h-6 w-6 cursor-pointer text-black"
     ></XIcon>
-    <h1 class="text-3xl font-medium">Welcome.</h1>
+    <h1 class="text-3xl font-medium">Almost there</h1>
     <h2 class="mt-5 text-base leading-6 text-gray-700">
       Please enter the 6 digit confirmation code we sent you to your email to
       verify your account.
@@ -28,7 +28,7 @@
           maxlength="1"
           :name="i"
           autocomplete="new-password"
-          class="h-12 w-10 border text-center text-base"
+          class="h-12 w-10 border !pr-2 text-center text-xl"
         />
       </div>
       <div class="flex justify-center">
@@ -46,6 +46,7 @@
         Resend code.
       </button>
     </h3>
+    <h3 class="text-center text-sm text-emerald-600">{{ status }}</h3>
   </Modal>
 </template>
 <script setup>
@@ -56,12 +57,14 @@ import Button from './ui/Button.vue'
 import { XIcon } from 'vue-tabler-icons'
 import { useModal } from '../stores/modalStore'
 import { formData } from './utility/forms'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import api from '../api/api'
 const { isModalOpen, closeModal } = useModal()
 
 const route = useRoute()
+const router = useRouter()
 const formError = ref('')
+const status = ref('')
 
 const onKeyUp = (index, event) => {
   if (
@@ -81,11 +84,14 @@ const verifyCode = async event => {
   const email = route.query.email
   const [res, error] = await api.auth.confirmEmail(email, code)
   formError.value = error
+  !error && (status.value = 'Successful! Redirecting you to sign in form.')
+  setTimeout(() => router.push('/signin'), 2500)
 }
 
 const resendCode = async () => {
-  const email = route.params.email
+  const email = route.query.email
   const [res, error] = await api.auth.sendConfirmation(email)
   formError.value = error
+  !error && (status.value = 'New code sent! Check your email.')
 }
 </script>

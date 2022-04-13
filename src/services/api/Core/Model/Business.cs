@@ -26,6 +26,7 @@ public abstract class Business : Entity
     public List<Review>      Reviews         { get; set; } = new();
     public List<User>        Subscribers     { get; set; } = new();
     public List<Reservation> Reservations    { get; set; } = new();
+    public int               People          { get; set; }
     public int               NumberOfReviews { get; set; }
     public int               Rating          { get; set; }
     public double            CancellationFee { get; set; }

@@ -1,24 +1,26 @@
 <template>
   <!-- <Transition> -->
-  <div
-    :key="selectedImage"
-    class="bg-image relative mx-auto h-[70%] w-4/5 overflow-clip rounded-2xl"
-    :style="{ backgroundImage: `url(${selectedImage})` }"
-  >
-    <div v-once class="mx-auto mt-24 max-w-4xl">
-      <h1 class="w-full text-8xl font-bold text-white">
-        Air, sleep, <br />dream
-      </h1>
-      <h2 class="mt-2 max-w-[320px] text-lg text-white">
-        Choose one of many great experiences to go on with your friends.
-      </h2>
-      <Button class="mt-5 bg-emerald-600 py-2.5 text-white">
-        Start your search
-      </Button>
+  <div class="h-full">
+    <div
+      :key="selectedImage"
+      class="bg-image relative mx-auto h-[80%] w-4/5 overflow-clip rounded-2xl"
+      :style="{ backgroundImage: `url(${selectedImage})` }"
+    >
+      <div v-once class="mx-auto max-w-4xl pt-24">
+        <h1 class="w-full text-8xl font-bold text-white">
+          Air, sleep, <br />dream
+        </h1>
+        <h2 class="mt-2 max-w-[320px] text-lg text-white">
+          Choose one of many great experiences to go on with your friends.
+        </h2>
+        <Button class="mt-5 bg-emerald-600 py-2.5 text-white">
+          Start your search
+        </Button>
+      </div>
     </div>
+    <!-- </Transition> -->
+    <SearchBar class="relative" />
   </div>
-  <!-- </Transition> -->
-  <SearchBar />
 </template>
 
 <script setup>

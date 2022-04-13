@@ -1,6 +1,6 @@
 <template>
   <div
-    class="z-10 mx-auto -mt-16 flex h-32 w-full max-w-4.5xl items-center justify-end space-x-11 rounded-2xl border border-gray-300 bg-white px-6 py-5"
+    class="z-10 mx-auto -mt-16 flex h-32 w-full max-w-4.5xl items-center justify-end space-x-14 rounded-2xl border border-gray-300 bg-white px-6 py-5"
   >
     <div id="navigation" class="flex justify-start space-x-3">
       <SearchBarField

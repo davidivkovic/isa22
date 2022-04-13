@@ -66,6 +66,6 @@ const emit = defineEmits(['next'])
 const error = ref('')
 const forward = event => {
   const data = formData(event)
-  emit('next', data)
+  emit('next', { address: data })
 }
 </script>

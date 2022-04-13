@@ -20,7 +20,7 @@
       required
       placeholder="Phone number"
       class="h-12 w-full"
-      name="phoneNumber"
+      name="phone"
       type="tel"
       label="Phone number"
     />

@@ -90,6 +90,7 @@ namespace API.Migrations
                     PricePerUnit_Currency = table.Column<string>(type: "text", nullable: true),
                     OwnerId = table.Column<Guid>(type: "uuid", nullable: true),
                     Images = table.Column<List<string>>(type: "text[]", nullable: true),
+                    People = table.Column<int>(type: "integer", nullable: false),
                     NumberOfReviews = table.Column<int>(type: "integer", nullable: false),
                     Rating = table.Column<int>(type: "integer", nullable: false),
                     CancellationFee = table.Column<double>(type: "double precision", nullable: false),

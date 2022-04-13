@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
+import CreateAdventureView from '../views/CreateAdventure.vue'
 
 const modalRouteFunc = (to, from, component) => {
   const fromMatch = from.matched[0]
@@ -34,13 +35,18 @@ const router = createRouter({
       component: HomeView
     },
     {
+      path: '/fishing/create',
+      name: 'fishing-create',
+      component: CreateAdventureView
+    },
+    {
       path: '/signin',
       name: 'signin',
       beforeEnter: (to, from) =>
         modalRouteFunc(to, from, '../components/SignInModal.vue')
     },
     {
-      path: '/verification/:email',
+      path: '/verification',
       name: 'verification',
       props: true,
       beforeEnter: (to, from) =>
@@ -51,6 +57,21 @@ const router = createRouter({
       name: 'admin-verification',
       beforeEnter: (to, from) =>
         modalRouteFunc(to, from, '../components/NewAdminPasswordModal.vue')
+    },
+    {
+      path: '/adventure-profile/:id',
+      name: 'adventure profile',
+      component: () => import('../views/AdventureProfileView.vue')
+    },
+    {
+      path: '/cabin-profile',
+      name: 'cabin profile',
+      component: () => import('../views/CabinProfileView.vue')
+    },
+    {
+      path: '/boat-profile',
+      name: 'boat profile',
+      component: () => import('../views/BoatProfileView.vue')
     }
   ]
 })

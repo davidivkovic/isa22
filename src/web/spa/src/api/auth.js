@@ -3,8 +3,7 @@ import { instance, fetch, setAccesToken, removeAccesToken } from './http.js'
 
 const signIn = data => {
   return fetch(instance.post('auth/email/sign-in', data), data => {
-    console.log(data)
-    // window.location.href = '/'
+    window.location.href = '/'
     setAccesToken(data.accessToken)
     setUser(data.user)
   })
@@ -26,11 +25,15 @@ const confirmEmail = (email, code) => {
 }
 
 const sendConfirmation = email => {
-  return fetch(instance.post('auth/email/send-confirmation', email))
+  return fetch(
+    instance.post(
+      `auth/email/send-confirmation?email=${encodeURIComponent(email)}`
+    )
+  )
 }
 
 const acceptRegistration = (email, denialReason) => {
-  return fetch(instance.post('auth/registration/accept', email))
+  return fetch(instance.post('auth/registration/accept', { email }))
 }
 
 export default {

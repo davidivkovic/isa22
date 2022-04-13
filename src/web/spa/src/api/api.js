@@ -1,3 +1,4 @@
-import auth from './auth'
+import auth from './auth.js'
+import adventures from './adventures.js'
 
-export default { auth }
+export default { auth, adventures }

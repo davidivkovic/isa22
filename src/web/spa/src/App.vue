@@ -1,13 +1,29 @@
 <script setup>
+import { Suspense } from 'vue'
 import { RouterView } from 'vue-router'
 import TheHeader from './components/TheHeader.vue'
 </script>
 
 <template>
-  <div class="flex h-screen w-screen flex-col">
-    <TheHeader />
-    <RouterView />
-    <RouterView name="modal-router" />
+  <div class="flex h-screen flex-col" style="overflow-y: overlay">
+    <Suspense>
+      <TheHeader />
+    </Suspense>
+    <RouterView v-slot="{ Component }">
+      <Suspense>
+        <div class="flex-1">
+          <Component :is="Component" />
+        </div>
+      </Suspense>
+    </RouterView>
+
+    <RouterView name="modal-router" v-slot="{ Component }">
+      <Suspense>
+        <div>
+          <Component :is="Component" />
+        </div>
+      </Suspense>
+    </RouterView>
   </div>
 </template>
 
