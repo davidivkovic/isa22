@@ -49,7 +49,9 @@ if (!document.getElementById('google-maps-script')) {
   mapsScript.setAttribute('id', 'google-maps-script')
   mapsScript.setAttribute(
     'src',
-    'https://maps.googleapis.com/maps/api/js?key=AIzaSyD4aiEawacvOry9Xfd8p2wO1gl4rTH2yWM&libraries=places'
+    `https://maps.googleapis.com/maps/api/js?key=${
+      import.meta.env.VITE_GOOGLE_MAPS_KEY
+    }&libraries=places`
   )
   mapsScript.onload = () => createMap()
   document.head.appendChild(mapsScript)
