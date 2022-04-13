@@ -45,8 +45,8 @@ import fishingURL from '@/assets/images/fishing-icon.png'
 
 const services = ['cabins', 'boats', 'fishing adventures']
 const roles = {
-  cabins: 'CabinOwner',
-  boats: 'BoatOwner',
+  cabins: 'Cabin Owner',
+  boats: 'Boat Owner',
   'fishing adventures': 'Fisher'
 }
 const images = {

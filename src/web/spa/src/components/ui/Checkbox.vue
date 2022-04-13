@@ -13,7 +13,7 @@
     <label
       v-if="$attrs.label"
       :for="$attrs.id"
-      class="block cursor-pointer select-none pl-px text-[13px] text-neutral-700"
+      class="block cursor-pointer select-none pl-px text-sm text-neutral-700"
     >
       {{ $attrs.label }}
     </label>

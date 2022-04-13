@@ -35,9 +35,11 @@
           adventure.com
         </div>
         <div class="flex items-center space-x-3">
-          <Button class="bg-emerald-600 text-white">
-            List your business
-          </Button>
+          <RouterLink to="/fishing/create">
+            <Button class="bg-emerald-600 text-white">
+              List your business
+            </Button>
+          </RouterLink>
           <RouterLink v-if="!isAuthenticated" to="/signin">
             <Button class="border border-gray-300">Sign in</Button>
           </RouterLink>

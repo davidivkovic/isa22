@@ -20,7 +20,7 @@
         type="text"
         spellcheck="false"
         v-bind="$attrs"
-        :value="inputValue"
+        :value="modelValue ?? inputValue"
         :style="inputStyle"
         :name="name"
         @focusin="focused = true"
@@ -28,7 +28,7 @@
         @mouseover="hovered = true"
         @mouseleave="hovered = false"
         @input="e => onInput(e)"
-        class="hover:disabled:border-neutral-30 0 block rounded-md border-neutral-300 px-2.5 py-2.5 text-sm placeholder-neutral-400 transition-colors hover:border-neutral-500 focus:border-neutral-500 focus:ring-0 focus:ring-transparent disabled:text-neutral-300 focus:disabled:border-neutral-300"
+        class="block rounded-md border-neutral-300 px-2.5 py-2.5 text-sm placeholder-neutral-400 transition-colors hover:border-neutral-500 focus:border-neutral-500 focus:ring-0 focus:ring-transparent disabled:text-neutral-300 hover:disabled:border-neutral-300 focus:disabled:border-neutral-300"
       />
       <div
         ref="append"
@@ -81,19 +81,19 @@ const focused = ref(false)
 const hovered = ref(false)
 
 const onInput = event => {
-  inputValue.value = event.target.value
-  emit('update:modelValue', inputValue.value)
+  props.modelValue || (inputValue.value = event.target.value)
+  emit('update:modelValue', event.target.value)
 }
 
 const clearInput = () => {
-  inputValue.value = ''
+  props.modelValue || (inputValue.value = '')
   emit('update:modelValue', '')
 }
 
 onMounted(() => {
   inputStyle.value = `
-    padding-left: ${prepend.value?.clientWidth - 4}px;
-    padding-right: ${append.value?.clientWidth - 4}px;
+    padding-left: ${prepend.value?.clientWidth + 4}px;
+    padding-right: ${append.value?.clientWidth + 4}px;
   `
 })
 </script>

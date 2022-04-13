@@ -32,7 +32,7 @@ const props = defineProps({
   description: String,
   inputType: String
 })
-const maxWidth = props.inputType == 'number' ? 'max-w-[65px]' : 'max-w-[220px]'
+const maxWidth = props.inputType == 'number' ? 'max-w-[65px]' : 'max-w-[200px]'
 </script>
 
 <style scoped="css">

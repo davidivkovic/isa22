@@ -1,34 +1,74 @@
 <template>
-  <div
-    class="relative flex h-10 w-full items-center rounded-md border px-2.5 py-2.5 transition-all hover:border-neutral-500"
-    :class="{
-      'pointer-events-none text-neutral-300': $attrs.disabled == ''
-    }"
-  >
-    <div class="absolute right-1.5 select-none">
-      <ChevronUpIcon
-        @click="
-          $emit('update:modelValue', Math.min(modelValue + 1, $attrs.max))
-        "
-        class="h-4 w-4 cursor-pointer rounded hover:bg-gray-100"
+  <div class="max-w-min">
+    <label
+      v-if="$attrs.label"
+      :for="$attrs.id"
+      class="mb-2 block pl-px text-[15px] font-medium tracking-tight text-neutral-700"
+    >
+      {{ $attrs.label }}
+    </label>
+    <div
+      class="relative flex h-10 w-full items-center transition-all hover:border-neutral-500"
+      :class="{
+        'pointer-events-none text-neutral-300': $attrs.disabled == ''
+      }"
+    >
+      <div class="peer absolute right-1.5 select-none">
+        <ChevronUpIcon
+          @click="increment()"
+          class="h-4 w-4 cursor-pointer rounded hover:bg-gray-100"
+        />
+        <ChevronDownIcon
+          @click="decrement()"
+          class="h-4 w-4 cursor-pointer rounded hover:bg-gray-100"
+        />
+      </div>
+      <input
+        v-bind="$attrs"
+        type="number"
+        :value="modelValue ?? inputValue"
+        class="block select-none rounded-md border-neutral-300 px-2.5 py-2.5 text-sm placeholder-neutral-400 transition-colors hover:border-neutral-500 focus:border-neutral-500 focus:ring-0 focus:ring-transparent disabled:text-neutral-300 hover:disabled:border-neutral-300 focus:disabled:border-neutral-300 peer-hover:border-neutral-500"
       />
-      <ChevronDownIcon
-        @click="
-          $emit('update:modelValue', Math.max(modelValue - 1, $attrs.min))
-        "
-        class="h-4 w-4 cursor-pointer rounded hover:bg-gray-100"
-      />
-    </div>
-    <div class="select-none pr-5 text-sm">
-      {{ modelValue }}
     </div>
   </div>
 </template>
 
 <script setup>
+import { ref, useAttrs } from 'vue'
 import { ChevronUpIcon, ChevronDownIcon } from 'vue-tabler-icons'
-defineProps(['modelValue'])
-defineEmits(['update:modelValue'])
+
+const props = defineProps(['modelValue'])
+const emit = defineEmits(['update:modelValue'])
+const attrs = useAttrs()
+
+const inputValue = ref(1)
+
+const onInput = event => {
+  props.modelValue || (inputValue.value = event.target.value)
+  emit('update:modelValue', event.target.value)
+}
+
+const decrement = () => {
+  const value = Math.max(
+    (props.modelValue ?? inputValue.value) - 1,
+    attrs.min ?? -100
+  )
+  props.modelValue || (inputValue.value = value)
+  emit('update:modelValue', value)
+}
+
+const increment = () => {
+  const value = Math.min(
+    (props.modelValue ?? inputValue.value) + 1,
+    attrs.max ?? 100
+  )
+  props.modelValue || (inputValue.value = value)
+  emit('update:modelValue', value)
+}
+</script>
+
+<script>
+export default { inheritAttrs: false }
 </script>
 
 <style>

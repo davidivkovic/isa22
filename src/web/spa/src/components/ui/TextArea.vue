@@ -1,10 +1,17 @@
 <template>
-  <textarea
-    @input="e => onInput(e)"
-    :value="props.modelValue"
-    rows="3"
-    class="mt-3 w-full resize-none rounded-lg border-gray-300 text-sm text-gray-600 focus:border-gray-500 focus:outline-none focus:outline-transparent focus:ring-0 focus:ring-transparent"
-  ></textarea>
+  <div>
+    <label class="pl-px text-[15px] font-medium tracking-tight">{{
+      $attrs.label
+    }}</label>
+    <textarea
+      @input="e => onInput(e)"
+      :value="props.modelValue"
+      rows="3"
+      v-bind:="$attrs"
+      spellcheck="false"
+      class="mt-1 w-full resize-none rounded-md border-neutral-300 !px-3 !py-2.5 text-sm placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:outline-transparent focus:ring-0 focus:ring-transparent"
+    ></textarea>
+  </div>
 </template>
 <script setup>
 import { ref } from 'vue'
