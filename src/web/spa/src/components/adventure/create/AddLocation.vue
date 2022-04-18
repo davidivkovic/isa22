@@ -23,7 +23,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 
 import Input from '@/components/ui/Input.vue'
 
@@ -55,6 +55,8 @@ if (!document.getElementById('google-maps-script')) {
   )
   mapsScript.onload = () => createMap()
   document.head.appendChild(mapsScript)
+} else {
+  onMounted(() => createMap())
 }
 
 const createMap = () => {
