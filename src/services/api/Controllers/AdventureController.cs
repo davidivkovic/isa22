@@ -104,7 +104,7 @@ public class AdventureController : ControllerBase
             return BadRequest("No images to add!");
         }
 
-        if (files.Count + adventure.Images.Count > 10)
+        if (files.Count > 10)
         {
             return BadRequest("A maximum of 10 images can be uploaded.");
         }
@@ -123,9 +123,7 @@ public class AdventureController : ControllerBase
             )
         );
 
-        List<string> imgs = new(images);
-
-        adventure.Images.AddRange(imgs);
+        adventure.Images = new(images);
         await _dbContext.SaveChangesAsync();
 
         return Ok();
@@ -151,7 +149,7 @@ public class AdventureController : ControllerBase
         return Ok(adventure.Id);
     }
 
-    [HttpPut("update")]
+    [HttpPost("update")]
     [Authorize(Roles = Role.Fisher)]
     public async Task<ActionResult> Update(UpdateAdventureDTO dto)
     {
@@ -172,7 +170,7 @@ public class AdventureController : ControllerBase
             BadRequest("Could not update your adventure at this time. Please try later again.");
         }
 
-        return Ok(adventure.Adapt<AdventureDT0>());
+        return Ok(adventure.Id);
     }
 
     //[HttpGet]

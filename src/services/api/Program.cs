@@ -15,8 +15,6 @@ using API.Security;
 using API.Infrastructure.Swagger;
 using API.Services.Email;
 
-TypeAdapterConfig.GlobalSettings.Compiler = exp => exp.CompileFast();
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers().AddJsonOptions(o => 
@@ -109,6 +107,8 @@ if (app.Environment.IsDevelopment())
                       .SetIsOriginAllowed(origin => true)
                       .AllowCredentials());
 }
+
+TypeAdapterConfig.GlobalSettings.Compiler = exp => exp.CompileFast();
 
 app.UseAuthentication();
 app.UseRouting();

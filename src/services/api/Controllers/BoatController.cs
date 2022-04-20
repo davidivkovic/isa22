@@ -103,7 +103,7 @@ public class BoatController : ControllerBase
             return BadRequest("The requested boat does not exist.");
         }
 
-        if (files.Count + boat.Images.Count > 10)
+        if (files.Count > 10)
         {
             return BadRequest("A maximum of 10 images can be uploaded.");
         }
@@ -118,13 +118,11 @@ public class BoatController : ControllerBase
 
         var images = await Task.WhenAll(
             files.Select(image =>
-            ImageService.Persist(boat.Id, image.FileName, fs => image.CopyToAsync(fs))
+                ImageService.Persist(boat.Id, image.FileName, fs => image.CopyToAsync(fs)
             )
-        );
+        ));
 
-        List<string> imgs = new(images);
-
-        boat.Images.AddRange(imgs);
+        boat.Images = new(images);
         await _dbContext.SaveChangesAsync();
 
         return Ok();
@@ -150,7 +148,7 @@ public class BoatController : ControllerBase
         return Ok(boat.Id);
     }
 
-    [HttpGet("update")]
+    [HttpPost("update")]
     [Authorize(Roles = Role.BoatOwner)]
     public async Task<ActionResult> Update(UpdateBoatDTO dto)
     {
@@ -171,6 +169,6 @@ public class BoatController : ControllerBase
             BadRequest("Could not update your boat at this time. Please try again later.");
         }
 
-        return Ok(boat.Adapt<BoatDTO>());
+        return Ok(boat.Id);
     }
 }

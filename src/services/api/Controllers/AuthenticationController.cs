@@ -144,7 +144,7 @@ public class AuthenticationController : ControllerBase
         return Ok();
     }
 
-    [HttpGet("token/refresh")]
+    [HttpGet("token-refresh")]
     public async Task<ActionResult<string>> TokenRefresh()
     {
         string token = Request.Cookies.RefreshToken();

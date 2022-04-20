@@ -10,7 +10,9 @@ using API.DTO;
 using API.Services;
 using API.Core.Model;
 using API.Infrastructure.Data;
+using API.Infrastructure.Data.Queries;
 using API.Infrastructure.Extensions;
+using API.DTO.Search;
 
 [ApiController]
 [Route("cabins")]
@@ -103,7 +105,7 @@ public class CabinController : ControllerBase
             return BadRequest("The requested cabin does not exist.");
         }
 
-        if (files.Count + cabin.Images.Count > 10)
+        if (files.Count > 10)
         {
             return BadRequest("A maximum of 10 images can be uploaded.");
         }
@@ -122,9 +124,7 @@ public class CabinController : ControllerBase
             )
         );
 
-        List<string> imgs = new(images);
-
-        cabin.Images.AddRange(imgs);
+        cabin.Images = new(images);
         await _dbContext.SaveChangesAsync();
 
         return Ok();
@@ -150,7 +150,7 @@ public class CabinController : ControllerBase
         return Ok(cabin.Id);
     }
 
-    [HttpGet("update")]
+    [HttpPost("update")]
     [Authorize(Roles = Role.CabinOwner)]
     public async Task<ActionResult> Update(UpdateCabinDTO dto)
     {
@@ -171,6 +171,54 @@ public class CabinController : ControllerBase
             BadRequest("Could not update your cabin at this time. Please try again later.");
         }
 
-        return Ok(cabin.Adapt<CabinDTO>());
+        return Ok(cabin.Id);
+    }
+
+    [Authorize]
+    [AllowAnonymous]
+    [HttpGet("/search")]
+    public async Task<List<CabinSearchResponse>> Search([FromQuery] CabinSearchRequest request)
+    {
+        decimal multiplier = 1;
+        if (User.Identity.IsAuthenticated)
+        {
+            var user = await _dbContext.Users
+                .Include(u => u.Level)
+                .FirstOrDefaultAsync(u => u.Id == User.Id());
+
+            if (user is not null) 
+            {
+                multiplier = 1 - Convert.ToDecimal(user.Level?.DiscountPercentage ?? 0 / 100);
+            }
+        }
+
+        int totalUnits = new Cabin().GetTotalUnits(request.Start, request.End);
+
+        return await _dbContext.Cabins
+            .AsNoTrackingWithIdentityResolution()
+            .Available(request.Start, request.End)
+            .Where(c => c.Address.City == request.City)
+            .Where(c => c.Address.Country == request.Country)
+            .Where(c => c.Rating >= request.RatingHigher)
+            .Where(c => c.PricePerUnit.Amount >= request.PriceLow)
+            .Where(c => c.PricePerUnit.Amount <= request.PriceHigh)
+            .Where(c => c.People == request.People)
+            .OrderBy(request.Direction)
+            .Take(9)
+            .Select(c => new CabinSearchResponse
+            {
+                Name = c.Name,
+                Address = c.Address,
+                Beds = c.Rooms.Sum(r => r.Beds),
+                Image = c.Images.FirstOrDefault(),
+                People = c.People,
+                Rooms = c.Rooms.Count,
+                Price = new MoneyDTO
+                {
+                    Amount = c.PricePerUnit.Amount * request.People * totalUnits * multiplier,
+                    Currency = c.PricePerUnit.Currency
+                }
+            })
+            .ToListAsync();
     }
 }

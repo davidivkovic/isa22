@@ -75,7 +75,7 @@ public abstract class Business : Entity
         Rating = (NumberOfReviews * Rating + Rating) / ++NumberOfReviews;
     }
 
-    private int GetTotalUnits(DateTime start, DateTime end)
+    public int GetTotalUnits(DateTime start, DateTime end)
     {
         double totalUnits = 1;
         if (Unit.Hours == 1)
