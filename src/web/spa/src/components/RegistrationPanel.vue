@@ -111,10 +111,10 @@ const register = async newData => {
   data['roles'] = [
     selectedRole.value.charAt(0).toUpperCase() + selectedRole.value.slice(1)
   ]
-  const [response, error] = await api.auth.register(data)
+  const [response] = await api.auth.register(data)
   formError.value = error
 
-  if (!error && selectedRole.value === 'customer') {
+  if (response && selectedRole.value === 'customer') {
     router.push({ name: 'verification', query: { email: data.email } })
   } else !error && forward()
 }

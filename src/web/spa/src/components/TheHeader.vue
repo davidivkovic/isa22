@@ -35,7 +35,7 @@
           adventure.com
         </div>
         <div class="flex items-center space-x-3">
-          <RouterLink to="/fishing/create">
+          <RouterLink to="/business/adventure/create">
             <Button class="bg-emerald-600 text-white">
               List your business
             </Button>

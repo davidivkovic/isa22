@@ -2,7 +2,7 @@
   <div class="h-full">
     <div
       :key="selectedImage"
-      class="bg-image relative mx-auto h-[75%] w-4/5 overflow-clip rounded-2xl"
+      class="bg-image relative mx-auto h-[80%] overflow-clip rounded-2xl lg:w-4/5"
       :style="{ backgroundImage: `url(${selectedImage})` }"
     >
       <div v-once class="mx-auto max-w-4xl pt-24">

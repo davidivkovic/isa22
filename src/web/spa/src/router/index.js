@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
-import CreateAdventureView from '../views/CreateAdventure.vue'
+import CreateUpdateBusinessView from '../views/CreateUpdateBusinessView.vue'
 
 const modalRouteFunc = (to, from, component) => {
   const fromMatch = from.matched[0]
@@ -36,9 +36,14 @@ const router = createRouter({
       component: HomeView
     },
     {
-      path: '/fishing/create',
-      name: 'fishing-create',
-      component: CreateAdventureView
+      path: '/business/:type/:action',
+      name: 'create-update-business',
+      component: CreateUpdateBusinessView
+    },
+    {
+      path: '/results',
+      name: 'results',
+      component: () => import('../views/ResultsView.vue')
     },
     {
       path: '/signin',
