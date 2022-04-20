@@ -2,11 +2,11 @@
   <label :for="props.name" class="group relative cursor-pointer">
     <input
       required
-      :type="props.inputType"
+      type="number"
       :id="props.name"
-      :class="maxWidth"
       min="1"
-      class="focus-within::outline-none peer ml-5 w-full border-0 py-0 text-[1.075rem] font-semibold valid:translate-y-3 valid:text-black focus-within:translate-y-3 focus-within:ring-0"
+      :name="props.name"
+      class="focus-within::outline-none peer ml-5 w-full max-w-[65px] border-0 py-0 text-[1.075rem] font-semibold valid:translate-y-3 valid:text-black focus-within:translate-y-3 focus-within:ring-0"
     />
     <div
       class="absolute top-0 flex cursor-pointer items-center space-x-2 text-[22px] transition-all group-focus-within:-translate-y-4 group-focus-within:text-base peer-valid:-translate-y-4 peer-valid:text-base"
@@ -27,12 +27,11 @@
 </template>
 
 <script setup>
+import Input from '../ui/Input.vue'
 const props = defineProps({
   name: String,
-  description: String,
-  inputType: String
+  description: String
 })
-const maxWidth = props.inputType == 'number' ? 'max-w-[65px]' : 'max-w-[200px]'
 </script>
 
 <style scoped="css">

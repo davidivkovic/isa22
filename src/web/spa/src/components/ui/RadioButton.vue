@@ -6,8 +6,9 @@
     <input
       :checked="modelValue"
       @change="$emit('update:modelValue', $event.target.checked)"
-      type="checkbox"
+      type="radio"
       v-bind="$attrs"
+      :value="value"
       class="block cursor-pointer rounded border-neutral-300 p-1.5 text-sm text-emerald-600 placeholder-neutral-500 transition-colors hover:border-neutral-500 focus:border-neutral-500 focus:ring-0 focus:ring-transparent disabled:text-neutral-300 hover:disabled:border-neutral-300 focus:disabled:border-neutral-300"
     />
     <label
@@ -23,7 +24,7 @@
 <script>
 export default {
   inheritAttrs: false,
-  props: ['modelValue', 'labelPosition'],
+  props: ['modelValue', 'labelPosition', 'value'],
   emits: ['update:modelValue']
 }
 </script>

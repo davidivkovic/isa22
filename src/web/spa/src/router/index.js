@@ -6,7 +6,8 @@ const modalRouteFunc = (to, from, component) => {
   const fromMatch = from.matched[0]
   const toMatch = to.matched[0]
 
-  toMatch.components['modal-router'] = () => import(component)
+  toMatch.components['modal-router'] = () =>
+    import(/* @vite-ignore */ component)
   fromMatch && (toMatch.components.default = fromMatch.components.default)
   !fromMatch &&
     (toMatch.components.default = () => import('../views/HomeView.vue'))
@@ -72,6 +73,11 @@ const router = createRouter({
       path: '/boat-profile',
       name: 'boat profile',
       component: () => import('../views/BoatProfileView.vue')
+    },
+    {
+      path: '/search',
+      name: 'search',
+      component: () => import('../views/ResultsView.vue')
     }
   ]
 })

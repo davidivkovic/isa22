@@ -1,5 +1,9 @@
 <template>
-  <div class="max-w-min">
+  <div
+    @mouseover="hovered = true"
+    @mouseleave="hovered = false"
+    class="group max-w-min"
+  >
     <label
       v-if="$attrs.label"
       :for="$attrs.id"
@@ -8,11 +12,23 @@
       {{ $attrs.label }}
     </label>
     <div
-      class="relative flex h-10 w-full items-center transition-all hover:border-neutral-500"
+      class="relative flex h-full w-full items-center transition-all group-hover:border-neutral-500"
       :class="{
         'pointer-events-none text-neutral-300': $attrs.disabled == ''
       }"
     >
+      <div
+        ref="prepend"
+        v-if="$slots.prepend"
+        class="absolute left-0 flex h-full items-center pb-0.5"
+      >
+        <slot
+          name="prepend"
+          :input="input"
+          :focused="focused"
+          :hovered="hovered"
+        ></slot>
+      </div>
       <div class="peer absolute right-1.5 select-none">
         <ChevronUpIcon
           @click="increment()"
@@ -23,11 +39,12 @@
           class="h-4 w-4 cursor-pointer rounded hover:bg-gray-100"
         />
       </div>
+
       <input
         v-bind="$attrs"
         type="number"
         :value="modelValue ?? inputValue"
-        class="block select-none rounded-md border-neutral-300 px-2.5 py-2.5 text-sm placeholder-neutral-400 transition-colors hover:border-neutral-500 focus:border-neutral-500 focus:ring-0 focus:ring-transparent disabled:text-neutral-300 hover:disabled:border-neutral-300 focus:disabled:border-neutral-300 peer-hover:border-neutral-500"
+        class="pointer-events-none block select-none rounded-md border-neutral-300 px-2.5 py-2.5 text-sm placeholder-neutral-400 transition-colors focus:border-neutral-500 focus:ring-0 focus:ring-transparent disabled:text-neutral-300 focus:disabled:border-neutral-300 group-hover:border-neutral-500 group-hover:disabled:border-neutral-300 peer-hover:border-neutral-500"
       />
     </div>
   </div>
@@ -42,6 +59,9 @@ const emit = defineEmits(['update:modelValue'])
 const attrs = useAttrs()
 
 const inputValue = ref(1)
+const focused = ref(false)
+const hovered = ref(false)
+const input = ref()
 
 const onInput = event => {
   props.modelValue || (inputValue.value = event.target.value)

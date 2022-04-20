@@ -5,7 +5,7 @@ import TheHeader from './components/TheHeader.vue'
 </script>
 
 <template>
-  <div class="flex h-screen flex-col" style="overflow-y: overlay">
+  <div class="flex h-screen flex-col">
     <Suspense>
       <TheHeader />
     </Suspense>

@@ -7,10 +7,13 @@
     <input
       @change="formatInput()"
       required
+      :name="props.name"
       :id="props.name"
+      :min="minValue"
+      :max="maxValue"
       ref="dateInput"
       :type="props.hasTime ? 'datetime-local' : 'date'"
-      class="peer -z-10 ml-5 w-[210px] select-none border-0 py-0 text-[1.075rem] font-semibold text-white valid:translate-y-3 valid:text-black focus-within:translate-y-3 focus-within:text-black focus:outline-none focus:ring-0"
+      class="peer -z-20 ml-5 w-[210px] select-none border-0 py-0 text-[1.075rem] font-semibold text-white valid:translate-y-3 valid:text-black focus-within:translate-y-3 focus-within:text-black focus:outline-none focus:ring-0"
     />
     <div
       :v-if="props.hasTime"
@@ -29,7 +32,7 @@
       </p>
     </div>
     <div
-      class="fixed mt-1 ml-8 whitespace-nowrap text-sm text-gray-400 transition-all group-focus-within:translate-y-2 peer-valid:translate-y-2"
+      class="absolute z-10 mt-1 ml-8 whitespace-nowrap text-sm text-gray-400 transition-all group-focus-within:translate-y-2 peer-valid:translate-y-2"
     >
       <p class="">{{ props.description }}</p>
     </div>
@@ -37,22 +40,44 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watchEffect, watch } from 'vue'
 import { format, parseISO } from 'date-fns'
 const props = defineProps({
   name: String,
   description: String,
-  hasTime: Boolean
+  hasTime: Boolean,
+  upperLimit: String,
+  lowerLimit: String
 })
+const emit = defineEmits(['valueChanged'])
 const dateValue = ref()
 const dateInput = ref(null)
+const minValue = ref()
+const maxValue = ref()
+watch(
+  () => props.hasTime,
+  () => (dateValue.value = '')
+)
+
+watchEffect(() => {
+  const dateFormat = props.hasTime ? "yyyy-MM-dd'T'HH:mm" : 'yyyy-MM-dd'
+  minValue.value = format(Date.now(), dateFormat)
+  if (props.lowerLimit) (minValue.value = props.lowerLimit), dateFormat
+  if (props.upperLimit) (maxValue.value = props.upperLimit), dateFormat
+  console.log(props.minValue, props.maxValue)
+})
 
 const formatInput = () => {
   const date = parseISO(dateInput.value.value)
   const dateFormat = props.hasTime ? 'EEE, MMM dd, HH:mm' : 'EEE, MMM dd'
   const newDate = format(date, dateFormat)
   dateValue.value = newDate
+  emitChange()
 }
+
+const emitChange = () =>
+  emit('valueChanged', { [props.name]: dateInput.value.value })
+
 const showDatePicker = () => {
   dateInput.value.showPicker()
 }

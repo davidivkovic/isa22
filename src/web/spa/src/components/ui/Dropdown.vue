@@ -18,7 +18,7 @@
         class="relative flex w-full items-center whitespace-nowrap py-2.5 px-3 text-left text-[13.5px]"
         :class="buttonClass(open)"
       >
-        {{ selection }}
+        {{ selection.name }}
         <span class="pointer-events-none ml-2 flex items-center">
           <ChevronDownIcon
             :class="[slim ? 'ml-0.5 h-4 w-4' : 'h-5 w-5']"
@@ -38,7 +38,7 @@
           <ListboxOption
             v-slot="{ active, selected }"
             v-for="value in values"
-            :key="value"
+            :key="value.value"
             :value="value"
             as="template"
           >
@@ -51,7 +51,7 @@
               <span
                 :class="[selected ? 'font-' : 'font-normal', 'block truncate']"
               >
-                {{ value }}
+                {{ value.name }}
               </span>
               <CheckIcon v-if="selected" class="h-4 w-4" aria-hidden="true" />
             </li>
@@ -63,7 +63,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import {
   Listbox,
   ListboxLabel,
@@ -75,7 +75,7 @@ import { CheckIcon, ChevronDownIcon } from 'vue-tabler-icons'
 
 const emit = defineEmits(['change'])
 const props = defineProps({
-  values: Array,
+  values: Object,
   name: String,
   label: String,
   slim: Boolean,
@@ -100,5 +100,11 @@ const buttonClass = open => {
 
 const selection = ref()
 selection.value = props.default ?? props.values[0]
-emit('change', selection.value)
+
+watch(
+  () => selection.value,
+  () => {
+    emit('change', selection.value.value)
+  }
+)
 </script>
