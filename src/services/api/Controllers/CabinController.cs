@@ -194,31 +194,54 @@ public class CabinController : ControllerBase
 
         int totalUnits = new Cabin().GetTotalUnits(request.Start, request.End);
 
-        return await _dbContext.Cabins
+        var query = _dbContext.Cabins
             .AsNoTrackingWithIdentityResolution()
-            .Available(request.Start, request.End)
+            //.Available(request.Start, request.End)
             .Where(c => c.Address.City == request.City)
             .Where(c => c.Address.Country == request.Country)
-            .Where(c => c.Rating >= request.RatingHigher)
-            .Where(c => c.PricePerUnit.Amount >= request.PriceLow)
-            .Where(c => c.PricePerUnit.Amount <= request.PriceHigh)
-            .Where(c => c.People == request.People)
+            .Where(c => c.People == request.People);
+            
+        if (request.RatingHigher != default)
+        {
+            query = query.Where(c => c.Rating >= request.RatingHigher);
+        }
+        if (request.PriceLow != default)
+        {
+            query = query.Where(c => c.PricePerUnit.Amount >= request.PriceLow);
+        }
+        if (request.PriceHigh != default)
+        {
+            query = query.Where(c => c.PricePerUnit.Amount <= request.PriceHigh);
+        }
+        if (request.Rooms != default)
+        {
+            query = query.Where(c => c.Rooms.Count == request.Rooms);
+        }
+
+        var results = await query
             .OrderBy(request.Direction)
             .Take(9)
             .Select(c => new CabinSearchResponse
             {
+                Id = c.Id,
                 Name = c.Name,
                 Address = c.Address,
                 Beds = c.Rooms.Sum(r => r.Beds),
                 Image = c.Images.FirstOrDefault(),
                 People = c.People,
                 Rooms = c.Rooms.Count,
-                Price = new MoneyDTO
+                Rating = c.Rating,
+                Price = new Money
                 {
                     Amount = c.PricePerUnit.Amount * request.People * totalUnits * multiplier,
                     Currency = c.PricePerUnit.Currency
                 }
-            })
+            }) 
             .ToListAsync();
+
+        results.ForEach(r => r.Image = ImageUrl(r.Id, r.Image));
+
+        return results;
+            
     }
 }
