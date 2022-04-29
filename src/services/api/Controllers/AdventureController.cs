@@ -12,6 +12,7 @@ using API.Core.Model;
 using API.Infrastructure.Data;
 using API.Infrastructure.Extensions;
 using API.Infrastructure.Data.Queries;
+using API.DTO.Search;
 
 [ApiController]
 [Route("adventures")]
@@ -61,7 +62,7 @@ public class AdventureController : ControllerBase
         var adventure = await _dbContext.Adventures
                                         .AsNoTracking()
                                         .FirstOrDefaultAsync(a => a.Id == id);
-        if(adventure is null)
+        if (adventure is null)
         {
             return BadRequest("The requested adventure does not exist.");
         }
@@ -189,4 +190,69 @@ public class AdventureController : ControllerBase
 
     //    return Ok(adventures);
     //}
+
+    [Authorize]
+    [AllowAnonymous]
+    [HttpGet("search")]
+    public async Task<List<AdventureSearchResponse>> Search([FromQuery] AdventureSearchRequest request)
+    {
+        decimal multiplier = 1;
+        if (User.Identity.IsAuthenticated)
+        {
+            var user = await _dbContext.Users
+                .Include(u => u.Level)
+                .FirstOrDefaultAsync(u => u.Id == User.Id());
+
+            if (user is not null)
+            {
+                multiplier = 1 - Convert.ToDecimal(user.Level?.DiscountPercentage ?? 0 / 100);
+            }
+        }
+
+        int totalUnits = new Adventure().GetTotalUnits(request.Start, request.End);
+
+        var query = _dbContext.Adventures
+            .AsNoTrackingWithIdentityResolution()
+            //.Available(request.Start, request.End)
+            .Where(c => c.Address.City == request.City)
+            .Where(c => c.Address.Country == request.Country)
+            .Where(c => c.People == request.People);
+
+        if (request.RatingHigher != default)
+        {
+            query = query.Where(c => c.Rating >= request.RatingHigher);
+        }
+        if (request.PriceLow != default)
+        {
+            query = query.Where(c => c.PricePerUnit.Amount >= request.PriceLow);
+        }
+        if (request.PriceHigh != default)
+        {
+            query = query.Where(c => c.PricePerUnit.Amount <= request.PriceHigh);
+        }
+
+        var results = await query
+            .OrderBy(request.Direction)
+            .Take(9)
+            .Select(a => new AdventureSearchResponse
+            {
+                Id = a.Id,
+                Name = a.Name,
+                Address = a.Address,
+                Image = a.Images.FirstOrDefault(),
+                People = a.People,
+                Rating = a.Rating,
+                Price = new Money
+                {
+                    Amount = a.PricePerUnit.Amount * request.People * multiplier,
+                    Currency = a.PricePerUnit.Currency
+                },
+                FishingEquipment = a.FishingEquipment
+            })
+            .ToListAsync();
+
+        results.ForEach(r => r.Image = ImageUrl(r.Id, r.Image));
+
+        return results;
+    }
 }
