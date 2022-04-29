@@ -33,3 +33,15 @@ public class CabinSearchRequest : SearchRequest
     [FromQuery]
     public double Rooms { get; set; }
 }
+
+public class BoatSearchRequest : SearchRequest
+{
+    [FromQuery]
+    public int Seats { get; set; }
+}
+
+
+public class AdventureSearchRequest : SearchRequest
+{
+
+}

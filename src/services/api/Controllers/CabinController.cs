@@ -176,7 +176,7 @@ public class CabinController : ControllerBase
 
     [Authorize]
     [AllowAnonymous]
-    [HttpGet("/search")]
+    [HttpGet("search")]
     public async Task<List<CabinSearchResponse>> Search([FromQuery] CabinSearchRequest request)
     {
         decimal multiplier = 1;
@@ -215,7 +215,10 @@ public class CabinController : ControllerBase
         }
         if (request.Rooms != default)
         {
-            query = query.Where(c => c.Rooms.Count == request.Rooms);
+            if(request.Rooms >= 4)
+                query = query.Where(c => c.Rooms.Count >= request.Rooms);
+            else
+                query = query.Where(c => c.Rooms.Count == request.Rooms);
         }
 
         var results = await query
@@ -233,7 +236,7 @@ public class CabinController : ControllerBase
                 Rating = c.Rating,
                 Price = new Money
                 {
-                    Amount = c.PricePerUnit.Amount * request.People * totalUnits * multiplier,
+                    Amount = c.PricePerUnit.Amount * request.People * multiplier,
                     Currency = c.PricePerUnit.Currency
                 }
             }) 

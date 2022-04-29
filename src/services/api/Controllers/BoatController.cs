@@ -10,7 +10,9 @@ using API.DTO;
 using API.Services;
 using API.Core.Model;
 using API.Infrastructure.Data;
+using API.Infrastructure.Data.Queries;
 using API.Infrastructure.Extensions;
+using API.DTO.Search;
 
 [ApiController]
 [Route("boats")]
@@ -170,5 +172,78 @@ public class BoatController : ControllerBase
         }
 
         return Ok(boat.Id);
+    }
+
+    [Authorize]
+    [AllowAnonymous]
+    [HttpGet("search")]
+    public async Task<List<BoatSearchResponse>> Search([FromQuery] BoatSearchRequest request)
+    {
+        decimal multiplier = 1;
+        if (User.Identity.IsAuthenticated)
+        {
+            var user = await _dbContext.Users
+                .Include(u => u.Level)
+                .FirstOrDefaultAsync(u => u.Id == User.Id());
+
+            if (user is not null)
+            {
+                multiplier = 1 - Convert.ToDecimal(user.Level?.DiscountPercentage ?? 0 / 100);
+            }
+        }
+
+        int totalUnits = new Boat().GetTotalUnits(request.Start, request.End);
+
+        var query = _dbContext.Boats
+            .AsNoTrackingWithIdentityResolution()
+            //.Available(request.Start, request.End)
+            .Where(c => c.Address.City == request.City)
+            .Where(c => c.Address.Country == request.Country)
+            .Where(c => c.People == request.People);
+
+        if (request.RatingHigher != default)
+        {
+            query = query.Where(b => b.Rating >= request.RatingHigher);
+        }
+        if (request.PriceLow != default)
+        {
+            query = query.Where(b => b.PricePerUnit.Amount >= request.PriceLow);
+        }
+        if (request.PriceHigh != default)
+        {
+            query = query.Where(b => b.PricePerUnit.Amount <= request.PriceHigh);
+        }
+        if (request.Seats != default)
+        {
+            if (request.Seats >= 5)
+                query = query.Where(b => b.Characteristics.Seats >= request.Seats);
+            else
+                query = query.Where(b => b.Characteristics.Seats == request.Seats);
+        }
+
+        var results = await query
+            .OrderBy(request.Direction)
+            .Take(9)
+            .Select(b => new BoatSearchResponse
+            {
+                Id = b.Id,
+                Name = b.Name,
+                Address = b.Address,
+                Image = b.Images.FirstOrDefault(),
+                People = b.People,
+                Rating = b.Rating,
+                BoatCharacteristics = b.Characteristics,
+                Price = new Money
+                {
+                    Amount = b.PricePerUnit.Amount * request.People * multiplier,
+                    Currency = b.PricePerUnit.Currency
+                }
+            })
+            .ToListAsync();
+
+        results.ForEach(r => r.Image = ImageUrl(r.Id, r.Image));
+
+        return results;
+
     }
 }
