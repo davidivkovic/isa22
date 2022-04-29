@@ -20,14 +20,14 @@
             </HeaderNavigation>
             <HeaderNavigation
               :isActive="selectedTab === 2"
-              name="Fishing"
-              routeName="fishing"
+              name="Adventures"
+              routeName="adventures"
             >
               <FishIcon class="h-6 w-6" />
             </HeaderNavigation>
           </div>
           <div
-            class="h-1 w-[5.1rem] rounded-3xl bg-emerald-600 transition duration-200 ease-in-out"
+            class="h-1 rounded-3xl bg-emerald-600 transition duration-200 ease-in-out"
             :class="translation"
           ></div>
         </div>
@@ -62,23 +62,23 @@ import api from '../api/api'
 
 import { isAuthenticated } from '../stores/userStore.js'
 
-const currentRoute = computed(() => useRoute().name)
+const currentRoute = computed(() => useRoute().path)
 const defaultTransition = 'translate-x-0'
 
 const signOut = () => api.auth.signOut()
 
 const selectedTab = computed(() => {
-  if ('cabins' === currentRoute.value) return 0
-  else if ('boats' === currentRoute.value) return 1
-  else if ('fishing' === currentRoute.value) return 2
+  if (currentRoute.value.includes('cabins')) return 0
+  else if (currentRoute.value.includes('boats')) return 1
+  else if (currentRoute.value.includes('adventures')) return 2
   else if (selectedTab.value) return selectedTab.value
   return 0
 })
 
 const translation = computed(() => {
-  if (selectedTab.value === 0) return 'translate-x-0'
-  else if (selectedTab.value === 1) return 'translate-x-[105px]'
-  else if (selectedTab.value === 2) return 'translate-x-[212px]'
+  if (selectedTab.value === 0) return 'translate-x-0 w-[5.1rem]'
+  else if (selectedTab.value === 1) return 'translate-x-[105px] w-[5.1rem]'
+  else if (selectedTab.value === 2) return 'translate-x-[212px] w-[7rem]'
   else if (translation.value) return translation.value
   return defaultTransition
 })

@@ -75,7 +75,7 @@ import { CheckIcon, ChevronDownIcon } from 'vue-tabler-icons'
 
 const emit = defineEmits(['change'])
 const props = defineProps({
-  values: Object,
+  values: Array,
   name: String,
   label: String,
   slim: Boolean,
@@ -83,7 +83,8 @@ const props = defineProps({
   default: {
     type: String,
     required: false
-  }
+  },
+  selectedValue: Object
 })
 
 const containerClass = props.labelPosition == 'left' && 'flex'
@@ -99,12 +100,11 @@ const buttonClass = open => {
 }
 
 const selection = ref()
-selection.value = props.default ?? props.values[0]
-
+selection.value = props.selectedValue ?? props.default ?? props.values[0]
 watch(
   () => selection.value,
   () => {
-    emit('change', selection.value.value)
+    emit('change', selection.value)
   }
 )
 </script>
