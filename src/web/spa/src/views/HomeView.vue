@@ -21,7 +21,7 @@
         </Button>
       </div>
     </div>
-    <SearchBar class="relative" />
+    <SearchBar class="relative -mt-20" />
   </div>
 </template>
 
@@ -49,7 +49,7 @@ const selectedImage = computed(() => {
 const images = {
   cabins: cabinsURL,
   boats: boatsURL,
-  fishing: fishingURL
+  adventures: fishingURL
 }
 const startSearch = () => {
   document.getElementById('Location').focus()
@@ -60,5 +60,9 @@ const startSearch = () => {
 .bg-image {
   background-size: cover;
   background-position: left;
+}
+.pac-container {
+  margin-top: -230px;
+  height: 200px;
 }
 </style>

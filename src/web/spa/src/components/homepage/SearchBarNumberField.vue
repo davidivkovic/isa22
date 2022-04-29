@@ -1,10 +1,12 @@
 <template>
   <label :for="props.name" class="group relative cursor-pointer">
     <input
+      @change="emitChange()"
       required
       type="number"
       :id="props.name"
       min="1"
+      v-model="number"
       :name="props.name"
       class="focus-within::outline-none peer ml-5 w-full max-w-[65px] border-0 py-0 text-[1.075rem] font-semibold valid:translate-y-3 valid:text-black focus-within:translate-y-3 focus-within:ring-0"
     />
@@ -27,11 +29,16 @@
 </template>
 
 <script setup>
-import Input from '../ui/Input.vue'
+import { ref } from 'vue'
 const props = defineProps({
   name: String,
   description: String
 })
+const emit = defineEmits(['valueChanged'])
+
+const number = ref()
+const emitChange = () =>
+  emit('valueChanged', { [props.name.toLowerCase()]: number.value })
 </script>
 
 <style scoped="css">
