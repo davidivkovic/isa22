@@ -46,10 +46,10 @@
 
 <script setup>
 import { ref } from 'vue'
-import Input from './ui/Input.vue'
-import PasswordInput from './ui/PasswordInput.vue'
-import Button from './ui/Button.vue'
-import Divider from './ui/Divider.vue'
+import Input from '@/components/ui/Input.vue'
+import PasswordInput from '@/components/ui/PasswordInput.vue'
+import Button from '@/components/ui/Button.vue'
+import Divider from '@/components/ui/Divider.vue'
 import api from '@/api/api.js'
 const emit = defineEmits(['switchAuth'])
 const email = ref('')

@@ -25,11 +25,11 @@
 
 <script setup>
 import { shallowRef } from 'vue'
-import Modal from './ui/Modal.vue'
+import Modal from '../ui/Modal.vue'
 import SignInForm from './SignInPanel.vue'
 import RegistrationForm from './RegistrationPanel.vue'
 import { XIcon } from 'vue-tabler-icons'
-import { useModal } from '../stores/modalStore.js'
+import { useModal } from '@/stores/modalStore.js'
 
 const authPanel = shallowRef(SignInForm)
 const switchAuth = () => {

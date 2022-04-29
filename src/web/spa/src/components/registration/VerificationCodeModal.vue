@@ -51,14 +51,14 @@
 </template>
 <script setup>
 import { ref } from 'vue'
-import Modal from './ui/Modal.vue'
-import Input from './ui/Input.vue'
-import Button from './ui/Button.vue'
+import Modal from '@/components/ui/Modal.vue'
+import Input from '@/components/ui/Input.vue'
+import Button from '@/components/ui/Button.vue'
 import { XIcon } from 'vue-tabler-icons'
-import { useModal } from '../stores/modalStore'
-import { formData } from './utility/forms'
+import { useModal } from '@/stores/modalStore'
+import { formData } from '@/components/utility/forms'
 import { useRoute, useRouter } from 'vue-router'
-import api from '../api/api'
+import api from '@/api/api.js'
 const { isModalOpen, closeModal } = useModal()
 
 const route = useRoute()
