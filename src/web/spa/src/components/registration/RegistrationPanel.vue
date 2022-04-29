@@ -46,17 +46,17 @@
 
 <script setup>
 import { ref, shallowRef, computed } from 'vue'
-import RolePanel from './registration/RolePanel.vue'
-import AdvertiserPanel from './registration/AdvertiserPanel.vue'
-import UserInformationForm from './registration/UserInformationForm.vue'
-import AccountInformationForm from './registration/AccountInformationForm.vue'
-import AddressForm from './registration/AddressForm.vue'
-import TextForm from './registration/TextForm.vue'
-import VerificationPanel from './registration/VerificationPanel.vue'
-import Divider from './ui/Divider.vue'
+import RolePanel from './RolePanel.vue'
+import AdvertiserPanel from './AdvertiserPanel.vue'
+import UserInformationForm from './UserInformationForm.vue'
+import AccountInformationForm from './AccountInformationForm.vue'
+import AddressForm from './AddressForm.vue'
+import TextForm from './TextForm.vue'
+import VerificationPanel from './VerificationPanel.vue'
+import Divider from '@/components/ui/Divider.vue'
 import { ArrowNarrowLeftIcon } from 'vue-tabler-icons'
-import api from '../api/api'
-import router from '../router'
+import api from '@/api/api.js'
+import router from '@/router/index.js'
 
 const emit = defineEmits(['switchAuth'])
 const selectedPanel = ref(0)
@@ -111,7 +111,7 @@ const register = async newData => {
   data['roles'] = [
     selectedRole.value.charAt(0).toUpperCase() + selectedRole.value.slice(1)
   ]
-  const [response] = await api.auth.register(data)
+  const [response, error] = await api.auth.register(data)
   formError.value = error
 
   if (response && selectedRole.value === 'customer') {

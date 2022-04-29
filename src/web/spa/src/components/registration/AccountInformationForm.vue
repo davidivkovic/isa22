@@ -28,7 +28,6 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
 import { formData } from '../utility/forms'
 import Input from '../ui/Input.vue'
 import PasswordInput from '../ui/PasswordInput.vue'
@@ -36,7 +35,6 @@ import Button from '../ui/Button.vue'
 import { ArrowNarrowRightIcon } from 'vue-tabler-icons'
 
 const emit = defineEmits(['register'])
-const error = ref('')
 
 const forward = event => {
   const data = formData(event)
