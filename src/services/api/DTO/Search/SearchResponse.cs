@@ -20,5 +20,12 @@ public class CabinSearchResponse : SearchResponse
     public int Beds { get; set; }
 }
 
-public class AdventureSearchResponse : SearchResponse {}
-public class BoatSearchResponse : SearchResponse {}
+public class BoatSearchResponse : SearchResponse
+{
+    public BoatCharacteristics BoatCharacteristics { get; set; }
+}
+
+public class AdventureSearchResponse : SearchResponse 
+{
+    public List<String> FishingEquipment { get; set; }
+}
