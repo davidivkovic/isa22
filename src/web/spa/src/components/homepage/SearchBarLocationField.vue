@@ -34,7 +34,15 @@ const props = defineProps({
   description: String
 })
 
+const emit = defineEmits(['valueChanged'])
+
 const location = ref('')
+const city = ref('')
+const country = ref('')
+
+const emitChange = () => {
+  emit('valueChanged', { country: country.value, city: city.value })
+}
 
 if (!document.getElementById('google-maps-script')) {
   const mapsScript = document.createElement('script')
@@ -70,7 +78,10 @@ const createField = () => {
       (results, status) => {
         if (status != window.google.maps.GeocoderStatus.OK) return
         const address = getAddress(results)
+        city.value = address.city
+        country.value = address.country
         location.value = `${address.city}, ${address.country}`
+        emitChange()
       }
     )
   })

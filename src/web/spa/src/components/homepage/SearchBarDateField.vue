@@ -54,6 +54,7 @@ const dateValue = ref()
 const dateInput = ref(null)
 const minValue = ref()
 const maxValue = ref()
+
 watch(
   () => props.hasTime,
   () => (dateValue.value = '')
@@ -62,9 +63,8 @@ watch(
 watchEffect(() => {
   const dateFormat = props.hasTime ? "yyyy-MM-dd'T'HH:mm" : 'yyyy-MM-dd'
   minValue.value = format(Date.now(), dateFormat)
-  if (props.lowerLimit) (minValue.value = props.lowerLimit), dateFormat
-  if (props.upperLimit) (maxValue.value = props.upperLimit), dateFormat
-  console.log(props.minValue, props.maxValue)
+  if (props.lowerLimit) minValue.value = props.lowerLimit
+  if (props.upperLimit) maxValue.value = props.upperLimit
 })
 
 const formatInput = () => {
@@ -76,7 +76,7 @@ const formatInput = () => {
 }
 
 const emitChange = () =>
-  emit('valueChanged', { [props.name]: dateInput.value.value })
+  emit('valueChanged', { [props.name.toLowerCase()]: dateInput.value.value })
 
 const showDatePicker = () => {
   dateInput.value.showPicker()

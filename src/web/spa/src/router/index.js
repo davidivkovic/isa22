@@ -31,8 +31,8 @@ const router = createRouter({
       component: HomeView
     },
     {
-      path: '/fishing',
-      name: 'fishing',
+      path: '/adventures',
+      name: 'adventures',
       component: HomeView
     },
     {
@@ -49,14 +49,18 @@ const router = createRouter({
       path: '/signin',
       name: 'signin',
       beforeEnter: (to, from) =>
-        modalRouteFunc(to, from, '../components/SignInModal.vue')
+        modalRouteFunc(to, from, '../components/registration/SignInModal.vue')
     },
     {
       path: '/verification',
       name: 'verification',
       props: true,
       beforeEnter: (to, from) =>
-        modalRouteFunc(to, from, '../components/VerificationCodeModal.vue')
+        modalRouteFunc(
+          to,
+          from,
+          '../components/registration/VerificationCodeModal.vue'
+        )
     },
     {
       path: '/admin-verification',
@@ -70,17 +74,17 @@ const router = createRouter({
       component: () => import('../views/AdventureProfileView.vue')
     },
     {
-      path: '/cabin-profile',
+      path: '/cabin-profile/:id',
       name: 'cabin profile',
       component: () => import('../views/CabinProfileView.vue')
     },
     {
-      path: '/boat-profile',
+      path: '/boat-profile/:id',
       name: 'boat profile',
       component: () => import('../views/BoatProfileView.vue')
     },
     {
-      path: '/search',
+      path: '/:type/search',
       name: 'search',
       component: () => import('../views/ResultsView.vue')
     }
