@@ -27,4 +27,7 @@ const createOrUpdate = async (data, type, action) => {
 const create = async (data, type) => createOrUpdate(data, type, 'create')
 const update = async (data, type) => createOrUpdate(data, type, 'update')
 
-export default { get, create, update }
+const search = (query, type) =>
+  fetch(instance.get(`cabin-owner/${type}/cabins`, {params: {...query}}))
+
+export default { get, create, update, search }

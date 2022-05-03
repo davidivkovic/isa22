@@ -1,14 +1,54 @@
 <template>
  <div class="justify-between">
-     <div class="flex mx-auto items-center justify-between py-6 max-w-6xl">
-         <p>Search part</p>
-     </div>
-     <br>
-    <div class="mx-auto max-w-[70%] bg-white shadow overflow-hidden sm:rounded-md">
+     <div class="space-y-2">
+        <div class="flex mx-auto items-center justify-between py-6 max-w-5xl shadow">
+            <form @submit.prevent="search()"
+            class="max-auto ml-20 flex max-w-6xl justify-center space-x-3"
+            >
+            <div class="w-64 flex space-x-10">
+                <Input
+                id="name-input"
+                v-model="cabinsName"
+                placeholder="Enter cabin's name"
+                clearable
+                class="h-12 w-64"/>
+                <Input
+                id="location-input"
+                v-model="newLocation"
+                placeholder="Enter a location"
+                clearable
+                class="h-12 w-64 !pl-7">
+                <template #prepend="{focused, hovered}">
+                    <MapPinIcon
+                    class="ml-2.5 mr-1.5 h-[18px] w-[18px] transition-all"
+                    :class="[
+                        focused || hovered ? 'text-neutral-700' : 'text-neutral-400'
+                    ]"
+                />
+                </template>
+                </Input>
+                <Button type="submit" class=" bg-emerald-600 !px-10 text-white">
+                    Search
+                </Button>
+            </div>
+            </form>
+        </div>
+        <div class="flex justify-center ml-[50%]">
+            <Dropdown
+                @change="changeSelectedOption"
+                :slim="true"
+                :selectedValue="direction"
+                class="-mb-2.5"
+                :values="sortingOption"
+             />
+        </div>
+    </div>
+    <br>
+    <div class="mx-auto max-w-5xl bg-white shadow overflow-hidden sm:rounded-md">
         <ul role="list" class="divide-y divide-gray-200">
             <li  v-for="result in results"
                 :key="result.id"
-                class="group space-y-3.5 max-h-[12rem] h-[12rem]">
+                class="group space-y-3.5 max-h-[11rem] h-[11rem]">
                 <div class="flex items-center px-4 py-4 sm:px-6">
                     <div class="min-2-0 flex-1 flex">
                         <div class="relative h-36 w-48 ">
@@ -81,220 +121,130 @@
 </template>
 
 <script setup>
+import {ref, onMounted, computed, watchEffect} from 'vue'
+import Button from '../components/ui/Button.vue';
+import Dropdown from '../components/ui/Dropdown.vue';
 import {
   UserIcon,
   BedIcon,
-  HotelServiceIcon
+  HotelServiceIcon,
+  MapPinIcon
 } from 'vue-tabler-icons'
-import Button from '../components/ui/Button.vue';
+import {useRoute, useRouter, RouterLink} from 'vue-router'
+import api from '../api/api';
+import Input from '../components/ui/Input.vue';
 
-const results = [{
-    id: 0,
-    name: "Vikendica na Kopaoniku",
-    rating: 4.123,
-    image: "https://cf.bstatic.com/xdata/images/hotel/max1024x768/237771595.jpg?k=74b6fd4d57358758e4a2bd4e44e067009229efa17dab6d64deddcbce7e8e8a93&o=&hp=1",
-    address: {
-        street: "Starzilovska",
-        apartment: "15",
-    longitude: 43.7389411,
-    latitude: 19.698573
+const route = useRoute()
+const router = useRouter()
+
+const city = ref(route.query.city ?? "") 
+const country = ref(route.query.country ?? "")
+const cabinsName = ref(route.query.cabinsName)
+
+const sortingOption = [
+    {
+        name: "Price - Highes first",
+        value: "price_desc"
     },
-    price: {
-        symbol: "RSD",
-        amount: 150000
+    {
+        name: "Price - Lowest first",
+        value: "price_asc"
     },
-    rooms: 30,
-    beds: 30,
-    people: 15,
-    selected: false,
-    longitude: 43.7389411,
-    latitude: 19.698573,
-    cancellationFee: 30000,
-    description: "Objekat MountainView19 Zoned II Kopaonik nudi pogled na planinu, a nalazi se na Kopaoniku, na 2,5 km od Ski-centra Kopaonik. Gosti koji borave u ovom apartmanu mogu da koriste potpuno opremljenu kuhinju i balkondasssssssssssssssss ssssssssssssssssdasdsadasdasdasdasdadasdsadasdasdsadsadsadasdasdsadsadsadadsdsasadsadasdsad cvxcvasdedawqsdDASDASDSADSADS ADSADSADSASDASADSADSDASDASDASDASDADSASD DASDASDASDADSASDFADSADSADSADSADSADSASDADSASDADSASSDADWWQQDWASDQAWWDQWADASDSADSA DSADSADAS DSAD ASD AS DAS DAS ",
-},{
-    id: 0,
-    name: "kucica",
-    rating: 4.123,
-    image: "https://cf.bstatic.com/xdata/images/hotel/max1024x768/237771595.jpg?k=74b6fd4d57358758e4a2bd4e44e067009229efa17dab6d64deddcbce7e8e8a93&o=&hp=1",
-    address: {
-        street: "ulica",
-        apartment: "apartman",
-    longitude: 43.7389411,
-    latitude: 19.698573
+    {
+        name: "Rating - Highest first",
+        value: "rating_desc"
     },
-    price: {
-        symbol: "RSD",
-        amount: 100
-    },
-    rooms: 3,
-    beds: 3,
-    people: 5,
-    selected: false,
-    longitude: 43.7389411,
-    latitude: 19.698573,
-    cancellationFee: 30,
-    description: "Opis vikendice",
-},{
-    id: 0,
-    name: "kucica",
-    rating: 4.123,
-    image: "https://cf.bstatic.com/xdata/images/hotel/max1024x768/237771595.jpg?k=74b6fd4d57358758e4a2bd4e44e067009229efa17dab6d64deddcbce7e8e8a93&o=&hp=1",
-    address: {
-        street: "ulica",
-        apartment: "apartman",
-    longitude: 43.7389411,
-    latitude: 19.698573
-    },
-    price: {
-        symbol: "RSD",
-        amount: 100
-    },
-    rooms: 3,
-    beds: 3,
-    people: 5,
-    selected: false,
-    longitude: 43.7389411,
-    latitude: 19.698573,
-    cancellationFee: 30,
-    description: "Opis vikendice"
-},{
-    id: 0,
-    name: "kucica",
-    rating: 4.123,
-    image: "https://cf.bstatic.com/xdata/images/hotel/max1024x768/237771595.jpg?k=74b6fd4d57358758e4a2bd4e44e067009229efa17dab6d64deddcbce7e8e8a93&o=&hp=1",
-    address: {
-        street: "ulica",
-        apartment: "apartman",
-    longitude: 43.7389411,
-    latitude: 19.698573
-    },
-    price: {
-        symbol: "RSD",
-        amount: 100
-    },
-    rooms: 3,
-    beds: 3,
-    people: 5,
-    selected: false,
-    longitude: 43.7389411,
-    latitude: 19.698573,
-    cancellationFee: 30,
-    description: "Objekat MountainView19 Zoned II Kopaonik nudi pogled na planinu, a nalazi se na Kopaoniku, na 2,5 km od Ski-centra Kopaonik. Gosti koji borave u ovom apartmanu mogu da koriste potpuno opremljenu kuhinju i balkondasssssssssssssssss ssssssssssssssssdasdsadasdasdasdasdadasdsadasdasdsadsadsadasdasdsadsadsadadsdsasadsadasdsad cvxcvasdedawqsdDASDASDSADSADS ADSADSADSASDASADSADSDASDASDASDASDADSASD DASDASDASDADSASDFADSADSADSADSADSADSASDADSASDADSASSDADWWQQDWASDQAWWDQWADASDSADSA DSADSADAS DSAD ASD AS DAS DAS "
-},{
-    id: 0,
-    name: "kucica",
-    rating: 4.123,
-    image: "https://cf.bstatic.com/xdata/images/hotel/max1024x768/237771595.jpg?k=74b6fd4d57358758e4a2bd4e44e067009229efa17dab6d64deddcbce7e8e8a93&o=&hp=1",
-    address: {
-        street: "ulica",
-        apartment: "apartman",
-    longitude: 43.7389411,
-    latitude: 19.698573
-    },
-    price: {
-        symbol: "RSD",
-        amount: 100
-    },
-    rooms: 3,
-    beds: 3,
-    people: 5,
-    selected: false,
-    longitude: 43.7389411,
-    latitude: 19.698573,
-    cancellationFee: 30,
-    description: "Opis vikendice"
-},{
-    id: 0,
-    name: "kucica",
-    rating: 4.123,
-    image: "https://cf.bstatic.com/xdata/images/hotel/max1024x768/237771595.jpg?k=74b6fd4d57358758e4a2bd4e44e067009229efa17dab6d64deddcbce7e8e8a93&o=&hp=1",
-    address: {
-        street: "ulica",
-        apartment: "apartman",
-    longitude: 43.7389411,
-    latitude: 19.698573
-    },
-    price: {
-        symbol: "RSD",
-        amount: 100
-    },
-    rooms: 3,
-    beds: 3,
-    people: 5,
-    selected: false,
-    longitude: 43.7389411,
-    latitude: 19.698573,
-    cancellationFee: 30,
-    description: "Opis vikendice"
-},{
-    id: 0,
-    name: "kucica",
-    rating: 4.123,
-    image: "https://cf.bstatic.com/xdata/images/hotel/max1024x768/237771595.jpg?k=74b6fd4d57358758e4a2bd4e44e067009229efa17dab6d64deddcbce7e8e8a93&o=&hp=1",
-    address: {
-        street: "ulica",
-        apartment: "apartman",
-    longitude: 43.7389411,
-    latitude: 19.698573
-    },
-    price: {
-        symbol: "RSD",
-        amount: 100
-    },
-    rooms: 3,
-    beds: 3,
-    people: 5,
-    selected: false,
-    longitude: 43.7389411,
-    latitude: 19.698573,
-    cancellationFee: 30,
-    description: "Opis vikendice"
-},{
-    id: 0,
-    name: "kucica",
-    rating: 4.123,
-    image: "https://cf.bstatic.com/xdata/images/hotel/max1024x768/237771595.jpg?k=74b6fd4d57358758e4a2bd4e44e067009229efa17dab6d64deddcbce7e8e8a93&o=&hp=1",
-    address: {
-        street: "ulica",
-        apartment: "apartman",
-    longitude: 43.7389411,
-    latitude: 19.698573
-    },
-    price: {
-        symbol: "RSD",
-        amount: 100
-    },
-    rooms: 3,
-    beds: 3,
-    people: 5,
-    selected: false,
-    longitude: 43.7389411,
-    latitude: 19.698573,
-    cancellationFee: 30,
-    description: "Opis vikendice"
-},{
-    id: 0,
-    name: "kucica",
-    rating: 4.123,
-    image: "https://cf.bstatic.com/xdata/images/hotel/max1024x768/237771595.jpg?k=74b6fd4d57358758e4a2bd4e44e067009229efa17dab6d64deddcbce7e8e8a93&o=&hp=1",
-    address: {
-        street: "ulica",
-        apartment: "apartman",
-    longitude: 43.7389411,
-    latitude: 19.698573
-    },
-    price: {
-        symbol: "RSD",
-        amount: 100
-    },
-    rooms: 3,
-    beds: 3,
-    people: 5,
-    selected: false,
-    longitude: 43.7389411,
-    latitude: 19.698573,
-    cancellationFee: 30,
-    description: "Opis vikendice"
-}]
+    {
+        name: "Rating - Lowest first",
+        value: "rating_asc"
+    }
+]
+
+const currentLocation = ref(`${city.value}${country.value}`)
+const newLocation = ref(currentLocation.value)
+
+const direction = ref(
+    sortingOption.find(option => option.value === route.query.direction) ??
+    sortingOption[0]
+)
+
+const results = ref([])
+
+const fetchResults = async () => {
+    const [data, error] = await api.business.search(
+        {
+            ...route.query
+        },
+        route.params.id
+    )
+    data && (results.value = data)
+}
+
+watchEffect(() => fetchResults())
+
+const search = () => {
+    router.push({
+        name: 'owners cabins',
+        query: {
+            country: country.value,
+            city: city.value,
+            cabinName: cabinsName.value,
+            direction: direction.value.value
+        }
+    })
+}
+
+const changeSelectedOption = value => {
+  direction.value = value
+  search()
+}
+
+onMounted(() => createAutocompleteInput())
+
+const createAutocompleteInput = () => {
+  const geocoder = new window.google.maps.Geocoder()
+  const input = document.getElementById('location-input')
+  const options = {
+    types: ['(regions)']
+  }
+  const autocomplete = new window.google.maps.places.Autocomplete(
+    input,
+    options
+  )
+  autocomplete.addListener('place_changed', () => {
+    const place = autocomplete.getPlace()
+    geocoder.geocode(
+      {
+        latLng: place.geometry.location
+      },
+      (results, status) => {
+        if (status != window.google.maps.GeocoderStatus.OK) return
+        const address = getAddress(results)
+        city.value = address.city
+        country.value = address.country
+        newLocation.value = `${city.value}, ${country.value}`
+      }
+    )
+  })
+}
+const getAddress = results => {
+  const address = results.find(r =>
+    r.address_components.find(c => c.types.includes('postal_code'))
+  )
+  return {
+    postalCode: extractFromAddress(address, 'postal_code'),
+    country: extractFromAddress(results[0], 'country'),
+    city: extractFromAddress(results[0], 'locality'),
+    street: extractFromAddress(results[0], 'route'),
+    apartment: extractFromAddress(results[0], 'street_number'),
+    region: extractFromAddress(results[0], 'administrative_area_level_1'),
+    latitude: results[0].geometry.location.lat(),
+    longitude: results[0].geometry.location.lng()
+  }
+}
+const extractFromAddress = (address, key) => {
+  return address?.address_components?.find(a => a.types.includes(key))
+    ?.long_name
+}
 
 </script>
