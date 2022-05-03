@@ -5,6 +5,8 @@ namespace API.DTO.Search;
 public class SearchRequest
 {
     [FromQuery]
+    public string Name { get; set; }
+    [FromQuery]
     public DateTime Start { get; set; }
     [FromQuery]
     public DateTime End { get; set; }

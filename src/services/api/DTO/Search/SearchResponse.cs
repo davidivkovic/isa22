@@ -6,12 +6,14 @@ public class SearchResponse
 {
     public Guid Id { get; set; }
     public string Name { get; set; }
+    public string Description { get; set; }
     public string Image { get; set; }
     public Address Address { get; set; }
     public Money Price { get; set; }
     public double Discount { get; set; }
     public int People { get; set; }
     public double Rating { get; set; }
+    public double CancellationFee { get; set; }
 }
 
 public class CabinSearchResponse : SearchResponse
