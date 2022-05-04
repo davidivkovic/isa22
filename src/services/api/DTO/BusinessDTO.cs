@@ -12,6 +12,7 @@ public abstract class BaseBusinessDTO
     public List<Service> Services { get; set; }
     public double CancellationFee { get; set; }
     public MoneyDTO PricePerUnit { get; set; }
+    public string UnitName { get; set; }
 }
 
 public class CreateBusinessDTO : BaseBusinessDTO

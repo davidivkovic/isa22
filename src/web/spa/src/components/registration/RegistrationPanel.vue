@@ -21,6 +21,7 @@
           @selectedRole="changeRole"
           @next="forward"
           @register="register"
+          success-text="Your registration request has been submitted for review. We will notify you via email when we approve it."
           class="mt-10"
         />
       </KeepAlive>

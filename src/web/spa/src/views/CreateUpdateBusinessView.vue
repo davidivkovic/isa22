@@ -1,7 +1,7 @@
 <template>
   <div>
-    <div class="my-6 flex flex-col justify-between">
-      <div class="ml-2 grid grid-cols-3">
+    <div class="my-6 flex flex-col items-center justify-between">
+      <div class="ml-2 grid auto-cols-fr grid-cols-3">
         <div class="ml-auto mr-8">
           <div v-for="(step, idx) in stepNames" :key="step">
             <h2
@@ -49,7 +49,7 @@
             @change="e => onChange(e)"
             :is="steps[currentStep]"
             v-bind="business"
-            class="mx-auto mt-0.5"
+            class="mt-0.5"
           />
         </KeepAlive>
       </div>
@@ -68,7 +68,7 @@
         v-if="currentStep < steps.length - 1"
         @click="forward()"
         type="submit"
-        class="ml-auto -mr-0.5 bg-emerald-600 !px-7 text-white transition hover:bg-emerald-700"
+        class="ml-auto -mr-1 bg-emerald-600 !px-7 text-white transition hover:bg-emerald-700"
       >
         Next
       </Button>
@@ -77,7 +77,7 @@
         @click="forward()"
         :disabled="isLoading"
         type="submit"
-        class="-mr-8 ml-auto bg-emerald-600 !px-12 text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:hover:bg-emerald-600"
+        class="ml-auto -mr-1 bg-emerald-600 !px-12 text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:hover:bg-emerald-600"
       >
         <div v-if="isLoading" class="flex items-center">
           <Loader class="mr-3" />
@@ -90,7 +90,7 @@
 </template>
 
 <script setup>
-import { ref, shallowRef, KeepAlive } from 'vue'
+import { ref, shallowRef } from 'vue'
 import { ArrowNarrowLeftIcon, CheckIcon } from 'vue-tabler-icons'
 import { useRouter, useRoute } from 'vue-router'
 import api from '@/api/api.js'
@@ -138,7 +138,7 @@ const stepDescriptions = [
     boat: 'Where the journey starts'
   }[businessType],
   'Show us some pretty shots',
-  "What's allowed and what's not",
+  'What is allowed and what is not',
   'Tell us some specific details',
   'Define the prices of your services'
 ]

@@ -1,13 +1,11 @@
 ﻿namespace API.Controllers;
 
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 
-using Mapster;
-
 using API.DTO;
-using API.Services;
 using API.Core.Model;
 using API.Infrastructure.Data;
 using API.Infrastructure.Data.Queries;
@@ -16,182 +14,139 @@ using API.DTO.Search;
 
 [ApiController]
 [Route("cabins")]
-public class CabinController : ControllerBase
+public class CabinController : BusinessController<Cabin, CabinDTO, CreateCabinDTO, UpdateCabinDTO>
 {
-    private readonly AppDbContext _dbContext;
+    protected override string BusinessType => "cabin";
 
-    public CabinController(AppDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
+    public CabinController(AppDbContext dbContext) : base(dbContext) { }
 
-    private string ImageUrl(Guid id, string image)
-    {
-        return Url.Action(
-            nameof(GetImage),
-            ControllerContext.ActionDescriptor.ControllerName,
-            new { id, image },
-            Request.Scheme
-        );
-    }
-
-    [HttpGet("{id}/images/{image}")]
-    public ActionResult GetImage([FromRoute] Guid id, [FromRoute] string image)
-    {
-        string imagePath = ImageService.GetPath(id, image);
-        if (imagePath is null)
-        {
-            return BadRequest();
-        }
-
-        return PhysicalFile(imagePath, "image/*");
-    }
-
-    [HttpGet("{id}/images")]
-    public async Task<ActionResult> GetImages(Guid id)
-    {
-        var cabin = await _dbContext.Cabins
-                                    .AsNoTracking()
-                                    .FirstOrDefaultAsync(a => a.Id == id);
-        if (cabin is null)
-        {
-            return BadRequest("The requested adventure does not exist.");
-        }
-
-        return Ok(cabin.Images.Select(image => ImageUrl(id, image)));
-    }
-
-    [HttpGet("{id}")]
-    public async Task<ActionResult> Get(Guid id)
-    {
-        var cabinDTO = await _dbContext.Cabins
-            .AsNoTracking()
-            .Include(a => a.Services)
-            .Include(a => a.Rules)
-            .Where(a => a.Id == id)
-            .ProjectToType<CabinDTO>()
-            .FirstOrDefaultAsync();
-
-        if (cabinDTO is null)
-        {
-            return NotFound();
-        }
-
-        cabinDTO.WithImages(ImageUrl);
-
-        return Ok(cabinDTO);
-    }
-
-    [HttpPost("{id}/images/add")]
     [Authorize(Roles = Role.CabinOwner)]
-    public async Task<ActionResult> AddImage(Guid id, [FromForm] List<IFormFile> files)
+    public override Task<ActionResult> Update(UpdateCabinDTO dto)
     {
-        if (files.Count == 0)
-        {
-            return BadRequest("No images to add!");
-        }
+        return base.Update(dto);
+    }
 
-        var cabin = await _dbContext.Cabins
-                            .Include(a => a.Owner)
-                            .FirstOrDefaultAsync(a => a.Id == id);
+    [Authorize(Roles = Role.CabinOwner)]
+    public override Task<IActionResult> Create(CreateCabinDTO dto)
+    {
+        return base.Create(dto);
+    }
 
-        if (cabin.Owner.Id != User.Id())
-        {
-            return BadRequest("Cannot update someone else's cabin.");
-        }
+    [Authorize(Roles = Role.CabinOwner)]
+    public override Task<ActionResult> AddImage(Guid id, [FromForm] List<IFormFile> files)
+    {
+        return base.AddImage(id, files);
+    }
 
-        if (cabin is null)
-        {
-            return BadRequest("The requested cabin does not exist.");
-        }
+    [Authorize(Roles = Role.Customer)]
+    public override Task<ActionResult> MakeReservation([FromRoute] Guid businessId, [FromBody] MakeReservationDTO request)
+    {
+        return base.MakeReservation(businessId, request);
+    }
 
-        if (files.Count > 10)
-        {
-            return BadRequest("A maximum of 10 images can be uploaded.");
-        }
+    [Authorize]
+    public override Task<ActionResult> GetReservations(string status)
+    {
+        return base.GetReservations(status);
+    }
 
-        foreach (var file in files)
+    [Authorize]
+    [AllowAnonymous]
+    [HttpGet("search")]
+    public async Task<List<CabinSearchResponse>> Search([FromQuery] CabinSearchRequest request)
+    {
+        decimal multiplier = 1;
+        if (User.Identity.IsAuthenticated)
         {
-            if (!ImageService.IsValid(file.FileName, file.OpenReadStream()))
+            var user = await Context.Users
+                .Include(u => u.Level)
+                .FirstOrDefaultAsync(u => u.Id == User.Id());
+
+            if (user is not null) 
             {
-                return BadRequest($"The file {file.FileName} is not a valid image.");
+                multiplier = 1 - Convert.ToDecimal(user.Level?.DiscountPercentage ?? 0 / 100);
             }
         }
 
-        var images = await Task.WhenAll(
-            files.Select(image =>
-            ImageService.Persist(cabin.Id, image.FileName, fs => image.CopyToAsync(fs))
-            )
-        );
+        int totalUnits = new Cabin().GetTotalUnits(request.Start, request.End);
 
-        cabin.Images = new(images);
-        await _dbContext.SaveChangesAsync();
-
-        return Ok();
-    }
-
-    [HttpPost("create")]
-    [Authorize(Roles = Role.CabinOwner)]
-    public async Task<IActionResult> Create(CreateCabinDTO dto)
-    {
-        User user = await _dbContext.Users.FindAsync(User.Id());
-        if (user is null)
+        var query = Context.Cabins
+            .AsNoTrackingWithIdentityResolution()
+            //.Available(request.Start, request.End)
+            .Where(c => c.Address.City == request.City)
+            .Where(c => c.Address.Country == request.Country)
+            .Where(c => c.People == request.People);
+            
+        if (request.RatingHigher != default)
         {
-            return BadRequest($"The user with email {user.Email} does not exist.");
+            query = query.Where(c => c.Rating >= request.RatingHigher);
+        }
+        if (request.PriceLow != default)
+        {
+            query = query.Where(c => c.PricePerUnit.Amount >= request.PriceLow);
+        }
+        if (request.PriceHigh != default)
+        {
+            query = query.Where(c => c.PricePerUnit.Amount <= request.PriceHigh);
+        }
+        if (request.Rooms != default)
+        {
+            if (request.Rooms >= 4)
+            {
+                query = query.Where(c => c.Rooms.Count >= 4);
+            }
+            else
+            {
+                query = query.Where(c => c.Rooms.Count == request.Rooms);
+            }
         }
 
-        var cabin = dto.Adapt<Cabin>();
-        cabin.Id = Guid.NewGuid();
-        cabin.Owner = user;
+        var results = await query
+            .OrderBy(request.Direction)
+            .Take(9)
+            .Select(c => new CabinSearchResponse
+            {
+                Id = c.Id,
+                Name = c.Name,
+                Description = c.Description,
+                Address = c.Address,
+                Beds = c.Rooms.Sum(r => r.Beds),
+                Image = c.Images.FirstOrDefault(),
+                People = c.People,
+                Rooms = c.Rooms.Count,
+                Rating = c.Rating,
+                Price = new Money
+                {
+                    Amount = c.PricePerUnit.Amount * request.People * multiplier,
+                    Currency = c.PricePerUnit.Currency
+                }
+            }) 
+            .ToListAsync();
 
-        _dbContext.Cabins.Add(cabin);
-        await _dbContext.SaveChangesAsync();
+        results.ForEach(r => r.Image = ImageUrl(r.Id, r.Image));
 
-        return Ok(cabin.Id);
-    }
-
-    [HttpPost("update")]
-    [Authorize(Roles = Role.CabinOwner)]
-    public async Task<ActionResult> Update(UpdateCabinDTO dto)
-    {
-        var cabin = await _dbContext.Cabins
-                            .Include(a => a.Owner)
-                            .FirstOrDefaultAsync(a => a.Id == dto.Id);
-
-        if (cabin.Owner.Id != User.Id())
-        {
-            return StatusCode(403);
-        }
-
-        dto.Adapt(cabin);
-        bool success = await _dbContext.SaveChangesAsync() > 0;
-
-        if (!success)
-        {
-            BadRequest("Could not update your cabin at this time. Please try again later.");
-        }
-
-        return Ok(cabin.Id);
+        return results;
     }
 
     [HttpGet("/cabin-owner/{id}/cabins")]
     [Authorize(Roles = Role.CabinOwner)]
     public async Task<List<CabinSearchResponse>> SearchOwnersCabins([FromQuery] CabinSearchRequest request)
     {
-        var query = _dbContext.Cabins
+        var query = Context.Cabins
+            .Where(c => c.Owner.Id == User.Id())
             .AsNoTrackingWithIdentityResolution();
 
         if (!String.IsNullOrWhiteSpace(request.Name))
         {
-            query = query.Where(a => a.Name.ToLower().Contains(request.Name.ToLower()));
-        };
+            query = query.Where(a => EF.Functions.ILike(a.Name, $"%{request.Name}%"));
+        }
         if (!String.IsNullOrWhiteSpace(request.City))
         {
-            query = query.Where(a => a.Address.City.ToLower().Contains(request.City.ToLower()));
-        };
+            query = query.Where(a => EF.Functions.ILike(a.Address.City, $"%{request.City}%"));
+        }
         if (!String.IsNullOrWhiteSpace(request.Country))
         {
-            query = query.Where(c => c.Address.Country.ToLower().Contains(request.Country.ToLower()));
+            query = query.Where(c => EF.Functions.ILike(c.Address.Country, $"%{request.Country}%"));
         }
 
         var results = await query
@@ -220,80 +175,5 @@ public class CabinController : ControllerBase
         results.ForEach(r => r.Image = ImageUrl(r.Id, r.Image));
 
         return results;
-    }
-
-    [Authorize]
-    [AllowAnonymous]
-    [HttpGet("search")]
-    public async Task<List<CabinSearchResponse>> Search([FromQuery] CabinSearchRequest request)
-    {
-        decimal multiplier = 1;
-        if (User.Identity.IsAuthenticated)
-        {
-            var user = await _dbContext.Users
-                .Include(u => u.Level)
-                .FirstOrDefaultAsync(u => u.Id == User.Id());
-
-            if (user is not null) 
-            {
-                multiplier = 1 - Convert.ToDecimal(user.Level?.DiscountPercentage ?? 0 / 100);
-            }
-        }
-
-        int totalUnits = new Cabin().GetTotalUnits(request.Start, request.End);
-
-        var query = _dbContext.Cabins
-            .AsNoTrackingWithIdentityResolution()
-            //.Available(request.Start, request.End)
-            .Where(c => c.Address.City == request.City)
-            .Where(c => c.Address.Country == request.Country)
-            .Where(c => c.People == request.People);
-            
-        if (request.RatingHigher != default)
-        {
-            query = query.Where(c => c.Rating >= request.RatingHigher);
-        }
-        if (request.PriceLow != default)
-        {
-            query = query.Where(c => c.PricePerUnit.Amount >= request.PriceLow);
-        }
-        if (request.PriceHigh != default)
-        {
-            query = query.Where(c => c.PricePerUnit.Amount <= request.PriceHigh);
-        }
-        if (request.Rooms != default)
-        {
-            if(request.Rooms >= 4)
-                query = query.Where(c => c.Rooms.Count >= request.Rooms);
-            else
-                query = query.Where(c => c.Rooms.Count == request.Rooms);
-        }
-
-        var results = await query
-            .OrderBy(request.Direction)
-            .Take(9)
-            .Select(c => new CabinSearchResponse
-            {
-                Id = c.Id,
-                Name = c.Name,
-                Description = c.Description,
-                Address = c.Address,
-                Beds = c.Rooms.Sum(r => r.Beds),
-                Image = c.Images.FirstOrDefault(),
-                People = c.People,
-                Rooms = c.Rooms.Count,
-                Rating = c.Rating,
-                Price = new Money
-                {
-                    Amount = c.PricePerUnit.Amount * request.People * multiplier,
-                    Currency = c.PricePerUnit.Currency
-                }
-            }) 
-            .ToListAsync();
-
-        results.ForEach(r => r.Image = ImageUrl(r.Id, r.Image));
-
-        return results;
-            
     }
 }

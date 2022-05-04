@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using API.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220428193204_LoyaltyPoints")]
+    partial class LoyaltyPoints
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -74,36 +76,16 @@ namespace API.Migrations
                     b.HasDiscriminator<string>("Discriminator").HasValue("Business");
                 });
 
-            modelBuilder.Entity("API.Core.Model.Finance", b =>
+            modelBuilder.Entity("API.Core.Model.Loyalty", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                    b.Property<string>("Name")
+                        .HasColumnType("text");
 
                     b.Property<int>("BusinessOwnerPoints")
                         .HasColumnType("integer");
 
                     b.Property<int>("CustomerPoints")
                         .HasColumnType("integer");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<double>("TaxPercentage")
-                        .HasColumnType("double precision");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Finances");
-                });
-
-            modelBuilder.Entity("API.Core.Model.Loyalty", b =>
-                {
-                    b.Property<string>("Name")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Color")
-                        .HasColumnType("text");
 
                     b.Property<double>("DiscountPercentage")
                         .HasColumnType("double precision");
@@ -228,6 +210,23 @@ namespace API.Migrations
                     b.HasIndex("Start");
 
                     b.ToTable("Slot");
+                });
+
+            modelBuilder.Entity("API.Core.Model.Tax", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<double>("Percentage")
+                        .HasColumnType("double precision");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Tax");
                 });
 
             modelBuilder.Entity("API.Core.Model.User", b =>

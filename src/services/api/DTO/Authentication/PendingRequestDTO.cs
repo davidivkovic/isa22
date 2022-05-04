@@ -2,8 +2,8 @@
 
 namespace API.DTO.Authentication;
 
-public class PendingRegistrationDTO
+public class PendingRequestDTO
 {
     public UserDTO User { get; set; }
-    public Request JoinRequest { get; set; }
+    public Request Request { get; set; }
 }

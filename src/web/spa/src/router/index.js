@@ -107,6 +107,21 @@ const router = createRouter({
       path: '/boat-owner/:id/boats',
       name: 'owners boats',
       component: () => import('../views/OwnersBoats.vue')
+    },
+    {
+      path: '/profile',
+      name: 'profile',
+      component: () => import('../views/user/ProfileView.vue')
+    },
+    {
+      path: '/requests',
+      name: 'requests',
+      component: () => import('../views/admin/RequestsView.vue')
+    },
+    {
+      path: '/loyalty',
+      name: 'loyalty',
+      component: () => import('../components/admin/LoyaltyProgram.vue')
     }
   ]
 })

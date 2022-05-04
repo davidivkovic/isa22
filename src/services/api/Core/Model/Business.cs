@@ -32,6 +32,12 @@ public abstract class Business : Entity
     public double            CancellationFee { get; set; }
     public virtual           TimeSpan Unit   { get; }
 
+    public string UnitName => Unit.Hours switch
+    {
+        <= 1 => "Hours",
+        <= 24 or _ => "Days"
+    };
+
     public Business() {}
 
     public Business(
@@ -78,11 +84,11 @@ public abstract class Business : Entity
     public int GetTotalUnits(DateTime start, DateTime end)
     {
         double totalUnits = 1;
-        if (Unit.Hours == 1)
+        if (Unit.Hours <= 1)
         {
             totalUnits = (end - start).TotalHours;
         }
-        else if (Unit.Hours == 24)
+        else if (Unit.Hours <= 24)
         {
             totalUnits = (end - start).TotalDays;
         }

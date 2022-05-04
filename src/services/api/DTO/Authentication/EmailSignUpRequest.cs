@@ -24,7 +24,7 @@ public class EmailSignUpRequest
     public Address Address { get; set; }
 
     [Required]
-    public string Phone { get; set; }
+    public string PhoneNumber { get; set; }
 
     public string JoinReason { get; set; }
 }

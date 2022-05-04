@@ -1,16 +1,16 @@
 <template>
   <div class="space-y-7">
     <CheckIcon
-      class="mx-auto h-28 w-28 rounded-full bg-emerald-100 stroke-emerald-500 p-5"
+      class="mx-auto h-28 w-28 rounded-full bg-emerald-100 stroke-emerald-600 stroke-[2.5] p-4"
     />
     <h1 class="text-center text-lg">
-      {{ panelText }}
+      {{ successText }}
     </h1>
   </div>
 </template>
 
 <script setup>
 import { CheckIcon } from 'vue-tabler-icons'
-const panelText =
-  'A registration request successfully sent. You will be notified by email if we accept your registration.'
+
+defineProps(['successText'])
 </script>

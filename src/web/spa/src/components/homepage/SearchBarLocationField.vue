@@ -7,7 +7,7 @@
       placeholder=""
       v-model="location"
       :name="props.name"
-      class="focus-within::outline-none peer ml-8 w-full max-w-[180px] border-0 py-0 text-[1.075rem] font-semibold valid:translate-y-3 valid:text-black focus-within:translate-y-3 focus-within:ring-0 focus:outline-none"
+      class="focus-within::outline-none peer ml-8 w-full border-0 py-0 text-[1.075rem] font-semibold valid:translate-y-3 valid:text-black focus-within:translate-y-3 focus-within:ring-0 focus:outline-none"
     />
     <div
       class="absolute top-0 flex cursor-pointer items-center space-x-2 text-[22px] transition-all group-focus-within:-translate-y-4 group-focus-within:text-base peer-valid:-translate-y-4 peer-valid:text-base"
@@ -80,7 +80,7 @@ const createField = () => {
         const address = getAddress(results)
         city.value = address.city
         country.value = address.country
-        location.value = `${address.city}, ${address.country}`
+        //location.value = `${address.city}, ${address.country}`
         emitChange()
       }
     )

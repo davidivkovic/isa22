@@ -15,11 +15,19 @@ public class DbSeed
             {
                 Email = "admin@api.com",
                 UserName = "admin@api.com",
+                PhoneNumber = "+1-202-555-0125",
                 EmailConfirmed = true,
                 Roles = new() { Role.Admin },
                 FirstName = "Admin",
                 LastName = "Admin",
                 Address = new()
+                {
+                    City = "New York",
+                    Apartment = "96A",
+                    Country = "United States",
+                    PostalCode = "54382",
+                    Street = "Brooklyn Avenue"
+                }
             }, "admin");
         }
     }
