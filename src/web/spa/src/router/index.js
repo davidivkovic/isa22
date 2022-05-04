@@ -87,6 +87,26 @@ const router = createRouter({
       path: '/:type/search',
       name: 'search',
       component: () => import('../views/ResultsView.vue')
+    },
+    {
+      path: '/cabin-owner/:id',
+      name: 'cabin owner',
+      component: () => import('../views/CabinOwnerHomePage.vue')
+    },
+    {
+      path: '/cabin-owner/:id/cabins',
+      name: 'owners cabins',
+      component: () => import('../views/OwnersCabins.vue')
+    },
+    {
+      path: '/boat-owner/:id',
+      name: 'boat owner',
+      component: () => import('../views/BoatOwnerHomePage.vue')
+    },
+    {
+      path: '/boat-owner/:id/boats',
+      name: 'owners boats',
+      component: () => import('../views/OwnersBoats.vue')
     }
   ]
 })

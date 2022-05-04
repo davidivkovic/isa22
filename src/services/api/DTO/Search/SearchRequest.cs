@@ -5,6 +5,8 @@ namespace API.DTO.Search;
 public class SearchRequest
 {
     [FromQuery]
+    public string Name { get; set; }
+    [FromQuery]
     public DateTime Start { get; set; }
     [FromQuery]
     public DateTime End { get; set; }
@@ -39,7 +41,6 @@ public class BoatSearchRequest : SearchRequest
     [FromQuery]
     public int Seats { get; set; }
 }
-
 
 public class AdventureSearchRequest : SearchRequest
 {
