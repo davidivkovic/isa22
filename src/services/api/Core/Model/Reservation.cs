@@ -43,6 +43,8 @@ public class Reservation : Entity
     public Report        Report             { get; set; }
     public Complaint     Complaint          { get; set; }
 
+    public int Units => Business.GetTotalUnits(Start, End);
+
     public Reservation() {}
 
     public Reservation(

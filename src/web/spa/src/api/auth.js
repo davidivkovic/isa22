@@ -32,15 +32,10 @@ const sendConfirmation = email => {
   )
 }
 
-const acceptRegistration = (email, denialReason) => {
-  return fetch(instance.post('auth/registration/accept', { email }))
-}
-
 export default {
   signIn,
   signOut,
   register,
   confirmEmail,
-  sendConfirmation,
-  acceptRegistration
+  sendConfirmation
 }

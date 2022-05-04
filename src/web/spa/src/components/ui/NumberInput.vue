@@ -7,7 +7,7 @@
     <label
       v-if="$attrs.label"
       :for="$attrs.id"
-      class="mb-2 block pl-px text-[15px] font-medium tracking-tight text-neutral-700"
+      class="mb-1 block pl-px text-sm font-medium tracking-tight text-neutral-700"
     >
       {{ $attrs.label }}
     </label>
@@ -44,7 +44,9 @@
         v-bind="$attrs"
         type="number"
         :value="modelValue ?? inputValue"
-        class="pointer-events-none block select-none rounded-md border-neutral-300 px-2.5 py-2.5 text-sm placeholder-neutral-400 transition-colors focus:border-neutral-500 focus:ring-0 focus:ring-transparent disabled:text-neutral-300 focus:disabled:border-neutral-300 group-hover:border-neutral-500 group-hover:disabled:border-neutral-300 peer-hover:border-neutral-500"
+        @input="onInput"
+        onkeydown="return event.keyCode !== 69"
+        class="block select-none rounded-md border-neutral-300 px-2.5 py-2.5 text-sm placeholder-neutral-400 transition-colors focus:border-neutral-500 focus:ring-0 focus:ring-transparent disabled:text-neutral-300 focus:disabled:border-neutral-300 group-hover:border-neutral-500 group-hover:disabled:border-neutral-300 peer-hover:border-neutral-500"
       />
     </div>
   </div>
@@ -70,7 +72,7 @@ const onInput = event => {
 
 const decrement = () => {
   const value = Math.max(
-    (props.modelValue ?? inputValue.value) - 1,
+    Number(props.modelValue ?? inputValue.value) - Number(attrs.step ?? 1),
     attrs.min ?? -100
   )
   props.modelValue || (inputValue.value = value)
@@ -79,7 +81,7 @@ const decrement = () => {
 
 const increment = () => {
   const value = Math.min(
-    (props.modelValue ?? inputValue.value) + 1,
+    Number(props.modelValue ?? inputValue.value) + Number(attrs.step ?? 1),
     attrs.max ?? 100
   )
   props.modelValue || (inputValue.value = value)

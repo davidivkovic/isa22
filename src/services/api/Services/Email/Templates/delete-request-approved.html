@@ -1,0 +1,56 @@
+---
+title: "Account deletion request approved"
+preheader: "Goodbye. adventure.com"
+---
+
+<extends src="src/layouts/main.html">
+  <block name="template">
+    <table class="w-full font-sans">
+      <tr>
+        <td align="center" class="bg-white">
+          <table class="w-[570px] sm:w-full">
+            <tr>
+              <td class="p-8 text-center">
+              </td>
+            </tr>
+            <tr>
+              <td align="center" class="sm:px-24">
+                <table class="w-full">
+                  <tr>
+                    <td class="bg-white text-gray-800 text-base text-left pt-12 pb-24 px-40 sm:px-24 leading-24 rounded-2xl">
+                      <p class="font-semibold text-lg text-[#059669]"> adventure․com</br></p>
+                      <p class="text-2xl sm:leading-32 text-black font-semibold m-0 mb-16">Goodbye, {{ name }} 👋</p>
+                      <p class="m-0">
+                          We are sad to see you go 😟. As per your request we have deleted your account. If you have any remaining questions please contact us below.
+                      </p>
+                      <div class="text-center">
+                        <a 
+                          href="{{ ctaUrl }}"
+                          class="
+                            inline-block py-[18px] px-44 text-sm my-28
+                            leading-none no-underline text-white
+                            font-semibold rounded-full bg-[#059669] hover:bg-[#10b981]
+                          "
+                        >
+                          <outlook>
+                            <i class="tracking-24" style="mso-font-width: -100%; mso-text-raise: 26pt;">&nbsp;</i>
+                          </outlook>
+                            <span style="mso-text-raise: 13pt;">Contact us</span>
+                          <outlook>
+                            <i class="tracking-24" style="mso-font-width: -100%;">&nbsp;</i>
+                          </outlook>
+                        </a>
+                      </div>
+                      <p class="m-0 mt-10 mb-16 text-sm font-medium">Not sure why you received this email? Please <a href="#" class="text-[#059669] underline hover:no-underline">let us know</a>.</p>
+                      <p class="m-0 mb-2 text-sm text-gray-400 mb-72">© 2022 adventure․com. All rights reserved.</p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </block>
+</extends>

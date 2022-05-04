@@ -31,9 +31,26 @@ const search = (query, type) =>
   fetch(instance.get(`${type}/search`, { params: { ...query } }))
 
 const searchCabins = (query, id) =>
-  fetch(instance.get(`cabin-owner/${id}/cabins`, {params: {...query}}))
+  fetch(instance.get(`cabin-owner/${id}/cabins`, { params: { ...query } }))
 
 const searchBoats = (query, id) =>
-  fetch(instance.get(`boat-owner/${id}/boats`, {params: {...query}}))
+  fetch(instance.get(`boat-owner/${id}/boats`, { params: { ...query } }))
 
-export default { get, create, update, search, searchBoats, searchCabins }
+const getReservations = async (status, type) =>
+  fetch(
+    instance.get(`${endpoints[type]}/reservations`, {
+      params: {
+        status
+      }
+    })
+  )
+
+export default {
+  get,
+  create,
+  update,
+  search,
+  searchBoats,
+  searchCabins,
+  getReservations
+}

@@ -1,177 +1,52 @@
 ﻿namespace API.Controllers;
 
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-
-using Mapster;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 
 using API.DTO;
-using API.Services;
-using API.Core.Model;
 using API.Infrastructure.Data;
 using API.Infrastructure.Extensions;
 using API.Infrastructure.Data.Queries;
-using API.DTO.Search;
+using API.Core.Model;
+using Microsoft.EntityFrameworkCore;
 
 [ApiController]
 [Route("adventures")]
-public class AdventureController : ControllerBase
+public class AdventureController : BusinessController<Adventure, AdventureDT0, CreateAdventureDTO, UpdateAdventureDTO>
 {
-    private readonly AppDbContext _dbContext;
+    protected override string BusinessType => "adventure";
 
-    public AdventureController(AppDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
+    public AdventureController(AppDbContext dbContext) : base(dbContext) { }
 
-    private string ImageUrl(Guid id, string image)
-    {
-        return Url.Action(
-            nameof(GetImage),
-            ControllerContext.ActionDescriptor.ControllerName,
-            new { id, image },
-            Request.Scheme
-        );
-    }
-
-    [HttpGet("{id}")]
-    public async Task<ActionResult> Get(Guid id)
-    {
-        var adventureDTO = await _dbContext.Adventures
-            .AsNoTracking()
-            .Include(a => a.Services)
-            .Include(a => a.Rules)
-            .Where(a => a.Id == id)
-            .ProjectToType<AdventureDT0>()
-            .FirstOrDefaultAsync();
-
-        if (adventureDTO is null)
-        {
-            return NotFound();
-        }
-
-        adventureDTO.WithImages(ImageUrl);
-
-        return Ok(adventureDTO);
-    }
-
-    [HttpGet("{id}/images")]
-    public async Task<ActionResult> GetImages(Guid id)
-    {
-        var adventure = await _dbContext.Adventures
-                                        .AsNoTracking()
-                                        .FirstOrDefaultAsync(a => a.Id == id);
-        if (adventure is null)
-        {
-            return BadRequest("The requested adventure does not exist.");
-        }
-
-        return Ok(adventure.Images.Select(image => ImageUrl(id, image)));
-    }
-
-    [HttpGet("{id}/images/{image}")]
-    public ActionResult GetImage([FromRoute] Guid id, [FromRoute] string image)
-    {
-        string imagePath = ImageService.GetPath(id, image);
-        if (imagePath is null)
-        {
-            return BadRequest();
-        }
-
-        return PhysicalFile(imagePath, "image/*");
-    }
-
-    [HttpPost("{id}/images/add")]
     [Authorize(Roles = Role.Fisher)]
-    public async Task<ActionResult> AddImage(Guid id, [FromForm] List<IFormFile> files)
+    public override Task<IActionResult> Create(CreateAdventureDTO dto)
     {
-        var adventure = await _dbContext.Adventures
-                                        .Include(a => a.Owner)
-                                        .FirstOrDefaultAsync(a => a.Id == id);
-
-        if (adventure.Owner.Id != User.Id())
-        {
-            return BadRequest("Cannot update someone else's adventure");
-        }
-
-        if (adventure is null)
-        {
-            return BadRequest("The requested adventure does not exist.");
-        }
-
-        if (files.Count == 0)
-        {
-            return BadRequest("No images to add!");
-        }
-
-        if (files.Count > 10)
-        {
-            return BadRequest("A maximum of 10 images can be uploaded.");
-        }
-
-        foreach (var file in files)
-        {
-            if (!ImageService.IsValid(file.FileName, file.OpenReadStream()))
-            {
-                return BadRequest($"The file { file.FileName } is not a valid image.");
-            }
-        }
-
-        var images = await Task.WhenAll(
-            files.Select(image =>
-                ImageService.Persist(adventure.Id, image.FileName, fs => image.CopyToAsync(fs))
-            )
-        );
-
-        adventure.Images = new(images);
-        await _dbContext.SaveChangesAsync();
-
-        return Ok();
+        return base.Create(dto);
     }
 
-    [HttpPost("create")]
     [Authorize(Roles = Role.Fisher)]
-    public async Task<ActionResult> Create(CreateAdventureDTO dto)
+    public override Task<ActionResult> Update(UpdateAdventureDTO dto)
     {
-        User user = await _dbContext.Users.FindAsync(User.Id());
-        if (user is null)
-        {
-            return BadRequest($"The user with email {user.Email} does not exist.");
-        }
-
-        var adventure = dto.Adapt<Adventure>();
-        adventure.Id = Guid.NewGuid();
-        adventure.Owner = user;
-
-        _dbContext.Adventures.Add(adventure);
-        await _dbContext.SaveChangesAsync();
-
-        return Ok(adventure.Id);
+        return base.Update(dto);
     }
 
-    [HttpPost("update")]
     [Authorize(Roles = Role.Fisher)]
-    public async Task<ActionResult> Update(UpdateAdventureDTO dto)
+    public override Task<ActionResult> AddImage(Guid id, [FromForm] List<IFormFile> files)
     {
-        var adventure = await _dbContext.Adventures
-                                        .Include(a => a.Owner)
-                                        .FirstOrDefaultAsync(a => a.Id == dto.Id);
+        return base.AddImage(id, files);
+    }
 
-        if (adventure.Owner.Id != User.Id())
-        {
-            return StatusCode(403);
-        }
+    [Authorize(Roles = Role.Customer)]
+    public override Task<ActionResult> MakeReservation([FromRoute] Guid businessId, [FromBody] MakeReservationDTO request)
+    {
+        return base.MakeReservation(businessId, request);
+    }
 
-        dto.Adapt(adventure);
-        bool success = await _dbContext.SaveChangesAsync() > 0;
-
-        if (!success)
-        {
-            BadRequest("Could not update your adventure at this time. Please try later again.");
-        }
-
-        return Ok(adventure.Id);
+    [Authorize]
+    public override Task<ActionResult> GetReservations(string status)
+    {
+        return base.GetReservations(status);
     }
 
     //[HttpGet]
@@ -190,69 +65,4 @@ public class AdventureController : ControllerBase
 
     //    return Ok(adventures);
     //}
-
-    [Authorize]
-    [AllowAnonymous]
-    [HttpGet("search")]
-    public async Task<List<AdventureSearchResponse>> Search([FromQuery] AdventureSearchRequest request)
-    {
-        decimal multiplier = 1;
-        if (User.Identity.IsAuthenticated)
-        {
-            var user = await _dbContext.Users
-                .Include(u => u.Level)
-                .FirstOrDefaultAsync(u => u.Id == User.Id());
-
-            if (user is not null)
-            {
-                multiplier = 1 - Convert.ToDecimal(user.Level?.DiscountPercentage ?? 0 / 100);
-            }
-        }
-
-        int totalUnits = new Adventure().GetTotalUnits(request.Start, request.End);
-
-        var query = _dbContext.Adventures
-            .AsNoTrackingWithIdentityResolution()
-            //.Available(request.Start, request.End)
-            .Where(c => c.Address.City == request.City)
-            .Where(c => c.Address.Country == request.Country)
-            .Where(c => c.People == request.People);
-
-        if (request.RatingHigher != default)
-        {
-            query = query.Where(c => c.Rating >= request.RatingHigher);
-        }
-        if (request.PriceLow != default)
-        {
-            query = query.Where(c => c.PricePerUnit.Amount >= request.PriceLow);
-        }
-        if (request.PriceHigh != default)
-        {
-            query = query.Where(c => c.PricePerUnit.Amount <= request.PriceHigh);
-        }
-
-        var results = await query
-            .OrderBy(request.Direction)
-            .Take(9)
-            .Select(a => new AdventureSearchResponse
-            {
-                Id = a.Id,
-                Name = a.Name,
-                Address = a.Address,
-                Image = a.Images.FirstOrDefault(),
-                People = a.People,
-                Rating = a.Rating,
-                Price = new Money
-                {
-                    Amount = a.PricePerUnit.Amount * request.People * multiplier,
-                    Currency = a.PricePerUnit.Currency
-                },
-                FishingEquipment = a.FishingEquipment
-            })
-            .ToListAsync();
-
-        results.ForEach(r => r.Image = ImageUrl(r.Id, r.Image));
-
-        return results;
-    }
 }

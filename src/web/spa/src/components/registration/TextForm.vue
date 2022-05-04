@@ -26,10 +26,14 @@ import { ref } from 'vue'
 import Button from '../ui/Button.vue'
 import TextArea from '../ui/TextArea.vue'
 import { ArrowNarrowRightIcon } from 'vue-tabler-icons'
+
+const emit = defineEmits(['next'])
+
 const reason = ref('')
 const error = ref('')
-const emit = defineEmits(['next'])
-const forward = () => {
-  emit('next')
-}
+
+const forward = () =>
+  emit('next', {
+    joinReason: reason.value
+  })
 </script>

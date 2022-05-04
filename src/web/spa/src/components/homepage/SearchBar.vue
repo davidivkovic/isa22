@@ -1,7 +1,7 @@
 <template>
   <form
     @submit.prevent="search"
-    class="z-10 mx-auto flex w-full max-w-4.5xl items-center justify-end space-x-14 rounded-2xl border border-gray-300 bg-white px-6 py-10"
+    class="z-10 mx-auto -mt-20 flex w-3/4 max-w-6xl justify-between rounded-2xl border border-gray-300 bg-white px-7 py-10 2xl:px-12"
   >
     <div id="navigation" class="flex justify-start space-x-3">
       <SearchBarLocationField
@@ -16,7 +16,7 @@
         name="Start"
         description="When does your journey start?"
         :hasTime="hasTime"
-        class="pl-2"
+        class="-ml-2"
         :upperLimit="values['end']"
       >
         <CalendarIcon />
@@ -35,7 +35,7 @@
         name="People"
         description="How many?"
         inputType="number"
-        class="!mr-3 w-20"
+        class="!mr-12 w-20"
       >
         <UserIcon />
       </SearchBarNumberField>

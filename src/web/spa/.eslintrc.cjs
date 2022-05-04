@@ -8,6 +8,9 @@ module.exports = {
     'vue/setup-compiler-macros': true,
     node: true
   },
+  parserOptions: {
+    ecmaVersion: 2022
+  },
   plugins: ['prefer-arrow'],
   rules: {
     semi: ['error', 'never'],
