@@ -183,15 +183,15 @@ public class CabinController : ControllerBase
 
         if (!String.IsNullOrWhiteSpace(request.Name))
         {
-            query = query.Where(a => a.Name.Contains(request.Name));
+            query = query.Where(a => a.Name.ToLower().Contains(request.Name.ToLower()));
         };
         if (!String.IsNullOrWhiteSpace(request.City))
         {
-            query = query.Where(a => a.Address.City.Contains(request.City));
+            query = query.Where(a => a.Address.City.ToLower().Contains(request.City.ToLower()));
         };
         if (!String.IsNullOrWhiteSpace(request.Country))
         {
-            query = query.Where(c => c.Address.Country.Contains(request.Country));
+            query = query.Where(c => c.Address.Country.ToLower().Contains(request.Country.ToLower()));
         }
 
         var results = await query

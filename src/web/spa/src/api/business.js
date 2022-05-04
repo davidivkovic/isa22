@@ -28,6 +28,12 @@ const create = async (data, type) => createOrUpdate(data, type, 'create')
 const update = async (data, type) => createOrUpdate(data, type, 'update')
 
 const search = (query, type) =>
-  fetch(instance.get(`cabin-owner/${type}/cabins`, {params: {...query}}))
+  fetch(instance.get(`${type}/search`, {params: {...query}}))
 
-export default { get, create, update, search }
+const searchCabins = (query, id) =>
+  fetch(instance.get(`cabin-owner/${id}/cabins`, {params: {...query}}))
+
+const searchBoats = (query, id) =>
+  fetch(instance.get(`boat-owner/${id}/boats`, {params: {...query}}))
+
+export default { get, create, update, search, searchBoats, searchCabins }

@@ -2,7 +2,7 @@
  <div class="justify-between">
      <div class="space-y-2">
         <div class="flex mx-auto items-center justify-between py-6 max-w-5xl shadow">
-            <form @submit.prevent="search()"
+            <form @submit.prevent="searchCabins()"
             class="max-auto ml-20 flex max-w-6xl justify-center space-x-3"
             >
             <div class="w-64 flex space-x-10">
@@ -139,7 +139,7 @@ const router = useRouter()
 
 const city = ref(route.query.city ?? "") 
 const country = ref(route.query.country ?? "")
-const cabinsName = ref(route.query.cabinsName)
+const cabinsName = ref(route.query.name)
 
 const sortingOption = [
     {
@@ -153,10 +153,6 @@ const sortingOption = [
     {
         name: "Rating - Highest first",
         value: "rating_desc"
-    },
-    {
-        name: "Rating - Lowest first",
-        value: "rating_asc"
     }
 ]
 
@@ -171,7 +167,7 @@ const direction = ref(
 const results = ref([])
 
 const fetchResults = async () => {
-    const [data, error] = await api.business.search(
+    const [data, error] = await api.business.searchCabins(
         {
             ...route.query
         },
@@ -182,13 +178,13 @@ const fetchResults = async () => {
 
 watchEffect(() => fetchResults())
 
-const search = () => {
+const searchCabins = () => {
     router.push({
         name: 'owners cabins',
         query: {
             country: country.value,
             city: city.value,
-            cabinName: cabinsName.value,
+            name: cabinsName.value,
             direction: direction.value.value
         }
     })
@@ -196,9 +192,9 @@ const search = () => {
 
 const changeSelectedOption = value => {
   direction.value = value
-  search()
+  searchCabins()
 }
-
+/** 
 onMounted(() => createAutocompleteInput())
 
 const createAutocompleteInput = () => {
@@ -245,6 +241,6 @@ const getAddress = results => {
 const extractFromAddress = (address, key) => {
   return address?.address_components?.find(a => a.types.includes(key))
     ?.long_name
-}
+}*/
 
 </script>
