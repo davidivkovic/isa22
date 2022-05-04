@@ -10,7 +10,9 @@ using API.DTO;
 using API.Services;
 using API.Core.Model;
 using API.Infrastructure.Data;
+using API.Infrastructure.Data.Queries;
 using API.Infrastructure.Extensions;
+using API.DTO.Search;
 
 [ApiController]
 [Route("boats")]
@@ -170,5 +172,54 @@ public class BoatController : ControllerBase
         }
 
         return Ok(boat.Id);
+    }
+
+
+    [HttpGet("/boat-owner/{id}/boats")]
+    //  [Authorize(Roles = Role.BoatOwner)]
+    [Authorize]
+    [AllowAnonymous]
+    public async Task<List<SearchResponse>> SearchOwnersCabins([FromQuery] SearchRequest request)
+    {
+        var query = _dbContext.Boats
+            .AsNoTrackingWithIdentityResolution();
+
+        if (!String.IsNullOrWhiteSpace(request.Name))
+        {
+            query = query.Where(a => a.Name.ToLower().Contains(request.Name.ToLower()));
+        };
+        if (!String.IsNullOrWhiteSpace(request.City))
+        {
+            query = query.Where(a => a.Address.City.ToLower().Contains(request.City.ToLower()));
+        };
+        if (!String.IsNullOrWhiteSpace(request.Country))
+        {
+            query = query.Where(c => c.Address.Country.ToLower().Contains(request.Country.ToLower()));
+        }
+
+        var results = await query
+            .OrderBy(request.Direction)
+            .Take(9)
+            .Select(c => new SearchResponse
+            {
+                Id = c.Id,
+                Name = c.Name,
+                Description = c.Description,
+                Address = c.Address,
+                Image = c.Images.FirstOrDefault(),
+                People = c.People,
+                Rating = c.Rating,
+                CancellationFee = c.CancellationFee,
+                Price = new Money
+                {
+                    Amount = c.PricePerUnit.Amount,
+                    Currency = c.PricePerUnit.Currency
+                }
+            })
+            .ToListAsync();
+
+        results.ForEach(r => r.Image = ImageUrl(r.Id, r.Image));
+
+        return results;
     }
 }
