@@ -106,7 +106,11 @@
             class="group max-w-[12rem] cursor-pointer space-y-3.5"
           >
             <RouterLink
-              :to="{ name: 'cabin profile', params: { id: result.id } }"
+              :to="{
+                name: routeName,
+                params: { id: result.id },
+                query: { start, end, people }
+              }"
             >
               <component :is="component" :result="result" />
             </RouterLink>
@@ -131,7 +135,6 @@ import DateInput from '../components/ui/DateInput.vue'
 import NumberInput from '../components/ui/NumberInput.vue'
 import Button from '../components/ui/Button.vue'
 import FilterPanel from '../components/search/FilterPanel.vue'
-import ResultPreviewItem from '../components/search/ResultPreviewItem.vue'
 import { MapPinIcon, UsersIcon } from 'vue-tabler-icons'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
 import CabinPreviewItem from '../components/search/CabinPreviewItem.vue'
@@ -150,6 +153,13 @@ const component = computed(() =>
     : route.params.type == 'boats'
     ? BoatPreviewItem
     : AdventurePreviewItem
+)
+const routeName = computed(() =>
+  route.params.type === 'cabins'
+    ? 'cabin profile'
+    : route.params.type == 'boats'
+    ? 'boat profile'
+    : 'adventure profile'
 )
 
 const sortingOptions = [
@@ -186,11 +196,12 @@ const fetchResults = async () => {
     },
     route.params.type
   )
-  // isLoading.value = loading
   data && (results.value = data)
 }
 
-watchEffect(() => fetchResults())
+watchEffect(() => {
+  fetchResults()
+})
 
 const changeSelectedOption = value => {
   direction.value = value
