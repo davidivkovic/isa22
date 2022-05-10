@@ -59,7 +59,10 @@
         </div>
       </div>
       <div class="h-fit flex-1 space-y-5">
-        <div class="flex-col space-y-2 rounded-lg border p-5">
+        <div
+          v-if="start && end"
+          class="flex-col space-y-2 rounded-lg border p-5"
+        >
           <h2 class="text-2xl font-medium">Your reservation</h2>
           <p class="!mt-1 text-sm">
             From
@@ -339,7 +342,7 @@ import defaultImg from '@/assets/images/default.png'
 import { isAuthenticated } from '../stores/userStore.js'
 import { computed } from '@vue/reactivity'
 import { useRoute } from 'vue-router'
-import { format, parseISO, differenceInDays, parse } from 'date-fns'
+import { format, parseISO, differenceInDays } from 'date-fns'
 
 const symbols = {
   USD: '$',
@@ -356,8 +359,13 @@ const props = defineProps({
 const route = useRoute()
 const people = ref(route.query.people)
 const discount = ref(1)
-const start = ref(format(parseISO(route.query.start), 'EEE, MMM dd'))
-const end = ref(format(parseISO(route.query.end), 'EEE, MMM dd'))
+console.log(route.query.start)
+const start = route.query.start
+  ? ref(format(parseISO(route.query.start), 'EEE, MMM dd'))
+  : null
+const end = route.query.start
+  ? ref(format(parseISO(route.query.end), 'EEE, MMM dd'))
+  : null
 const units = ref(
   differenceInDays(parseISO(route.query.end), parseISO(route.query.start))
 )
