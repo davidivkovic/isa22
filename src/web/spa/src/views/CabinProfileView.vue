@@ -13,7 +13,7 @@ const cabin = ref()
 const route = useRoute()
 
 const fetchCabin = async () => {
-  const [data] = await api.business.get(route.params.id, 'cabin')
+  const [data] = await api.business.get(route.params.id, 'cabins')
   if (data) cabin.value = data
 }
 

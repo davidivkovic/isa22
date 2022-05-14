@@ -112,6 +112,8 @@ const route = useRoute()
 const businessType = route.params.type
 const action = route.params.action
 
+console.log(businessType)
+
 const business = ref({})
 
 if (action == 'update') {
@@ -133,9 +135,9 @@ const stepNames = [
 const stepDescriptions = [
   'Tell us the most important details',
   {
-    adventure: 'Where the adventure starts',
-    cabin: 'Where the cabin is located',
-    boat: 'Where the journey starts'
+    adventures: 'Where the adventure starts',
+    cabins: 'Where the cabin is located',
+    boats: 'Where the journey starts'
   }[businessType],
   'Show us some pretty shots',
   'What is allowed and what is not',
@@ -150,9 +152,9 @@ const steps = shallowRef([
   AddImages,
   AddRules,
   {
-    adventure: AddFishingEquipment,
-    boat: AddBoatEquipment,
-    cabin: AddRooms
+    adventures: AddFishingEquipment,
+    boats: AddBoatEquipment,
+    cabins: AddRooms
   }[businessType],
   Pricing
 ])
@@ -187,7 +189,7 @@ const onChange = async newData => {
           )
         : await api.business.create(business.value, businessType)
     if (id) {
-      router.push(`/adventure-profile/${id}`)
+      router.push(`/${businessType.slice(0, -1)}-profile/${id}`)
     }
     isLoading.value = false
   } else {

@@ -1,9 +1,9 @@
 import { instance, fetch } from './http.js'
 
 const endpoints = {
-  cabin: 'cabins',
-  boat: 'boats',
-  adventure: 'adventures'
+  cabins: 'cabins',
+  boats: 'boats',
+  adventures: 'adventures'
 }
 
 const get = async (id, type) => fetch(instance.get(`${endpoints[type]}/${id}`))

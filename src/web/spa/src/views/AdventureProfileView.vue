@@ -50,7 +50,7 @@ const adventure = ref()
 const route = useRoute()
 
 const fetchAdventure = async () => {
-  const [data] = await api.business.get(route.params.id, 'adventure')
+  const [data] = await api.business.get(route.params.id, 'adventures')
   if (data) adventure.value = data
 }
 

@@ -35,7 +35,7 @@
           adventure.com
         </div>
         <div class="flex items-center space-x-3">
-          <RouterLink to="/business/adventure/create">
+          <RouterLink :to="`/business/${businessName}/create`">
             <Button class="bg-emerald-600 text-white">
               List your business
             </Button>
@@ -73,6 +73,14 @@ const selectedTab = computed(() => {
   else if (currentRoute.value.includes('adventures')) return 2
   else if (selectedTab.value) return selectedTab.value
   return 0
+})
+
+const businessName = computed(() => {
+  return {
+    0: 'cabins',
+    1: 'boats',
+    2: 'adventures'
+  }[selectedTab.value]
 })
 
 const translation = computed(() => {

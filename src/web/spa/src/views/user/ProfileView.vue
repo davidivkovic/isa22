@@ -529,7 +529,7 @@ const costs = reservation => {
   const tax = 1 + reservation.payment.taxPercentage / 100
 
   return {
-    base: symbol + calculateBase(reservation),
+    base: symbol + calculateBase(reservation).toFixed(2),
     baseDetails: `
       ${reservation.business.people}
        x 
@@ -604,7 +604,7 @@ if (!profileError) {
 }
 
 const [reservationsData, reservationsError] =
-  await api.business.getReservations('all', 'adventure')
+  await api.business.getReservations('all', 'adventures')
 
 if (!reservationsError) {
   reservations.value = reservationsData
