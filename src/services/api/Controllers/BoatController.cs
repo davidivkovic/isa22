@@ -38,16 +38,17 @@ public class BoatController : BusinessController<Boat, BoatDTO, CreateBoatDTO, U
         return base.AddImage(id, files);
     }
 
-    [Authorize(Roles = Role.Customer)]
-    public override Task<ActionResult> MakeReservation([FromRoute] Guid businessId, [FromBody] MakeReservationDTO request)
+    [Authorize(Roles = Role.BoatOwner)]
+    public override Task<ActionResult> PreviewCreateSale([FromRoute] Guid id, [FromBody] CreateSaleDTO request)
     {
-        return base.MakeReservation(businessId, request);
+        return base.PreviewCreateSale(id, request);
     }
 
     [Authorize]
-    public override Task<ActionResult> GetReservations(string status)
+    [HttpGet("reservations")]
+    public Task<ActionResult> GetReservations(string status)
     {
-        return base.GetReservations(status);
+        return GetReservations("boats", status);
     }
 
     [Authorize]
@@ -55,20 +56,8 @@ public class BoatController : BusinessController<Boat, BoatDTO, CreateBoatDTO, U
     [HttpGet("search")]
     public async Task<List<BoatSearchResponse>> Search([FromQuery] BoatSearchRequest request)
     {
-        decimal multiplier = 1;
-        if (User.Identity.IsAuthenticated)
-        {
-            var user = await Context.Users
-                .Include(u => u.Level)
-                .FirstOrDefaultAsync(u => u.Id == User.Id());
-
-            if (user is not null)
-            {
-                multiplier = 1 - Convert.ToDecimal(user.Level?.DiscountPercentage ?? 0 / 100);
-            }
-        }
-
         int totalUnits = new Boat().GetTotalUnits(request.Start, request.End);
+        decimal discountMultiplier = await Context.GetDiscountMultiplier(User.Id());
 
         var query = Context.Boats
             .AsNoTrackingWithIdentityResolution()
@@ -92,14 +81,19 @@ public class BoatController : BusinessController<Boat, BoatDTO, CreateBoatDTO, U
         if (request.Seats != default)
         {
             if (request.Seats >= 5)
-                query = query.Where(b => b.Characteristics.Seats >= request.Seats);
+            {
+                query = query.Where(b => b.Characteristics.Seats >= 5);
+            }
             else
+            { 
                 query = query.Where(b => b.Characteristics.Seats == request.Seats);
+            }
         }
 
         var results = await query
             .OrderBy(request.Direction)
-            .Take(9)
+            .Skip(request.Page * 6)
+            .Take(6)
             .Select(b => new BoatSearchResponse
             {
                 Id = b.Id,
@@ -111,7 +105,7 @@ public class BoatController : BusinessController<Boat, BoatDTO, CreateBoatDTO, U
                 BoatCharacteristics = b.Characteristics,
                 Price = new Money
                 {
-                    Amount = b.PricePerUnit.Amount * request.People * multiplier,
+                    Amount = totalUnits * b.PricePerUnit.Amount * request.People * discountMultiplier,
                     Currency = b.PricePerUnit.Currency
                 }
             })
@@ -133,15 +127,15 @@ public class BoatController : BusinessController<Boat, BoatDTO, CreateBoatDTO, U
             .Where(b => b.Owner.Id == User.Id())
             .AsNoTrackingWithIdentityResolution();
 
-        if (!String.IsNullOrWhiteSpace(request.Name))
+        if (!string.IsNullOrWhiteSpace(request.Name))
         {
             query = query.Where(b => EF.Functions.ILike(b.Name, $"%{request.Name}%"));
         };
-        if (!String.IsNullOrWhiteSpace(request.City))
+        if (!string.IsNullOrWhiteSpace(request.City))
         {
             query = query.Where(b => EF.Functions.ILike(b.Address.City, $"%{request.City}%"));
         };
-        if (!String.IsNullOrWhiteSpace(request.Country))
+        if (!string.IsNullOrWhiteSpace(request.Country))
         {
             query = query.Where(b => EF.Functions.ILike(b.Address.Country, $"%{request.Country}%"));
         }
