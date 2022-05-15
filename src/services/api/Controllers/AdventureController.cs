@@ -37,12 +37,6 @@ public class AdventureController : BusinessController<Adventure, AdventureDT0, C
         return base.AddImage(id, files);
     }
 
-    [Authorize(Roles = Role.Customer)]
-    public override Task<ActionResult> MakeReservation([FromRoute] Guid businessId, [FromBody] MakeReservationDTO request)
-    {
-        return base.MakeReservation(businessId, request);
-    }
-
     [Authorize]
     [HttpGet("reservations")]
     public Task<ActionResult> GetReservations(string status)
