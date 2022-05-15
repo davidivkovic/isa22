@@ -35,6 +35,9 @@ public class BusinessDTO : BaseBusinessDTO
     public new Money PricePerUnit { get; set; }
     public Money TotalPrice { get; set; }
     public bool IsSubscribed { get; set; }
+    public bool IsDeletable { get; set; }
+    public Loyalty LoyaltyLevel { get; set; }
+    public List<SaleDTO> Sales { get; set; }
 
     public void WithImages(Func<Guid, string, string> imageUrl)
     {

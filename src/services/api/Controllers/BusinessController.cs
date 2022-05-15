@@ -80,9 +80,10 @@ public class BusinessController<
     {
         var business = await Context.Set<TBusiness>()
             .AsNoTracking()
-            .Include(a => a.Services)
-            .Include(a => a.Rules)
-            .Where(a => a.Id == id)
+            .Include(b => b.Owner)
+            .Include(b => b.Services)
+            .Include(b => b.Rules)
+            .Where(b => b.Id == id)
             .FirstOrDefaultAsync();
 
         if (business is null)
@@ -102,13 +103,21 @@ public class BusinessController<
             })
             .FirstOrDefaultAsync();
 
-        if (user is not null)
+        var sales = await Context.Sales
+            .Where(s => s.Business.Id == business.Id)
+            .Take(3)
+            .ToListAsync();
+
+        Loyalty loyaltyLevel = null;
+
+        if (user is not null && start != default && end != default)
         {
-            var loyaltyLevel = await Context.LoyaltyLevels
+            loyaltyLevel = await Context.LoyaltyLevels
                 .AsNoTracking()
                 .OrderByDescending(l => l.Threshold)
                 .FirstOrDefaultAsync(l => l.Threshold <= user.LoyaltyPoints);
 
+            businessDTO.LoyaltyLevel = loyaltyLevel;
             businessDTO.TotalPrice = business.Price(
                 start,
                 end,
@@ -117,7 +126,15 @@ public class BusinessController<
                 new()
             );
         }
-        
+
+        businessDTO.Sales = sales.Select(s =>
+        {
+            var sale = s.Adapt<SaleDTO>();
+            sale.Price = s.Price(loyaltyLevel?.DiscountPercentage ?? 0);
+            return sale;
+        })
+        .ToList();
+
         businessDTO.WithImages(ImageUrl);
 
         return Ok(businessDTO);

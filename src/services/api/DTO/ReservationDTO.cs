@@ -31,3 +31,8 @@ public class CreateSaleDTO
     public List<Service> Services { get; set; }
     public decimal DiscountPercentage { get; set; }
 }
+
+public class SaleDTO : CreateSaleDTO
+{
+    public Money Price { get; set; }
+}

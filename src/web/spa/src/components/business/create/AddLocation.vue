@@ -43,7 +43,7 @@ const placeholders = {
 }
 
 const formattedLocation = ref(props.address ? formatAddress(props.address) : '')
-const formattedAddress = ref()
+const formattedAddress = ref(props.address ?? {})
 
 const onSubmit = () => {
   console.log(formattedAddress.value)
