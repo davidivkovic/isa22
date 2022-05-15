@@ -33,6 +33,8 @@ public class BusinessDTO : BaseBusinessDTO
     public int NumberOfReviews { get; set; }
     public int Rating { get; set; }
     public new Money PricePerUnit { get; set; }
+    public Money TotalPrice { get; set; }
+    public bool IsSubscribed { get; set; }
 
     public void WithImages(Func<Guid, string, string> imageUrl)
     {

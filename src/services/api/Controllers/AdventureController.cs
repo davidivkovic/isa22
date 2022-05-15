@@ -44,9 +44,10 @@ public class AdventureController : BusinessController<Adventure, AdventureDT0, C
     }
 
     [Authorize]
-    public override Task<ActionResult> GetReservations(string status)
+    [HttpGet("reservations")]
+    public Task<ActionResult> GetReservations(string status)
     {
-        return base.GetReservations(status);
+        return GetReservations("adventures", status);
     }
 
     //[HttpGet]

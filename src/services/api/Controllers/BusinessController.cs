@@ -11,6 +11,8 @@ using API.DTO;
 using API.Infrastructure.Data;
 using API.Infrastructure.Extensions;
 using API.Services;
+using API.Infrastructure.Data.Queries;
+using Microsoft.AspNetCore.Authorization;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -71,23 +73,51 @@ public class BusinessController<
         return Ok(business.Images.Select(image => ImageUrl(id, image)));
     }
 
-
+    [Authorize]
+    [AllowAnonymous]
     [HttpGet("{id}")]
-    public async Task<ActionResult> Get(Guid id)
+    public async Task<ActionResult> Get([FromRoute]Guid id, [FromQuery] DateTime start, [FromQuery] DateTime end)
     {
-        var businessDTO = await Context.Set<TBusiness>()
+        var business = await Context.Set<TBusiness>()
             .AsNoTracking()
             .Include(a => a.Services)
             .Include(a => a.Rules)
             .Where(a => a.Id == id)
-            .ProjectToType<TReadDTO>()
             .FirstOrDefaultAsync();
 
-        if (businessDTO is null)
+        if (business is null)
         {
             return NotFound();
         }
 
+        var businessDTO = business.Adapt<TReadDTO>();
+
+        var user = await Context.Users
+            .Include(u => u.Subscriptions)
+            .Where(u => u.Id == User.Id())
+            .Select(u => new
+            {
+                IsSubscribed = u.Subscriptions.Contains(business),
+                u.LoyaltyPoints
+            })
+            .FirstOrDefaultAsync();
+
+        if (user is not null)
+        {
+            var loyaltyLevel = await Context.LoyaltyLevels
+                .AsNoTracking()
+                .OrderByDescending(l => l.Threshold)
+                .FirstOrDefaultAsync(l => l.Threshold <= user.LoyaltyPoints);
+
+            businessDTO.TotalPrice = business.Price(
+                start,
+                end,
+                business.People,
+                loyaltyLevel?.DiscountPercentage ?? 0,
+                new()
+            );
+        }
+        
         businessDTO.WithImages(ImageUrl);
 
         return Ok(businessDTO);
@@ -163,8 +193,8 @@ public class BusinessController<
     public virtual async Task<ActionResult> Update(TUpdateDTO dto)
     {
         var business = await Context.Set<TBusiness>()
-                            .Include(a => a.Owner)
-                            .FirstOrDefaultAsync(a => a.Id == dto.Id);
+                            .Include(b => b.Owner)
+                            .FirstOrDefaultAsync(b => b.Id == dto.Id);
 
         if (business.Owner.Id != User.Id())
         {
@@ -181,26 +211,75 @@ public class BusinessController<
 
         return Ok(business.Id);
     }
+    
+    [HttpGet("{id}/sale/preview-create")]
+    public virtual async Task<ActionResult> PreviewCreateSale([FromRoute] Guid id, [FromBody] CreateSaleDTO request)
+    {
+        var business = await Context.Set<TBusiness>()
+                    .Include(b => b.Owner)
+                    .Include(b => b.Services)
+                    .FirstOrDefaultAsync(b => b.Id == id);
 
-    [HttpPost("{businessId}/make-reservation")]
-    public virtual async Task<ActionResult> MakeReservation([FromRoute] Guid businessId, [FromBody] MakeReservationDTO request)
+        if (business.Owner.Id != User.Id())
+        {
+            return StatusCode(403);
+        }
+
+        //TODO: Check if business is available at the given dates
+        bool isAvailable = await Context.Businesses
+            .Where(b => b.Id == id)
+            .Available(request.Start, request.End)
+            .AnyAsync();
+
+        if (!isAvailable)
+        {
+            return BadRequest($"Your {BusinessType} is already occupied at that time.");
+        }
+
+        var loyaltyLevel = await Context.GetLoyaltyLevel(business.Owner.Id);
+
+        var sale = business.Price(
+            request.Start,
+            request.End,
+            request.People,
+            loyaltyLevel.DiscountPercentage,
+            request.Services
+            //business.Services.Where(s => request.Services.Contains(s)).ToList()
+        );
+
+        return Ok(sale);
+    }
+
+    [Authorize(Roles = Role.Customer)]
+    [HttpPost("{id}/make-reservation")]
+    public async Task<ActionResult> MakeReservation([FromRoute] Guid id, [FromBody] MakeReservationDTO request)
     {
         return Ok("Hello");
         //var user = Context.Users.FindAsync();
     }
 
     [HttpGet("reservations")]
-    public virtual async Task<ActionResult> GetReservations(string status)
+    protected async Task<ActionResult> GetReservations(string businessType, string status)
     {
+        var currentTime = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Utc);
+
         var reservationsQuery = Context.Reservations
-        .AsNoTrackingWithIdentityResolution()
-        .Where(r => r.User.Id == User.Id());
+            .AsNoTrackingWithIdentityResolution()
+            .Where(r => r.User.Id == User.Id());
+
+        reservationsQuery = businessType switch
+        {
+            "boats" => reservationsQuery.Where(b => b.Business is Boat),
+            "adventures" => reservationsQuery.Where(b => b.Business is Adventure),
+            "cabins" => reservationsQuery.Where(b => b.Business is Cabin),
+            "all" or _ => reservationsQuery
+        };
 
         reservationsQuery = status switch
         {
-            "pending" => reservationsQuery.Where(r => r.Start > DateTime.Now),
-            "completed" => reservationsQuery.Where(r => r.End < DateTime.Now),
-            "ongoing" => reservationsQuery.Where(r => r.Start <= DateTime.Now && r.End >= DateTime.Now),
+            "pending" => reservationsQuery.Where(r => r.Start > currentTime),
+            "completed" => reservationsQuery.Where(r => r.End < currentTime),
+            "ongoing" => reservationsQuery.Where(r => r.Start <= currentTime && r.End >= currentTime),
             "all" or _ => reservationsQuery
         };
 

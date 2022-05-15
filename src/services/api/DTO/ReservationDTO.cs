@@ -22,3 +22,12 @@ public class ReservationDTO
     public DateTime Timestamp { get; set; }
     public int Units { get; set; }
 }
+
+public class CreateSaleDTO
+{
+    public DateTime Start { get; set; }
+    public DateTime End { get; set; }
+    public int People { get; set; }
+    public List<Service> Services { get; set; }
+    public decimal DiscountPercentage { get; set; }
+}
