@@ -104,15 +104,18 @@ public class UserController : ControllerBase
         
         if (user is null)
         {
-            return BadRequest("Your account has been deleted");
+            return BadRequest("User does not exist.");
         }
 
         var loyaltyQuery = _context.LoyaltyLevels
-            .AsNoTracking()
-            .OrderBy(l => l.Threshold);
+            .AsNoTracking();
         
-        var loyaltyLevel = await loyaltyQuery.FirstOrDefaultAsync(l => l.Threshold <= user.LoyaltyPoints);
-        var nextLoyaltyLevel = await loyaltyQuery.FirstOrDefaultAsync(l => l.Threshold > user.LoyaltyPoints);
+        var loyaltyLevel = await loyaltyQuery
+            .OrderByDescending(l => l.Threshold)
+            .FirstOrDefaultAsync(l => l.Threshold <= user.LoyaltyPoints);
+        var nextLoyaltyLevel = await loyaltyQuery
+            .OrderBy(l => l.Threshold)
+            .FirstOrDefaultAsync(l => l.Threshold > user.LoyaltyPoints);
 
         return Ok(new UserProfileDTO
         {
