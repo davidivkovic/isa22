@@ -23,13 +23,12 @@
           </template>
         </Input>
       </div>
-      <div class="w-52">
+      <div class="w-60">
         <DateInput
           required
           @change="value => (start = value)"
           id="start"
           type="datetime-local"
-          ref="startInput"
           v-model="start"
           :hasTime="$route.params.type !== 'cabins'"
           placeholder="Start of the journey"
@@ -38,12 +37,11 @@
         >
         </DateInput>
       </div>
-      <div class="w-52">
+      <div class="w-60">
         <DateInput
           required
           @change="value => (end = value)"
           type="datetime-local"
-          ref="startInput"
           v-model="end"
           :hasTime="$route.params.type !== 'cabins'"
           placeholder="End of the journey"
@@ -68,9 +66,8 @@
           />
         </template>
       </NumberInput>
-      <Button
-        type="submit"
-        class="absolute right-44 bg-emerald-600 !px-10 text-white"
+      <div class="w-10"></div>
+      <Button type="submit" class="bg-emerald-600 !px-10 text-white"
         >Search</Button
       >
     </form>
@@ -140,6 +137,7 @@ import { useRoute, useRouter, RouterLink } from 'vue-router'
 import CabinPreviewItem from '../components/search/CabinPreviewItem.vue'
 import BoatPreviewItem from '../components/search/BoatPreviewItem.vue'
 import AdventurePreviewItem from '../components/search/AdventurePreviewItem.vue'
+import { parseISO, formatISO } from 'date-fns'
 
 const route = useRoute()
 const router = useRouter()
@@ -190,13 +188,19 @@ const direction = ref(
 const results = ref([])
 
 const fetchResults = async () => {
+  const queryData = { ...route.query }
+  if (route.params.type === 'cabins') {
+    queryData.start = formatISO(parseISO(start.value).setHours(14))
+    queryData.end = formatISO(parseISO(end.value).setHours(12))
+  }
+  console.log(queryData)
   const [data, error] = await api.business.search(
     {
-      ...route.query
+      ...queryData
     },
     route.params.type
   )
-  data && (results.value = data)
+  data && (results.value = data.results)
 }
 
 watchEffect(() => {
@@ -489,10 +493,5 @@ const createMap = () => {
   })
 
   markerRef = marker
-
-  google.maps.event.addListener(map, 'click', e => {
-    marker.setPosition(e.latLng)
-    marker.setVisible(true)
-  })
 }
 </script>
