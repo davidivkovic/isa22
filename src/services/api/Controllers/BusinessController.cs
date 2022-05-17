@@ -287,7 +287,7 @@ public class BusinessController<
             request.Start,
             request.End,
             request.People,
-            0,
+            request.DiscountPercentage,
             business.Services.Where(s => request.Services.Contains(s)).ToList()
         );
 
@@ -358,7 +358,7 @@ public class BusinessController<
         return Ok(sales.Select(sale => new
         {
             sale,
-            Price = sale.Price(loyalty.DiscountPercentage)
+            Price = sale.Price(loyalty.DiscountPercentage + sale.DiscountPercentage)
         }));
     }
 
