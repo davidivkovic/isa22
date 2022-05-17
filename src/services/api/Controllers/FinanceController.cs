@@ -26,18 +26,6 @@ public class FinanceController : ControllerBase
         var levels = await _context.LoyaltyLevels.ToListAsync();
         var finance = await _context.Finances.FirstOrDefaultAsync();
 
-        if (finance is null)
-        {
-            finance = new()
-            {
-                TaxPercentage = 20,
-                CustomerPoints = 5,
-                BusinessOwnerPoints = 2
-            };
-            _context.Add(finance);
-            await _context.SaveChangesAsync();
-        }
-
         return new()
         {
             Finance = finance.Adapt<FinanceDTO>(),

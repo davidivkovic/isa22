@@ -1,5 +1,6 @@
 ﻿namespace API.Infrastructure.Data;
 
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 
 using API.Core.Model;
@@ -29,6 +30,23 @@ public class DbSeed
                     Street = "Brooklyn Avenue"
                 }
             }, "admin");
+        }
+    }
+
+    public static async Task SeedFinance(AppDbContext context)
+    {
+        var finance = await context.Finances.FirstOrDefaultAsync();
+
+        if (finance is null)
+        {
+            finance = new()
+            {
+                TaxPercentage = 20,
+                CustomerPoints = 4,
+                BusinessOwnerPoints = 2
+            };
+            context.Add(finance);
+            await context.SaveChangesAsync();
         }
     }
 }

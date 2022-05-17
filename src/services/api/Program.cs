@@ -95,6 +95,7 @@ var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
 
 await context.Database.MigrateAsync();
 await DbSeed.SeedUsers(userManager);
+await DbSeed.SeedFinance(context);
 
 await scope.DisposeAsync();
 
