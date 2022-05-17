@@ -59,8 +59,8 @@ public class AuthenticationController : ControllerBase
             .OrderBy(l => l.Threshold)
             .FirstOrDefaultAsync(l => l.Threshold <= reservation.User.LoyaltyPoints);
 
-        reservation.Start = new DateTime(2022, 7, 7, 21, 0, 0, DateTimeKind.Utc);
-        reservation.End = new DateTime(2022, 7, 8, 5, 0, 0, DateTimeKind.Utc);
+        reservation.Start = new DateTimeOffset(2022, 7, 7, 21, 0, 0, TimeSpan.Zero);
+        reservation.End = new DateTimeOffset(2022, 7, 8, 5, 0, 0, TimeSpan.Zero);
 
         reservation.Services = new()
         {

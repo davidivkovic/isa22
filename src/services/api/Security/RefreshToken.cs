@@ -7,11 +7,11 @@ using API.Core.Model;
 public class RefreshToken : IdentityUserToken<Guid>, IDeletable
 {
     public Guid Id { get; set; }
-    public DateTime ExpiresAt { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public DateTimeOffset ExpiresAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
     public bool IsDeleted { get ; set; }
 
-    public bool HasExpired => DateTime.UtcNow >= ExpiresAt;
+    public bool HasExpired => DateTimeOffset.Now >= ExpiresAt;
     public bool IsActive => !IsDeleted && !HasExpired;
 
     public RefreshToken() { }
@@ -22,8 +22,8 @@ public class RefreshToken : IdentityUserToken<Guid>, IDeletable
 
         Id = token;
         UserId = userId;
-        CreatedAt = DateTime.UtcNow;
-        ExpiresAt = DateTime.UtcNow.AddMonths(3);
+        CreatedAt = DateTimeOffset.Now;
+        ExpiresAt = DateTimeOffset.Now.AddMonths(3);
         Value = token.ToString("N");
     }
 

@@ -132,7 +132,7 @@ public class UserController : ControllerBase
 
     [Authorize(Roles = "Admin")]
     [HttpGet("registrations/pending")]
-    public async Task<List<PendingRequestDTO>> GetPendingRegistrations([FromQuery] DateTime before)
+    public async Task<List<PendingRequestDTO>> GetPendingRegistrations([FromQuery] DateTimeOffset before)
     {
         return await _context.Users
             .AsNoTracking()
@@ -201,7 +201,7 @@ public class UserController : ControllerBase
 
     [Authorize(Roles = "Admin")]
     [HttpGet("delete-requests/pending")]
-    public async Task<List<PendingRequestDTO>> GetDeleteRequests([FromQuery] DateTime before)
+    public async Task<List<PendingRequestDTO>> GetDeleteRequests([FromQuery] DateTimeOffset before)
     {
         return await _context.Users
             .AsNoTracking()

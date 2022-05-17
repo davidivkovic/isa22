@@ -4,7 +4,7 @@ public class Complaint
 {
     public string   Reason    { get; set; }
     public string   Answer    { get; set; }
-    public DateTime Timestamp { get; set; }
+    public DateTimeOffset Timestamp { get; set; }
     public bool     Answered  { get; set; }
 
     public void Reply(string answer)
@@ -31,17 +31,17 @@ public class Reservation : Entity
         public const string Cancelled = "Cancelled";
     }
 
-    public string        Status             { get; set; }
-    public User          User               { get; set; }
-    public Business      Business           { get; set; }
-    public DateTime      Start              { get; set; }
-    public DateTime      End                { get; set; }
-    public DateTime      Timestamp          { get; set; }
-    public Payment       Payment            { get; set; }
-    public double        DiscountPercentage { get; set; }
-    public List<Service> Services           { get; set; }
-    public Report        Report             { get; set; }
-    public Complaint     Complaint          { get; set; }
+    public string        Status              { get; set; }
+    public User          User                { get; set; }
+    public Business      Business            { get; set; }
+    public DateTimeOffset Start              { get; set; }
+    public DateTimeOffset End                { get; set; }
+    public DateTimeOffset Timestamp          { get; set; }
+    public Payment       Payment             { get; set; }
+    public double        DiscountPercentage  { get; set; }
+    public List<Service> Services            { get; set; }
+    public Report        Report              { get; set; }
+    public Complaint     Complaint           { get; set; }
 
     public int Units => Business.GetTotalUnits(Start, End);
 
@@ -50,8 +50,8 @@ public class Reservation : Entity
     public Reservation(
         User user,
         Business business,
-        DateTime start,
-        DateTime end,
+        DateTimeOffset start,
+        DateTimeOffset end,
         int people,
         List<Service> chosenServices,
         double taxPercentage
@@ -63,7 +63,7 @@ public class Reservation : Entity
         End = end;
         Services = chosenServices;
         Status = ReservationStatus.Created;
-        Timestamp = DateTime.Now;
+        Timestamp = DateTimeOffset.Now;
         //DiscountPercentage = User.Level.DiscountPercentage;
         Money price = Business.Price(
             Start,
@@ -82,7 +82,7 @@ public class Reservation : Entity
 
     public bool Cancel()
     {
-        if (Start - TimeSpan.FromDays(3) > DateTime.Now)
+        if (Start - TimeSpan.FromDays(3) > DateTimeOffset.Now)
         {
             Status = ReservationStatus.Cancelled;
             return true;

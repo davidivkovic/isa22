@@ -7,9 +7,9 @@ public class SearchRequest
     [FromQuery]
     public string Name { get; set; }
     [FromQuery]
-    public DateTime Start { get; set; }
+    public DateTimeOffset Start { get; set; }
     [FromQuery]
-    public DateTime End { get; set; }
+    public DateTimeOffset End { get; set; }
     [FromQuery]
     public string City { get; set; }
     [FromQuery]

@@ -8,8 +8,8 @@ public class Sale : Reservation
 
     public Sale(
         Business business,
-        DateTime start,
-        DateTime end,
+        DateTimeOffset start,
+        DateTimeOffset end,
         double discountPercentage,
         int people,
         List<Service> chosenServices
@@ -33,7 +33,7 @@ public class Sale : Reservation
     {
         Status = ReservationStatus.Created;
         User = user;
-        Timestamp = DateTime.Now;
+        Timestamp = DateTimeOffset.Now;
         DiscountPercentage = userDiscountPercentage;
         Payment = new (Price(DiscountPercentage), taxPercentage);
     }

@@ -63,7 +63,7 @@ public abstract class Business : Entity
         CancellationFee = cancellationFee;
     }
 
-    public bool IsAvailable(DateTime start, DateTime end)
+    public bool IsAvailable(DateTimeOffset start, DateTimeOffset end)
     {
         return Availability.Exists(s => s.Contains(start, end) && s.Available) &&
               !Availability.Exists(s => s.Intersects(start, end) && !s.Available);
@@ -81,7 +81,7 @@ public abstract class Business : Entity
         Rating = (NumberOfReviews * Rating + Rating) / ++NumberOfReviews;
     }
 
-    public int GetTotalUnits(DateTime start, DateTime end)
+    public int GetTotalUnits(DateTimeOffset start, DateTimeOffset end)
     {
         double totalUnits = 1;
         if (Unit.Hours <= 1)
@@ -97,8 +97,8 @@ public abstract class Business : Entity
 
     public Money Price
     (
-        DateTime start,
-        DateTime end,
+        DateTimeOffset start,
+        DateTimeOffset end,
         int people,
         double discountPercentage,
         List<Service> chosenServices

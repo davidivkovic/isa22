@@ -76,7 +76,7 @@ public class BusinessController<
     [Authorize]
     [AllowAnonymous]
     [HttpGet("{id}")]
-    public async Task<ActionResult> Get([FromRoute]Guid id, [FromQuery] DateTime start, [FromQuery] DateTime end)
+    public async Task<ActionResult> Get([FromRoute]Guid id, [FromQuery] DateTimeOffset start, [FromQuery] DateTimeOffset end)
     {
         var business = await Context.Set<TBusiness>()
             .AsNoTracking()
@@ -407,7 +407,7 @@ public class BusinessController<
     [HttpGet("reservations")]
     protected async Task<ActionResult> GetReservations(string businessType, string status)
     {
-        var currentTime = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Utc);
+        var currentTime = DateTimeOffset.Now;
 
         var reservationsQuery = Context.Reservations
             .AsNoTrackingWithIdentityResolution()
