@@ -252,7 +252,7 @@ public class BusinessController<
         return Ok();
     }
 
-    [HttpGet("{id}/sales/preview-create")]
+    [HttpPost("{id}/sales/preview-create")]
     public virtual async Task<ActionResult> PreviewCreateSale([FromRoute] Guid id, [FromBody] CreateSaleDTO request)
     {
         var business = await Context.Set<TBusiness>()
@@ -294,7 +294,7 @@ public class BusinessController<
         return Ok(new Payment(price, finance.TaxPercentage * (100 / loyaltyLevel.DiscountPercentage)));
     }
 
-    [HttpGet("{id}/sales/create")]
+    [HttpPost("{id}/sales/create")]
     public virtual async Task<ActionResult> CreateSale([FromRoute] Guid id, [FromBody] CreateSaleDTO request)
     {
         var business = await Context.Set<TBusiness>()
