@@ -358,7 +358,7 @@ public class BusinessController<
         return Ok(sales.Select(sale => new
         {
             sale,
-            Price = sale.Price(loyalty.DiscountPercentage + sale.DiscountPercentage)
+            Price = sale.Price(loyalty.DiscountPercentage)
         }));
     }
 
