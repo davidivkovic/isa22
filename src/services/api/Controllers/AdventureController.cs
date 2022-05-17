@@ -38,13 +38,24 @@ public class AdventureController : BusinessController<Adventure, AdventureDT0, C
         return base.AddImage(id, files);
     }
 
+    [Authorize(Roles = Role.Fisher)]
+    public override Task<ActionResult> PreviewCreateSale([FromRoute] Guid id, [FromBody] CreateSaleDTO request)
+    {
+        return base.PreviewCreateSale(id, request);
+    }
+
+    [Authorize(Roles = Role.Fisher)]
+    public override Task<ActionResult> CreateSale([FromRoute] Guid id, [FromBody] CreateSaleDTO request)
+    {
+        return base.CreateSale(id, request);
+    }
+
     [Authorize]
     [HttpGet("reservations")]
     public Task<ActionResult> GetReservations(string status)
     {
         return GetReservations("adventures", status);
     }
-
 
     [Authorize]
     [AllowAnonymous]
@@ -77,6 +88,7 @@ public class AdventureController : BusinessController<Adventure, AdventureDT0, C
         int totalResults = await query.CountAsync();
         var results = await query
             .OrderBy(request.Direction)
+            .Skip(request.Page * 6)
             .Take(6)
             .Select(a => new AdventureSearchResponse
             {
@@ -103,21 +115,4 @@ public class AdventureController : BusinessController<Adventure, AdventureDT0, C
             totalResults,
         });
     }
-
-    //[HttpGet]
-    //public async Task<ActionResult> GetAdventures()
-    //{
-
-    //    var start = DateTime.UtcNow;
-    //    var end = DateTime.UtcNow + TimeSpan.FromDays(2);
-
-    //    var adventures = await _dbContext.Adventures
-    //        .Include(c => c.Availability)
-    //        .Include(c => c.Reservations)
-    //        .Where(c => c.Address.City == "Belgrade")
-    //        .Available(start, end)
-    //        .ToListAsync();
-
-    //    return Ok(adventures);
-    //}
 }

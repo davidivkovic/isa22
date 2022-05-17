@@ -29,9 +29,10 @@ public class Sale : Reservation
         return Business.Price(Start, End, People, discount, Services);
     }
 
-    public void Sell(double userDiscountPercentage, double taxPercentage)
+    public void Sell(User user, double userDiscountPercentage, double taxPercentage)
     {
         Status = ReservationStatus.Created;
+        User = user;
         Timestamp = DateTime.Now;
         DiscountPercentage = userDiscountPercentage;
         Payment = new (Price(DiscountPercentage), taxPercentage);

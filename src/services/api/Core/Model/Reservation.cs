@@ -64,7 +64,7 @@ public class Reservation : Entity
         Services = chosenServices;
         Status = ReservationStatus.Created;
         Timestamp = DateTime.Now;
-        DiscountPercentage = User.Level.DiscountPercentage;
+        //DiscountPercentage = User.Level.DiscountPercentage;
         Money price = Business.Price(
             Start,
             End,

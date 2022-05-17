@@ -229,7 +229,30 @@ public class BusinessController<
         return Ok(business.Id);
     }
     
-    [HttpGet("{id}/sale/preview-create")]
+    [HttpPost("{id}/delete")]
+    public virtual async Task<ActionResult> Delete(Guid id)
+    {
+        var business = await Context.Set<TBusiness>()
+            .Include(b => b.Owner)
+            .FirstOrDefaultAsync(b => b.Id == id);
+
+        if (business is null)
+        {
+            return BadRequest($"The specified {BusinessType} does not exist.");
+        }
+
+        if (business.Owner.Id != User.Id())
+        {
+            return StatusCode(403);
+        }
+
+        business.Delete();
+        await Context.SaveChangesAsync();
+
+        return Ok();
+    }
+
+    [HttpGet("{id}/sales/preview-create")]
     public virtual async Task<ActionResult> PreviewCreateSale([FromRoute] Guid id, [FromBody] CreateSaleDTO request)
     {
         var business = await Context.Set<TBusiness>()
@@ -237,12 +260,16 @@ public class BusinessController<
                     .Include(b => b.Services)
                     .FirstOrDefaultAsync(b => b.Id == id);
 
+        if (business is null)
+        {
+            return BadRequest($"The specified {BusinessType} does not exist.");
+        }
+
         if (business.Owner.Id != User.Id())
         {
             return StatusCode(403);
         }
 
-        //TODO: Check if business is available at the given dates
         bool isAvailable = await Context.Businesses
             .Where(b => b.Id == id)
             .Available(request.Start, request.End)
@@ -254,25 +281,127 @@ public class BusinessController<
         }
 
         var loyaltyLevel = await Context.GetLoyaltyLevel(business.Owner.Id);
+        var finance = await Context.Finances.FirstOrDefaultAsync();
 
-        var sale = business.Price(
+        var price = business.Price(
             request.Start,
             request.End,
             request.People,
-            loyaltyLevel.DiscountPercentage,
-            request.Services
-            //business.Services.Where(s => request.Services.Contains(s)).ToList()
+            0,
+            business.Services.Where(s => request.Services.Contains(s)).ToList()
         );
 
-        return Ok(sale);
+        return Ok(new Payment(price, finance.TaxPercentage * (100 / loyaltyLevel.DiscountPercentage)));
+    }
+
+    [HttpGet("{id}/sales/create")]
+    public virtual async Task<ActionResult> CreateSale([FromRoute] Guid id, [FromBody] CreateSaleDTO request)
+    {
+        var business = await Context.Set<TBusiness>()
+                    .Include(b => b.Owner)
+                    .Include(b => b.Services)
+                    .FirstOrDefaultAsync(b => b.Id == id);
+
+        if (business is null)
+        {
+            return BadRequest($"The specified {BusinessType} does not exist.");
+        }
+
+        if (business.Owner.Id != User.Id())
+        {
+            return StatusCode(403);
+        }
+
+        bool isAvailable = await Context.Set<TBusiness>()
+            .Where(b => b.Id == id)
+            .Available(request.Start, request.End)
+            .AnyAsync();
+
+        if (!isAvailable)
+        {
+            return BadRequest($"Your {BusinessType} is already occupied at that time.");
+        }
+
+        var loyaltyLevel = await Context.GetLoyaltyLevel(business.Owner.Id);
+
+        Context.Add(new Sale(
+            business,
+            request.Start,
+            request.End,
+            request.DiscountPercentage,
+            request.People,
+            business.Services.Where(s => request.Services.Contains(s)).ToList()
+        ));
+        await Context.SaveChangesAsync();
+
+        return Ok();
+    }
+
+    [Authorize]
+    [AllowAnonymous]
+    [HttpGet("{id}/sales")]
+    public async Task<ActionResult> GetSales(Guid id)
+    {
+        var sales = await Context.Sales
+            .AsNoTrackingWithIdentityResolution()
+            .Where(s => s.Business.Id == id)
+            .Take(4)
+            .ToListAsync();
+
+        Loyalty loyalty = new();
+
+        if (sales.Count > 0)
+        {
+            loyalty = await Context.GetLoyaltyLevel(User.Id());
+        }
+
+        return Ok(sales.Select(sale => new
+        {
+            sale,
+            Price = sale.Price(loyalty.DiscountPercentage)
+        }));
     }
 
     [Authorize(Roles = Role.Customer)]
     [HttpPost("{id}/make-reservation")]
     public async Task<ActionResult> MakeReservation([FromRoute] Guid id, [FromBody] MakeReservationDTO request)
     {
-        return Ok("Hello");
-        //var user = Context.Users.FindAsync();
+        var business = await Context.Set<TBusiness>()
+                    .Include(b => b.Services)
+                    .FirstOrDefaultAsync(b => b.Id == id);
+
+        if (business is null)
+        {
+            return BadRequest($"The specified {BusinessType} does not exist.");
+        }
+
+        bool isAvailable = await Context.Set<TBusiness>()
+            .Where(b => b.Id == id)
+            .Available(request.Start, request.End)
+            .AnyAsync();
+
+        if (!isAvailable)
+        {
+            return BadRequest($"The {BusinessType} is already occupied at that time.");
+        }
+
+        var user = await Context.Users.FindAsync(User.Id());
+        var finance = await Context.Finances.FirstOrDefaultAsync();
+
+        Reservation reservation = new(
+            user,
+            business,
+            request.Start,
+            request.End,
+            business.People,
+            business.Services.Where(s => request.Services.Contains(s)).ToList(),
+            finance.TaxPercentage
+        );
+
+        Context.Add(reservation);
+        await Context.SaveChangesAsync();
+
+        return Ok(reservation.Id);
     }
 
     [HttpGet("reservations")]

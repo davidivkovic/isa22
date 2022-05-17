@@ -29,7 +29,7 @@ public class CreateSaleDTO
     public DateTime End { get; set; }
     public int People { get; set; }
     public List<Service> Services { get; set; }
-    public decimal DiscountPercentage { get; set; }
+    public double DiscountPercentage { get; set; }
 }
 
 public class SaleDTO : CreateSaleDTO

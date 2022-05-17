@@ -19,7 +19,7 @@ public static class BusinessQueries
     {
         return query
         .Where(b =>
-            b.Availability.Any(s => s.Start <= start && s.End >= end && s.Available) &&
+            //b.Availability.Any(s => s.Start <= start && s.End >= end && s.Available) &&
             !b.Availability.Any(s =>
                 (s.Start <= start && s.End >= end ||
                 s.Start >= start && s.Start < end ||
