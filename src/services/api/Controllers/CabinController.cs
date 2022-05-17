@@ -108,7 +108,7 @@ public class CabinController : BusinessController<Cabin, CabinDTO, CreateCabinDT
                 Rating = c.Rating,
                 Price = new Money
                 {
-                    Amount = totalUnits * c.PricePerUnit.Amount * request.People * discountMultiplier,
+                    Amount = c.PricePerUnit.Amount,
                     Currency = c.PricePerUnit.Currency
                 }
             }) 

@@ -54,7 +54,7 @@ public class BoatController : BusinessController<Boat, BoatDTO, CreateBoatDTO, U
     [Authorize]
     [AllowAnonymous]
     [HttpGet("search")]
-    public async Task<List<BoatSearchResponse>> Search([FromQuery] BoatSearchRequest request)
+    public async Task<ActionResult> Search([FromQuery] BoatSearchRequest request)
     {
         int totalUnits = new Boat().GetTotalUnits(request.Start, request.End);
         decimal discountMultiplier = await Context.GetDiscountMultiplier(User.Id());
@@ -90,6 +90,7 @@ public class BoatController : BusinessController<Boat, BoatDTO, CreateBoatDTO, U
             }
         }
 
+        int totalResults = await query.CountAsync();
         var results = await query
             .OrderBy(request.Direction)
             .Skip(request.Page * 6)
@@ -105,7 +106,7 @@ public class BoatController : BusinessController<Boat, BoatDTO, CreateBoatDTO, U
                 BoatCharacteristics = b.Characteristics,
                 Price = new Money
                 {
-                    Amount = totalUnits * b.PricePerUnit.Amount * request.People * discountMultiplier,
+                    Amount = b.PricePerUnit.Amount,
                     Currency = b.PricePerUnit.Currency
                 }
             })
@@ -113,7 +114,11 @@ public class BoatController : BusinessController<Boat, BoatDTO, CreateBoatDTO, U
 
         results.ForEach(r => r.Image = ImageUrl(r.Id, r.Image));
 
-        return results;
+        return Ok(new
+        {
+            results,
+            totalResults,
+        });
 
     }
         
