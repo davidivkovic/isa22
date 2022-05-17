@@ -2,6 +2,8 @@
   <Modal
     @modalClosed="$emit('modalClosed')"
     :isOpen="props.isOpen"
+    :light="true"
+    :hasCloseButton="false"
     class="relative h-[700px] w-[1000px] bg-white"
   >
     <XIcon
@@ -11,21 +13,25 @@
     <img
       :src="props.images[selectedImageIndex]"
       alt=""
-      class="h- mx-auto h-full w-full select-none rounded-md object-cover"
+      class="h- mx-auto h-full w-full select-none object-cover"
     />
     <div
       class="absolute left-1/2 bottom-3 -translate-x-1/2 rounded-full bg-black/[0.5] py-2 px-8 text-sm text-white"
     >
       {{ selectedImageIndex + 1 }} / {{ props.images.length }}
     </div>
-    <ChevronLeftIcon
+    <div
       @click="previousImage()"
-      class="absolute left-3 top-1/2 bottom-1/2 h-16 w-16 cursor-pointer text-black"
-    />
-    <ChevronRightIcon
+      class="absolute -left-16 top-0 flex h-full w-20 cursor-pointer items-center"
+    >
+      <ChevronLeftIcon class="h-16 w-16 cursor-pointer text-black" />
+    </div>
+    <div
       @click="nextImage()"
-      class="absolute right-3 top-1/2 bottom-1/2 h-16 w-16 cursor-pointer text-black"
-    />
+      class="absolute -right-20 top-0 flex h-full w-20 cursor-pointer items-center"
+    >
+      <ChevronRightIcon class="h-16 w-16 cursor-pointer text-black" />
+    </div>
   </Modal>
 </template>
 <script setup>
@@ -42,6 +48,4 @@ const nextImage = () => {
 const previousImage = () =>
   (selectedImageIndex.value =
     (selectedImageIndex.value + props.images.length - 1) % props.images.length)
-
-const selectImage = index => (selectedImageIndex.value = index)
 </script>
