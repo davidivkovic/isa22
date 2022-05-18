@@ -2,10 +2,10 @@
 
 public class Complaint
 {
-    public string   Reason    { get; set; }
-    public string   Answer    { get; set; }
+    public string         Reason    { get; set; }
+    public string         Answer    { get; set; }
     public DateTimeOffset Timestamp { get; set; }
-    public bool     Answered  { get; set; }
+    public bool           Answered  { get; set; }
 
     public void Reply(string answer)
     {
@@ -31,17 +31,17 @@ public class Reservation : Entity
         public const string Cancelled = "Cancelled";
     }
 
-    public string        Status              { get; set; }
-    public User          User                { get; set; }
-    public Business      Business            { get; set; }
+    public string         Status             { get; set; }
+    public User           User               { get; set; }
+    public Business       Business           { get; set; }
     public DateTimeOffset Start              { get; set; }
     public DateTimeOffset End                { get; set; }
     public DateTimeOffset Timestamp          { get; set; }
-    public Payment       Payment             { get; set; }
-    public double        DiscountPercentage  { get; set; }
-    public List<Service> Services            { get; set; }
-    public Report        Report              { get; set; }
-    public Complaint     Complaint           { get; set; }
+    public Payment        Payment            { get; set; }
+    public double         DiscountPercentage { get; set; }
+    public List<Service>  Services           { get; set; }
+    public Report         Report             { get; set; }
+    public Complaint      Complaint          { get; set; }
 
     public int Units => Business.GetTotalUnits(Start, End);
 

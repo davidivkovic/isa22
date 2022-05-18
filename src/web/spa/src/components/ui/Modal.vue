@@ -3,6 +3,7 @@
     <Dialog
       as="div"
       static
+      :initialFocus="{ focus: () => {} }"
       class="fixed inset-0 z-20 overflow-y-auto"
       @close="emitModalClosed()"
     >

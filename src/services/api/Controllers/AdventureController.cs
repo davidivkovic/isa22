@@ -115,4 +115,22 @@ public class AdventureController : BusinessController<Adventure, AdventureDT0, C
             totalResults,
         });
     }
+
+    [Authorize(Roles = Role.Fisher)]
+    public override Task<ActionResult> GetCalendar(Guid id, DateTimeOffset start, DateTimeOffset end)
+    {
+        return base.GetCalendar(id, start, end);
+    }
+
+    [Authorize(Roles = Role.Fisher)]
+    public override Task<ActionResult> CreateUnavailability(Guid id, DateTimeOffset start, DateTimeOffset end)
+    {
+        return base.CreateUnavailability(id, start, end);
+    }
+
+    [Authorize(Roles = Role.Fisher)]
+    public override Task<ActionResult> DeleteUnavailability(Guid id, Guid eventId)
+    {
+        return base.DeleteUnavailability(id, eventId);
+    }
 }

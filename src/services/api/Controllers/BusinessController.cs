@@ -1,8 +1,11 @@
 ﻿namespace API.Controllers;
 
+using System.Linq;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 using Mapster;
 
@@ -12,7 +15,6 @@ using API.Infrastructure.Data;
 using API.Infrastructure.Extensions;
 using API.Services;
 using API.Infrastructure.Data.Queries;
-using Microsoft.AspNetCore.Authorization;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -256,6 +258,7 @@ public class BusinessController<
     public virtual async Task<ActionResult> PreviewCreateSale([FromRoute] Guid id, [FromBody] CreateSaleDTO request)
     {
         var business = await Context.Set<TBusiness>()
+                    .AsNoTracking()
                     .Include(b => b.Owner)
                     .Include(b => b.Services)
                     .FirstOrDefaultAsync(b => b.Id == id);
@@ -271,6 +274,7 @@ public class BusinessController<
         }
 
         bool isAvailable = await Context.Businesses
+            .AsNoTracking()
             .Where(b => b.Id == id)
             .Available(request.Start, request.End)
             .AnyAsync();
@@ -438,5 +442,128 @@ public class BusinessController<
         reservations.ForEach(r => r.Business.WithImages(ImageUrl));
 
         return Ok(reservations);
+    }
+
+    [HttpGet("{id}/calendar")]
+    public virtual async Task<ActionResult> GetCalendar(Guid id, DateTimeOffset start, DateTimeOffset end)
+    {
+        var business = await Context.Set<TBusiness>()
+            .AsNoTracking()
+            .Include(b => b.Owner)
+            .FirstOrDefaultAsync(b => b.Id == id);
+
+        if (business is null)
+        {
+            return BadRequest($"The specified {BusinessType} does not exist.");
+        }
+
+        if (business.Owner.Id != User.Id())
+        {
+            return StatusCode(403);
+        }
+
+        var reservations = await Context.Reservations
+            .AsNoTracking()
+            .Include(r => r.User)
+            .Where(r => r.Business.Id == id)
+            .Where(r => r.Start >= start)
+            .Where(r => r.End <= end)
+            .Select(r => new
+            {
+                r.Id,
+                r.Start,
+                r.End,
+                Type = "reservation",
+                Name = r.User.FirstName + " " + r.User.LastName
+            })
+            .ToListAsync();
+
+        var slots = await Context.Businesses
+                .AsNoTracking()
+                .Where(b => b.Id == id)
+                .SelectMany(b => b.Availability)
+                .Where(s => s.Start >= start)
+                .Where(s => s.End <= end)
+                .Select(r => new
+                {
+                    r.Id,
+                    r.Start,
+                    r.End,
+                    Type = "unavailable",
+                    Name = "Unavailable"
+                })
+                .ToListAsync();
+
+        return Ok(reservations.Concat(slots));
+    }
+
+    [HttpPost("{id}/calendar/create-unavailability")]
+    public virtual async Task<ActionResult> CreateUnavailability(Guid id, DateTimeOffset start, DateTimeOffset end)
+    {
+        var business = await Context.Set<TBusiness>()
+            .Include(b => b.Owner)
+            .FirstOrDefaultAsync(b => b.Id == id);
+
+        if (business is null)
+        {
+            return BadRequest($"The specified {BusinessType} does not exist.");
+        }
+
+        if (business.Owner.Id != User.Id())
+        {
+            return StatusCode(403);
+        }
+
+        Slot slot = new()
+        {
+            Start = start,
+            End = end,
+            Available = false
+        };
+
+        business.Availability.Add(slot);
+        Context.SaveChanges();
+
+        return Ok(new
+        {
+            slot.Id,
+            slot.Start,
+            slot.End,
+            Type = "unavailable",
+            Name = "Unavailable"
+        });
+    }
+
+    [HttpPost("{id}/calendar/delete-unavailability")]
+    public virtual async Task<ActionResult> DeleteUnavailability(Guid id, Guid eventId)
+    {
+        var business = await Context.Set<TBusiness>()
+            .Include(b => b.Owner)
+            .FirstOrDefaultAsync(b => b.Id == id);
+
+        if (business is null)
+        {
+            return BadRequest($"The specified {BusinessType} does not exist.");
+        }
+
+        if (business.Owner.Id != User.Id())
+        {
+            return StatusCode(403);
+        }
+
+        var slot = await Context.Set<TBusiness>()
+            .SelectMany(b => b.Availability)
+            .Where(s => s.Id == eventId)
+            .FirstOrDefaultAsync();
+
+        if (slot is null)
+        {
+            return BadRequest("The specified slot does not exist.");
+        }
+
+        slot.Delete();
+        await Context.SaveChangesAsync();
+
+        return Ok();
     }
 }

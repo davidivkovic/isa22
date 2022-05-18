@@ -1,11 +1,16 @@
-import { createApp } from "vue";
+import { createApp } from 'vue'
 
-import App from "./App.vue";
-import router from "./router";
-import "./index.css";
+import App from './App.vue'
+import router from './router'
+import './index.css'
 
-const app = createApp(App);
+Date.prototype.addDays = function (days) {
+  this.setDate(this.getDate() + parseInt(days))
+  return this
+}
 
-app.use(router);
+const app = createApp(App)
 
-app.mount("#app");
+app.use(router)
+
+app.mount('#app')

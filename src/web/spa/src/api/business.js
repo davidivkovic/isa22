@@ -45,6 +45,43 @@ const getReservations = async (status, type) =>
     })
   )
 
+const getCalendar = async (id, start, end, type) =>
+  fetch(
+    instance.get(`${endpoints[type]}/${id}/calendar`, {
+      params: {
+        start,
+        end
+      }
+    })
+  )
+
+const createUnavailability = async (id, start, end, type) =>
+  fetch(
+    instance.post(
+      `${endpoints[type]}/${id}/calendar/create-unavailability`,
+      {},
+      {
+        params: {
+          start,
+          end
+        }
+      }
+    )
+  )
+
+const deleteUnavailability = async (id, eventId, type) =>
+  fetch(
+    instance.post(
+      `${endpoints[type]}/${id}/calendar/delete-unavailability`,
+      {},
+      {
+        params: {
+          eventId
+        }
+      }
+    )
+  )
+
 export default {
   get,
   create,
@@ -52,5 +89,8 @@ export default {
   search,
   searchBoats,
   searchCabins,
-  getReservations
+  getReservations,
+  getCalendar,
+  createUnavailability,
+  deleteUnavailability
 }
