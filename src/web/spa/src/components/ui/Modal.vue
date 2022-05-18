@@ -34,11 +34,18 @@
         >
           <div class="flex h-screen items-center justify-center">
             <div
-              class="transform rounded-lg transition-all duration-500"
+              class="relative transform rounded-lg transition-all duration-500"
               style="box-shadow: 0 6px 50px 0 rgb(0 0 0 / 25%)"
               v-bind="$attrs"
             >
               <slot></slot>
+              <div
+                v-if="hasCloseButton"
+                @click="emitModalClosed()"
+                class="absolute top-0 right-0 cursor-pointer p-2"
+              >
+                <XIcon class="h-5 w-5" />
+              </div>
             </div>
           </div>
         </TransitionChild>
@@ -55,18 +62,21 @@ import {
   TransitionRoot
 } from '@headlessui/vue'
 
+import { XIcon } from 'vue-tabler-icons'
 export default {
   inheritAttrs: false,
   components: {
     Dialog,
     DialogOverlay,
     TransitionChild,
-    TransitionRoot
+    TransitionRoot,
+    XIcon
   },
   props: {
     isOpen: Boolean,
     classes: String,
-    light: Boolean
+    light: Boolean,
+    hasCloseButton: { type: Boolean, default: true }
   },
   emits: ['modalClosed'],
   setup: (props, { emit }) => {

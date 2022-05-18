@@ -5,10 +5,10 @@
     :light="true"
     class="w-[500px] bg-white px-14 py-10"
   >
-    <XIcon
+    <!-- <XIcon
       @click="closeModal()"
       class="absolute top-3 right-3 h-6 w-6 cursor-pointer text-black"
-    ></XIcon>
+    ></XIcon> -->
     <Transition
       enter-active-class="transition-opacity duration-100"
       enter-from-class="opacity-0"
