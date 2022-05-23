@@ -1,7 +1,7 @@
 <script setup>
 import { Suspense } from 'vue'
 import { RouterView } from 'vue-router'
-import TheHeader from './components/TheHeader.vue'
+import TheHeader from './components/header/TheHeader.vue'
 </script>
 
 <template>
@@ -53,5 +53,8 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   font-family: 'Circular Std', sans-serif;
+}
+.pac-container {
+  height: 150px;
 }
 </style>
