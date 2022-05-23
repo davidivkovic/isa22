@@ -106,6 +106,7 @@ public class BusinessController<
             .FirstOrDefaultAsync();
 
         var sales = await Context.Sales
+            .Include(s => s.Business)
             .Where(s => s.Business.Id == business.Id)
             .Take(3)
             .ToListAsync();
@@ -295,7 +296,7 @@ public class BusinessController<
             business.Services.Where(s => request.Services.Contains(s)).ToList()
         );
 
-        return Ok(new Payment(price, finance.TaxPercentage * (100 / loyaltyLevel.DiscountPercentage)));
+        return Ok(new Payment(price, finance.TaxPercentage * (1 - (loyaltyLevel?.DiscountPercentage ?? 0) / 100)));
     }
 
     [HttpPost("{id}/sales/create")]
@@ -328,17 +329,18 @@ public class BusinessController<
 
         var loyaltyLevel = await Context.GetLoyaltyLevel(business.Owner.Id);
 
-        Context.Add(new Sale(
+        var sale = new Sale(
             business,
             request.Start,
             request.End,
             request.DiscountPercentage,
             request.People,
             business.Services.Where(s => request.Services.Contains(s)).ToList()
-        ));
+        );
+        Context.Add(sale);
         await Context.SaveChangesAsync();
 
-        return Ok();
+        return Ok(sale.Adapt<SaleDTO>());
     }
 
     [Authorize]
@@ -364,6 +366,37 @@ public class BusinessController<
             sale,
             Price = sale.Price(loyalty.DiscountPercentage)
         }));
+    }
+
+
+    [Authorize(Roles = Role.Customer)]
+    [HttpPost("make-quick-reservation")]
+    public async Task<ActionResult> MakeQuickReservation([FromBody] MakeQuickReservationDTO request)
+    {
+        var sale = await Context.Set<Sale>()
+                    .Include(s => s.Business)
+                    .Include(s => s.User)
+                    .FirstOrDefaultAsync(s => s.Id == request.Id);
+
+        if (sale is null)
+        {
+            return BadRequest($"The specified sale does not exist.");
+        }
+
+        if (sale.User is not null)
+        {
+            return BadRequest($"Sorry, the specified sale is already booked.");
+
+        }
+
+        var user = await Context.Users.FindAsync(User.Id());
+        var finance = await Context.Finances.FirstOrDefaultAsync();
+        var loyalty = await Context.GetLoyaltyLevel(User.Id());
+
+        sale.Sell(user, loyalty?.DiscountPercentage ?? 0, finance.TaxPercentage);
+        await Context.SaveChangesAsync();
+
+        return Ok();
     }
 
     [Authorize(Roles = Role.Customer)]

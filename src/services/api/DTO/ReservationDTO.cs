@@ -10,6 +10,11 @@ public class MakeReservationDTO
     public List<Service> Services { get; set; }
 }
 
+public class MakeQuickReservationDTO
+{
+    public Guid Id { get; set; }
+}
+
 public class ReservationDTO
 {
     public Guid Id { get; set; }
@@ -35,4 +40,5 @@ public class CreateSaleDTO
 public class SaleDTO : CreateSaleDTO
 {
     public Money Price { get; set; }
+    public Guid Id { get; set; }
 }
