@@ -10,6 +10,25 @@ public class Service
 {
     public string Name  { get; set; }
     public Money  Price { get; set; }
+    public static bool operator == (Service lhs, Service rhs) => lhs?.Name == rhs?.Name;
+    public static bool operator != (Service lhs, Service rhs) => lhs?.Name != rhs?.Name;
+
+    public override bool Equals(object obj)
+    {
+        if (ReferenceEquals(this, obj))
+        {
+            return true;
+        }
+
+        if (obj is null)
+        {
+            return false;
+        }
+
+        return ((Service)obj).Name == Name;
+    }
+
+    public override int GetHashCode() => Name.GetHashCode();
 }
 
 public abstract class Business : Entity
