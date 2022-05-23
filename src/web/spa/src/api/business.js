@@ -6,7 +6,8 @@ const endpoints = {
   adventures: 'adventures'
 }
 
-const get = async (id, type) => fetch(instance.get(`${endpoints[type]}/${id}`))
+const get = async (id, type, query) =>
+  fetch(instance.get(`${endpoints[type]}/${id}`, { params: { ...query } }))
 
 const createOrUpdate = async (data, type, action) => {
   const images = data.images
@@ -35,6 +36,8 @@ const searchCabins = (query, id) =>
 
 const searchBoats = (query, id) =>
   fetch(instance.get(`boat-owner/${id}/boats`, { params: { ...query } }))
+
+const ownersBusinesses = async type => fetch(instance.get(`${type}`))
 
 const getReservations = async (status, type) =>
   fetch(
@@ -81,10 +84,36 @@ const deleteUnavailability = async (id, eventId, type) =>
       }
     )
   )
+const previewCreateSale = async (id, type, data) =>
+  fetch(instance.post(`${endpoints[type]}/${id}/sales/preview-create`, data))
+
+const createSale = async (id, type, data) =>
+  fetch(instance.post(`${endpoints[type]}/${id}/sales/create`, data))
+
+const remove = async (id, type) =>
+  fetch(instance.post(`${endpoints[type]}/${id}/delete`))
+
+const makeQuickReservation = async (type, saleId) =>
+  fetch(
+    instance.post(`${endpoints[type]}/make-quick-reservation`, {
+      id: saleId
+    })
+  )
+
+const makeResrvation = async (id, type, start, end, people, services) =>
+  fetch(
+    instance.post(`${endpoints[type]}/${id}/make-reservation`, {
+      people,
+      start,
+      end,
+      services
+    })
+  )
 
 export default {
   get,
   create,
+  remove,
   update,
   search,
   searchBoats,
@@ -92,5 +121,10 @@ export default {
   getReservations,
   getCalendar,
   createUnavailability,
-  deleteUnavailability
+  deleteUnavailability,
+  previewCreateSale,
+  createSale,
+  ownersBusinesses,
+  makeQuickReservation,
+  makeResrvation
 }

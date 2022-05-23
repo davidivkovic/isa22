@@ -18,7 +18,9 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      redirect: '/cabins'
+      // redirect: '/cabins',
+      name: 'home',
+      component: HomeView
     },
     {
       path: '/cabins',
@@ -70,8 +72,8 @@ const router = createRouter({
     },
     {
       path: '/adventure-profile/:id',
-      name: 'adventure profile',
-      component: () => import('../views/AdventureProfileView.vue')
+      name: 'adventure-profile',
+      component: () => import('../views/business/AdventureProfileView.vue')
     },
     {
       path: '/adventure-profile/:id/calendar',
@@ -80,13 +82,13 @@ const router = createRouter({
     },
     {
       path: '/cabin-profile/:id',
-      name: 'cabin profile',
-      component: () => import('../views/CabinProfileView.vue')
+      name: 'cabin-profile',
+      component: () => import('../views/business/CabinProfileView.vue')
     },
     {
       path: '/boat-profile/:id',
-      name: 'boat profile',
-      component: () => import('../views/BoatProfileView.vue')
+      name: 'boat-profile',
+      component: () => import('../views/business/BoatProfileView.vue')
     },
     {
       path: '/:type/search',
@@ -132,6 +134,7 @@ const router = createRouter({
 })
 
 const modalNames = ['signin', 'verification', 'admin-verification']
+const nonSearchRoutes = ['profile']
 
-export { modalNames }
+export { modalNames, nonSearchRoutes }
 export default router
