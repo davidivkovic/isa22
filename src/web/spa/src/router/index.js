@@ -19,7 +19,7 @@ const router = createRouter({
     {
       path: '/',
       // redirect: '/cabins',
-      name: 'home',
+      // name: 'home',
       component: HomeView
     },
     {
@@ -121,6 +121,11 @@ const router = createRouter({
       component: () => import('../views/user/ProfileView.vue')
     },
     {
+      path: '/my-reservations',
+      name: 'reservations',
+      component: () => import('../views/user/Reservations.vue')
+    },
+    {
       path: '/requests',
       name: 'requests',
       component: () => import('../views/admin/RequestsView.vue')
@@ -134,7 +139,7 @@ const router = createRouter({
 })
 
 const modalNames = ['signin', 'verification', 'admin-verification']
-const nonSearchRoutes = ['profile']
+const nonSearchRoutes = ['profile', 'reservations']
 
 export { modalNames, nonSearchRoutes }
 export default router
