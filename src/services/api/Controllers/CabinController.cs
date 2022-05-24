@@ -187,4 +187,10 @@ public class CabinController : BusinessController<Cabin, CabinDTO, CreateCabinDT
     {
         return base.GetPaymentReport(startDate, endDate);
     }
+
+    [Authorize(Roles = Role.CabinOwner)]
+    public override Task<ActionResult> CreateSale([FromRoute] Guid id, [FromBody] CreateSaleDTO request)
+    {
+        return base.CreateSale(id, request);
+    }
 }

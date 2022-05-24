@@ -1,5 +1,6 @@
 import { instance, fetch } from './http.js'
 
+// Typescript enum
 const endpoints = {
   cabins: 'cabins',
   boats: 'boats',
@@ -27,6 +28,9 @@ const createOrUpdate = async (data, type, action) => {
 
 const create = async (data, type) => createOrUpdate(data, type, 'create')
 const update = async (data, type) => createOrUpdate(data, type, 'update')
+
+const getName = async (id, type) =>
+  fetch(instance.get(`${endpoints[type]}/${id}/name`))
 
 const search = (query, type) =>
   fetch(instance.get(`${type}/search`, { params: { ...query } }))
@@ -90,6 +94,9 @@ const previewCreateSale = async (id, type, data) =>
 const createSale = async (id, type, data) =>
   fetch(instance.post(`${endpoints[type]}/${id}/sales/create`, data))
 
+const deleteSale = async (id, saleId, type) =>
+  fetch(instance.post(`${endpoints[type]}/${id}/sales/${saleId}/delete`))
+
 const remove = async (id, type) =>
   fetch(instance.post(`${endpoints[type]}/${id}/delete`))
 
@@ -124,6 +131,7 @@ export default {
   create,
   remove,
   update,
+  getName,
   search,
   searchBoats,
   searchCabins,
@@ -133,6 +141,7 @@ export default {
   deleteUnavailability,
   previewCreateSale,
   createSale,
+  deleteSale,
   ownersBusinesses,
   makeQuickReservation,
   makeResrvation,

@@ -1,5 +1,4 @@
 <script setup>
-import { Suspense } from 'vue'
 import { RouterView } from 'vue-router'
 import TheHeader from './components/header/TheHeader.vue'
 </script>
@@ -37,15 +36,15 @@ import TheHeader from './components/header/TheHeader.vue'
 
 @font-face {
   font-family: 'Circular Std';
-  src: url('/src/assets/fonts/CircularStd-Bold.woff2') format('woff2');
-  font-weight: 700;
+  src: url('/src/assets/fonts/CircularStd-Medium.woff2') format('woff2');
+  font-weight: 500;
   font-style: normal;
 }
 
 @font-face {
   font-family: 'Circular Std';
-  src: url('/src/assets/fonts/CircularStd-Medium.woff2') format('woff2');
-  font-weight: 500;
+  src: url('/src/assets/fonts/CircularStd-Bold.woff2') format('woff2');
+  font-weight: 700;
   font-style: normal;
 }
 
@@ -54,7 +53,28 @@ body {
   -webkit-font-smoothing: antialiased;
   font-family: 'Circular Std', sans-serif;
 }
+
 .pac-container {
   height: 150px;
+}
+
+::-webkit-scrollbar {
+  background-color: #fafafa;
+  width: 15px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #b0b0b0;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #c2c2c2;
+  border-radius: 16px;
+  border: 4px solid transparent;
+  background-clip: padding-box;
 }
 </style>

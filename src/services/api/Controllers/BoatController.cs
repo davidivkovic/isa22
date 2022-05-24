@@ -34,6 +34,12 @@ public class BoatController : BusinessController<Boat, BoatDTO, CreateBoatDTO, U
     }
 
     [Authorize(Roles = Role.BoatOwner)]
+    public override Task<ActionResult> Delete(Guid id)
+    {
+        return base.Delete(id);
+    }
+
+    [Authorize(Roles = Role.BoatOwner)]
     public override Task<ActionResult> AddImage(Guid id, [FromForm] List<IFormFile> files)
     {
         return base.AddImage(id, files);
@@ -43,6 +49,12 @@ public class BoatController : BusinessController<Boat, BoatDTO, CreateBoatDTO, U
     public override Task<ActionResult> PreviewCreateSale([FromRoute] Guid id, [FromBody] CreateSaleDTO request)
     {
         return base.PreviewCreateSale(id, request);
+    }
+
+    [Authorize(Roles = Role.BoatOwner)]
+    public override Task<ActionResult> CreateSale([FromRoute] Guid id, [FromBody] CreateSaleDTO request)
+    {
+        return base.CreateSale(id, request);
     }
 
     [Authorize]
@@ -120,9 +132,7 @@ public class BoatController : BusinessController<Boat, BoatDTO, CreateBoatDTO, U
             results,
             totalResults,
         });
-
     }
-        
 
     [HttpGet("/boat-owner/{id}/boats")]
     [Authorize(Roles = Role.BoatOwner)]

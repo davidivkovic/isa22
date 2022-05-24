@@ -67,6 +67,12 @@ public class AdventureController : BusinessController<Adventure, AdventureDT0, C
         return Ok(results);
     }
 
+    [Authorize(Roles = Role.Fisher)]
+    public override Task<ActionResult> DeleteSale([FromRoute] Guid id, [FromRoute] Guid saleId)
+    {
+        return base.DeleteSale(id, saleId);
+    }
+
     [Authorize]
     [HttpGet("reservations")]
     public Task<ActionResult> GetReservations(string status)

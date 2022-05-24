@@ -1,13 +1,17 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
-import CreateUpdateBusinessView from '../views/CreateUpdateBusinessView.vue'
+import SignInModal from '../components/registration/SignInModal.vue'
 
 const modalRouteFunc = (to, from, component) => {
   const fromMatch = from.matched[0]
   const toMatch = to.matched[0]
 
-  toMatch.components['modal-router'] = () =>
-    import(/* @vite-ignore */ component)
+  if (typeof component == 'string') {
+    toMatch.components['modal-router'] = () =>
+      import(/* @vite-ignore */ component)
+  } else {
+    toMatch.components['modal-router'] = component
+  }
   fromMatch && (toMatch.components.default = fromMatch.components.default)
   !fromMatch &&
     (toMatch.components.default = () => import('../views/HomeView.vue'))
@@ -40,7 +44,7 @@ const router = createRouter({
     {
       path: '/business/:type/:action',
       name: 'create-update-business',
-      component: CreateUpdateBusinessView
+      component: () => import('../views/CreateUpdateBusinessView.vue')
     },
     {
       path: '/results',
@@ -50,8 +54,7 @@ const router = createRouter({
     {
       path: '/signin',
       name: 'signin',
-      beforeEnter: (to, from) =>
-        modalRouteFunc(to, from, '../components/registration/SignInModal.vue')
+      beforeEnter: (to, from) => modalRouteFunc(to, from, SignInModal)
     },
     {
       path: '/verification',
@@ -77,7 +80,7 @@ const router = createRouter({
     },
     {
       path: '/adventure-profile/:id/calendar',
-      name: 'adventure profile',
+      name: 'adventure-calendar',
       component: () => import('../views/CalendarView.vue')
     },
     {
@@ -86,9 +89,19 @@ const router = createRouter({
       component: () => import('../views/business/CabinProfileView.vue')
     },
     {
+      path: '/cabin-profile/:id/calendar',
+      name: 'cabin-calendar',
+      component: () => import('../views/CalendarView.vue')
+    },
+    {
       path: '/boat-profile/:id',
       name: 'boat-profile',
       component: () => import('../views/business/BoatProfileView.vue')
+    },
+    {
+      path: '/boat-profile/:id/calendar',
+      name: 'boat-calendar',
+      component: () => import('../views/CalendarView.vue')
     },
     {
       path: '/:type/search',

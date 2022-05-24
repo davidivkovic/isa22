@@ -76,6 +76,23 @@ public class BusinessController<
         return Ok(business.Images.Select(image => ImageUrl(id, image)));
     }
 
+    [HttpGet("{id}/name")]
+    public async Task<ActionResult> GetName(Guid id)
+    {
+        var businessName = await Context.Set<TBusiness>()
+            .AsNoTracking()
+            .Where(b => b.Id == id)
+            .Select(b => b.Name)
+            .FirstOrDefaultAsync();
+
+        if (businessName is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(businessName);
+    }
+
     [Authorize]
     [AllowAnonymous]
     [HttpGet("{id}")]
@@ -352,9 +369,34 @@ public class BusinessController<
         return Ok(sale.Adapt<SaleDTO>());
     }
 
+    [HttpPost("{id}/sales/delete")]
+    public virtual async Task<ActionResult> DeleteSale([FromRoute] Guid id, [FromRoute] Guid saleId)
+    {
+        var business = await Context.Set<TBusiness>()
+            .Include(b => b.Owner)
+            .Include(b => b.Reservations.Where(r => r.Id == saleId))
+            .FirstOrDefaultAsync(b => b.Id == id);
+
+        if (business is null)
+        {
+            return BadRequest($"The specified {BusinessType} does not exist.");
+        }
+
+        if (business.Owner.Id != User.Id())
+        {
+            return StatusCode(403);
+        }
+
+        business.Reservations.ForEach(r => r.Delete());
+        await Context.SaveChangesAsync();
+
+        return Ok();
+    }
+
     [Authorize]
     [AllowAnonymous]
     [HttpGet("{id}/sales")]
+    // TODO: Get only future sales
     public async Task<ActionResult> GetSales(Guid id)
     {
         var sales = await Context.Sales
@@ -574,15 +616,18 @@ public class BusinessController<
             .AsNoTracking()
             .Include(r => r.User)
             .Where(r => r.Business.Id == id)
-            .Where(r => r.Start >= start)
-            .Where(r => r.End <= end)
+            .Where(s =>
+                s.Start >= start && s.Start <= end || // start this week
+                s.End >= start && s.End <= end ||     // end this week
+                s.Start <= start && s.End >= end      // pass through this week
+            )
             .Select(r => new
             {
                 r.Id,
                 r.Start,
                 r.End,
-                Type = "reservation",
-                Name = r.User.FirstName + " " + r.User.LastName
+                Type = r.GetType().Name.ToLowerInvariant(),
+                Name = r.User == null ? "" : r.User.FirstName + " " + r.User.LastName
             })
             .ToListAsync();
 
@@ -590,8 +635,11 @@ public class BusinessController<
                 .AsNoTracking()
                 .Where(b => b.Id == id)
                 .SelectMany(b => b.Availability)
-                .Where(s => s.Start >= start)
-                .Where(s => s.End <= end)
+                .Where(s =>
+                    s.Start >= start && s.Start <= end || // start this week
+                    s.End >= start && s.End <= end ||     // end this week
+                    s.Start <= start && s.End >= end      // pass through this week
+                )
                 .Select(r => new
                 {
                     r.Id,
