@@ -30,7 +30,9 @@
           id="start"
           type="datetime-local"
           v-model="start"
-          :hasTime="$route.params.type !== 'cabins'"
+          :hasTime="
+            $route.params.type !== 'cabins' && $route.params.type !== 'home'
+          "
           placeholder="Start of the journey"
           clearable
           class="h-12 w-full pl-8 text-sm"
@@ -43,7 +45,9 @@
           @change="value => (end = value)"
           type="datetime-local"
           v-model="end"
-          :hasTime="$route.params.type !== 'cabins'"
+          :hasTime="
+            $route.params.type !== 'cabins' && $route.params.type !== 'home'
+          "
           placeholder="End of the journey"
           clearable
           class="h-12 w-full pl-8 text-sm"
@@ -154,10 +158,10 @@ const component = computed(() =>
 )
 const routeName = computed(() =>
   route.params.type === 'cabins'
-    ? 'cabin profile'
+    ? 'cabin-profile'
     : route.params.type == 'boats'
-    ? 'boat profile'
-    : 'adventure profile'
+    ? 'boat-profile'
+    : 'adventure-profile'
 )
 
 const sortingOptions = [

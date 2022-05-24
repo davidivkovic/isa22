@@ -66,14 +66,14 @@ import {
 const route = useRoute()
 const router = useRouter()
 const values = ref({})
-const hasTime = computed(() => route.name !== 'cabins')
+const hasTime = computed(() => route.name !== 'cabins' && route.path !== '/')
 
 const addValue = v => (values.value = { ...values.value, ...v })
 
 const search = () => {
   router.push({
     name: 'search',
-    params: { type: route.name },
+    params: { type: route.name ?? 'cabins' },
     query: {
       ...values.value,
       direction: 'rating_desc'
