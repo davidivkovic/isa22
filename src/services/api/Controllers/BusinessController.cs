@@ -416,18 +416,37 @@ public class BusinessController<
     {
         var business = await Context.Set<TBusiness>()
                     .FirstOrDefaultAsync(b => b.Id == id);
-        var user = await Context.Users.FindAsync(User.Id());
-
-        // Check if user had previous reservation
 
         if (business is null)
         {
             return BadRequest($"The specified {BusinessType} does not exist.");
         }
 
+        var user = await Context.Users.FindAsync(User.Id());
+
+        var reservations = await Context.Reservations
+            .Where(r => r.User.Id == user.Id)
+            .Where(s => s.Business.Id == id)
+            .ToListAsync();
+
+        var reviews = await Context.Reviews
+            .Where(r => r.User.Id == user.Id)
+            .Include(s => s.User)
+            .Where(s => s.Business.Id == id)
+            .ToListAsync();
+
+        if (reservations.Count == 0)
+        {
+            return BadRequest($"You must have a completed reservation in order to leave a review.");
+        }
+
+        if (reviews.Count > 0)
+        {
+            return BadRequest($"You have already reviewed this business.");
+        }
+
         business.Review(user, request.Rating, request.Content);
         await Context.SaveChangesAsync();
-
         return Ok();
     }
 
