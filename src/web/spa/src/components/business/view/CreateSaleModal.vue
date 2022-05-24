@@ -8,7 +8,7 @@
     <form
       ref="saleForm"
       @submit.prevent="previewSale()"
-      class="space-y-5 py-8 px-10"
+      class="space-y-3.5 py-8 px-10"
     >
       <h1 class="text-center text-2xl font-medium">Create a new sale</h1>
       <p class="text-sm text-gray-500">
@@ -21,7 +21,7 @@
             @change="value => (start = value)"
             placeholder="Start date"
             required
-            :hasTime="true"
+            :hasTime="businessType !== 'cabins'"
             type="datetime-local"
             class="h-12 w-full pl-8"
           />
@@ -30,10 +30,11 @@
           <label for="">End</label>
 
           <DateInput
+            :lowerLimit="start"
             placeholder="End date"
             @change="value => (end = value)"
             required
-            :hasTime="true"
+            :hasTime="businessType !== 'cabins'"
             type="datetime-local"
             class="h-12 w-full pl-8"
           />
@@ -93,10 +94,7 @@
         <div class="flex justify-between">
           <p>Starting price:</p>
           <p v-if="previewData">
-            {{ previewData.price.symbol
-            }}{{
-              ((previewData.price.amount * 100) / (100 - discount)).toFixed(2)
-            }}
+            {{ previewData.price.symbol }}{{ startingPrice }}
           </p>
           <p v-else>-</p>
         </div>
@@ -128,10 +126,11 @@
           </div>
         </div>
       </div>
-      <div class="mx-auto !mt-2 w-1/3">
+      <div class="text-center text-red-500">{{ previewError }}</div>
+      <div class="mx-auto !mt-1 w-1/3">
         <Button
           :disabled="previewError != '' && !previewData"
-          class="mx-auto !mt-10 w-full bg-emerald-600 text-white"
+          class="mx-auto !mt-5 w-full bg-emerald-600 text-white"
           @click="createSale()"
           >Create</Button
         >
@@ -149,7 +148,13 @@ import Button from '@/components/ui/Button.vue'
 import DateInput from '@/components/ui/DateInput.vue'
 import api from '@/api/api.js'
 
-const props = defineProps(['businessId', 'isOpen', 'services', 'pricePerUnit'])
+const props = defineProps([
+  'businessId',
+  'isOpen',
+  'services',
+  'pricePerUnit',
+  'businessType'
+])
 const emits = defineEmits(['success', 'modalClosed'])
 
 const saleForm = ref()
@@ -160,6 +165,7 @@ const discount = ref(0)
 const selectedServices = ref(JSON.parse(JSON.stringify(props.services)))
 const previewError = ref()
 const previewData = ref()
+const startingPrice = ref('-')
 
 const symbols = {
   USD: '$',
@@ -182,7 +188,7 @@ const debounce = (fn, delay) => {
 const previewSale = async () => {
   const [data, error] = await api.business.previewCreateSale(
     props.businessId,
-    'adventures',
+    props.businessType,
     {
       start: start.value,
       end: end.value,
@@ -194,12 +200,17 @@ const previewSale = async () => {
 
   previewError.value = error
   previewData.value = data
+  data &&
+    (startingPrice.value = (
+      (previewData.value.price.amount * 100) /
+      (100 - discount.value)
+    ).toFixed(2))
 }
 
 const createSale = async () => {
   const [data, error] = await api.business.createSale(
     props.businessId,
-    'adventures',
+    props.businessType,
     {
       start: start.value,
       end: end.value,
@@ -220,7 +231,6 @@ watch(
     saleForm.value.requestSubmit()
     previewData.value = null
     previewError.value = null
-    console.log(start.value, end.value)
   }, 200)
 )
 </script>

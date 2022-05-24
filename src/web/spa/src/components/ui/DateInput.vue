@@ -7,6 +7,8 @@
       class="group -mt-2 -ml-8 h-12 w-[230px]"
       v-model="inputValue"
       clearable
+      :min="lowerLimit"
+      :max="upperLimit"
     >
       <template #prepend="{ focused, hovered }">
         <CalendarIcon
@@ -33,7 +35,13 @@ import Input from './Input.vue'
 import { parseISO, format } from 'date-fns'
 import { CalendarIcon } from 'vue-tabler-icons'
 
-const props = defineProps(['hasTime', 'placeholder', 'modelValue'])
+const props = defineProps([
+  'hasTime',
+  'placeholder',
+  'modelValue',
+  'upperLimit',
+  'lowerLimit'
+])
 const emit = defineEmits(['change'])
 const inputRef = ref(null)
 const dateValue = ref(props.placeholder)
