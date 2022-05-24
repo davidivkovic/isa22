@@ -407,20 +407,28 @@
           <div class="flex items-center justify-between">
             <p class="text-2xl font-bold text-emerald-600">Sales</p>
             <Button
-              v-if="!isOwnersBusiness && !props.entity.isSubscribed"
-              class="border !py-2"
-              >Subscribe</Button
+              @click="subscribe()"
+              v-if="!isOwnersBusiness && !isSubscribed"
+              class="flex space-x-2 border !py-2"
             >
-            <Button v-else-if="!isOwnersBusiness" class="border !py-2"
-              >Unsubscribe</Button
-            >
+              <div>Subscribe</div>
+              <Loader v-if="isLoading" class="text-black" />
+            </Button>
+            <Button
+              @click="unsubscribe()"
+              v-else-if="!isOwnersBusiness"
+              class="flex space-x-2 border !py-2"
+              ><div>Unsubscribe</div>
+              <Loader v-if="isLoading" class="text-black" />
+            </Button>
             <Button @click="createNewSale()" class="border !py-2" v-else
               >Create new sale</Button
             >
           </div>
           <p v-if="!isOwnersBusiness" class="text-sm text-gray-600">
             By subscribing, you will get notified when a new sale is created for
-            this adventure. It's best to subsribe and never miss out a discount!
+            this adventure. It's best to subscribe and never miss out a
+            discount!
           </p>
           <div v-for="(sale, ind) in sortedSales" :key="sale.id">
             <div class="rounded-md border px-3 py-4">
@@ -473,7 +481,7 @@
                   <Button
                     @click="makeQuickReservation(sale)"
                     v-if="!isOwnersBusiness"
-                    class="= whitespace-nowrap rounded-full bg-emerald-600 text-white"
+                    class="= h-12 whitespace-nowrap rounded-full bg-emerald-600 text-white"
                   >
                     Book now
                   </Button>
@@ -494,7 +502,7 @@
                     <div class="flex items-center space-x-2">
                       <CalendarIcon class="h-4 w-4" />
                       <p>
-                        Starting at
+                        Starting on
                         <span class="font-medium text-emerald-700">
                           {{ format(parseISO(sale.start), dateFormat) }}
                         </span>
@@ -503,7 +511,7 @@
                     <div class="flex items-center space-x-2">
                       <CalendarIcon class="h-4 w-4" />
                       <p>
-                        Ending at
+                        Ending on
                         <span class="font-medium text-emerald-700">
                           {{ format(parseISO(sale.end), dateFormat) }}
                         </span>
@@ -557,61 +565,31 @@
     </div>
     <div class="!mt-10 h-[260px] w-full space-y-3">
       <h2 class="text-lg font-medium">
-        See what guests said about this {{ entityType }}:
+        See what guests said about this {{ entityType.slice(0, -1) }}:
       </h2>
-      <div class="flex h-full space-x-5">
-        <div class="w-1/3 space-y-3 rounded-lg border px-5 py-6">
+      <div v-if="entity.review" class="flex h-full space-x-5">
+        <div
+          v-for="review in entity.reviews"
+          :key="review.user.id"
+          class="w-1/3 space-y-3 rounded-lg border px-5 py-6"
+        >
           <div class="flex items-center space-x-3">
             <div
               class="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 font-medium text-white"
             >
-              DI
+              {{ review.user.firstName[0] }}{{ review.user.lastName[0] }}
             </div>
-            <p class="text-sm font-medium">David Ivkovic</p>
+            <p class="text-sm font-medium">
+              {{ review.user.firstName }} {{ review.user.lastName }}
+            </p>
           </div>
           <p class="h-32 text-sm text-gray-600">
-            “This place is perfect for those who want to experience the nature
-            of Zlatibor - due to it constantly expanding, many areas are left
-            without any trees - but we definitely got that mountain-feel as the
-            house is surrounded by a forest."
-          </p>
-          <p class="!mt-5 text-sm text-emerald-700">Read more</p>
-        </div>
-        <div class="w-1/3 space-y-3 rounded-lg border px-5 py-6">
-          <div class="flex items-center space-x-3">
-            <div
-              class="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500 font-medium text-white"
-            >
-              MD
-            </div>
-            <p class="text-sm font-medium">Milica Draca</p>
-          </div>
-          <p class="h-32 text-sm text-gray-600">
-            “Cosy&clean appartements 10 minutes on foot from center of town,
-            very friendly and nice host, well-equipped kitchen, quite beautiful
-            place. I'm happy to stay there for 4 nights. Highly recommended!
-            Thank you, Sanja. Wish you to have tourists 365 days…
-          </p>
-          <p class="!mt-5 text-sm text-emerald-700">Read more</p>
-        </div>
-        <div class="w-1/3 space-y-3 rounded-lg border px-5 py-6">
-          <div class="flex items-center space-x-3">
-            <div
-              class="flex h-8 w-8 items-center justify-center rounded-full bg-violet-600 font-medium text-white"
-            >
-              MM
-            </div>
-            <p class="text-sm font-medium">Miladin Momcilovic</p>
-          </div>
-          <p class="h-32 text-sm text-gray-600">
-            “Underfloor heating is great. It is very warm in the building. A
-            fireplace that can be used to complement a romantic ambiance when
-            needed is a great thing. There was everything in the apartment, from
-            coffee, tea, candy, etc.”
+            {{ review.content }}
           </p>
           <p class="!mt-5 text-sm text-emerald-700">Read more</p>
         </div>
       </div>
+      <div v-else>There are no reviews for this business.</div>
       <Button class="!mt-5 flex items-center space-x-2 border py-4">
         <p>See all reviews</p>
         <MessagesIcon class="h-4 w-4" />
@@ -635,6 +613,7 @@
     :businessId="props.entity.id"
     :services="props.entity.services"
     :pricePerUnit="props.entity.pricePerUnit.amount"
+    :businessType="props.entityType"
     @modalClosed="isSalesModalOpen = false"
   />
 </template>
@@ -680,6 +659,7 @@ import boatImage from '@/assets/images/boat.png'
 import api from '@/api/api'
 import ErrorAlert from '@/components/ui/alerts/ErrorAlert.vue'
 import SuccessAlert from '@/components/ui/alerts/SuccessAlert.vue'
+import Loader from '@/components/ui/Loader.vue'
 
 const symbols = {
   USD: '$',
@@ -687,11 +667,13 @@ const symbols = {
   RSD: 'din '
 }
 const isModalOpen = ref(false)
+const isLoading = ref(false)
 const isDeleteModalOpen = ref(false)
 const isSalesModalOpen = ref(false)
 const reservationError = ref('')
 const errorAlert = ref(false)
 const successAlert = ref(false)
+const isSubscribed = ref(props.entity.isSubscribed)
 const props = defineProps({
   entity: {
     type: Object,
@@ -718,6 +700,7 @@ const router = useRouter()
 
 const makeQuickReservation = async sale => {
   const [_, error] = await api.business.makeQuickReservation(
+    props.entity.id,
     props.entityType,
     sale.id
   )
@@ -726,9 +709,8 @@ const makeQuickReservation = async sale => {
     showErrorAlert()
   } else {
     showSuccessAlert()
+    router.push({ name: 'reservations' })
   }
-
-  //TODO redirect to reservation preview
 }
 
 const makeReservation = async () => {
@@ -746,8 +728,8 @@ const makeReservation = async () => {
     showErrorAlert()
   } else {
     showSuccessAlert()
+    router.push({ name: 'reservations' })
   }
-  //TODO redirect to reservation preview
 }
 
 const isCustomer = isAuthenticated.value && user.roles.includes('Customer')
@@ -830,6 +812,22 @@ const editBusiness = () => {
 
 const createNewSale = () => {
   isSalesModalOpen.value = true
+}
+
+const subscribe = () => {
+  isLoading.value = true
+  setTimeout(() => {
+    isLoading.value = false
+    isSubscribed.value = true
+  }, 2000)
+}
+
+const unsubscribe = () => {
+  isLoading.value = true
+  setTimeout(() => {
+    isLoading.value = false
+    isSubscribed.value = false
+  }, 2000)
 }
 
 const oldPrice = (newPrice, discPer) => {

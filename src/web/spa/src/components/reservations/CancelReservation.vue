@@ -22,9 +22,11 @@
 </template>
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import Modal from '../ui/Modal.vue'
 import api from '@/api/api'
 
+const router = useRouter()
 const props = defineProps(['isOpen', 'reservationId', 'businessType'])
 const cancelError = ref('')
 
@@ -34,6 +36,10 @@ const cancelReservation = async () => {
     props.businessType,
     props.reservationId
   )
-  error && (cancelError.value = error)
+  if (error) {
+    cancelError.value = error
+  } else {
+    router.go()
+  }
 }
 </script>

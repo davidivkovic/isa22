@@ -192,6 +192,7 @@ const direction = ref(
 const results = ref([])
 
 const fetchResults = async () => {
+  if (Object.keys(route.query).length < 4) return
   const queryData = { ...route.query }
   if (route.params.type === 'cabins') {
     queryData.start = formatISO(parseISO(start.value).setHours(14))
@@ -206,10 +207,6 @@ const fetchResults = async () => {
   )
   data && (results.value = data.results)
 }
-
-watchEffect(() => {
-  fetchResults()
-})
 
 const changeSelectedOption = value => {
   direction.value = value
@@ -228,7 +225,12 @@ const search = () => {
       direction: direction.value.value
     }
   })
+  setTimeout(() => {
+    fetchResults()
+  }, 100)
 }
+
+fetchResults()
 
 const showMarker = result => {
   const latlng = new google.maps.LatLng(

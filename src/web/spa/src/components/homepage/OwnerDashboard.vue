@@ -10,7 +10,7 @@
         class="relative h-[85%] w-1/3 rounded-3xl border border-gray-300 py-5 px-6"
       >
         <div class="flex items-center justify-between">
-          <h3 class="font-medium">My Adventures</h3>
+          <h3 class="font-medium">My {{ businessType[user.roles[0]] }}</h3>
           <Button
             class="flex items-center space-x-1 !rounded-md border border-gray-300 !py-2.5"
           >
@@ -19,14 +19,13 @@
           </Button>
         </div>
         <div class="mt-5 space-y-4">
-          <RouterLink
-            :to="{ name: 'adventure-profile', params: { id: business.id } }"
+          <div
             v-for="business in businesses"
             :key="business?.id"
             class="flex space-x-5"
           >
             <img
-              :src="business.images[0]"
+              :src="business.image"
               alt="Business image"
               class="h-28 w-28 rounded-xl object-cover"
             />
@@ -51,7 +50,7 @@
                 >
               </div>
             </div>
-          </RouterLink>
+          </div>
         </div>
         <a href="" class="absolute bottom-6 font-medium underline">
           View all adventures
@@ -78,6 +77,7 @@ import { PlusIcon, UserIcon } from 'vue-tabler-icons'
 import Button from '../ui/Button.vue'
 import Dropdown from '../ui/Dropdown.vue'
 import { formatAddress } from '@/components/utility/address.js'
+import { user } from '@/stores/userStore'
 
 const incomeOptions = [
   {
@@ -93,9 +93,18 @@ const incomeOptions = [
     value: 'yearly'
   }
 ]
+
 const businesses = ref([])
+const businessType = {
+  'Cabin Owner': 'Cabins',
+  'Boat Owner': 'Boats',
+  'Fishing Instructor': 'Adventures'
+}
+
 const fetchBusinesses = async () => {
-  const [data] = await api.business.ownersBusinesses('adventures')
+  const [data] = await api.business.ownersBusinesses(
+    businessType[user.roles[0]].toLowerCase()
+  )
   data && (businesses.value = data)
 }
 fetchBusinesses()
