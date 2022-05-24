@@ -104,15 +104,18 @@ public class UserController : ControllerBase
         
         if (user is null)
         {
-            return BadRequest("Your account has been deleted");
+            return BadRequest("User does not exist.");
         }
 
         var loyaltyQuery = _context.LoyaltyLevels
-            .AsNoTracking()
-            .OrderBy(l => l.Threshold);
+            .AsNoTracking();
         
-        var loyaltyLevel = await loyaltyQuery.FirstOrDefaultAsync(l => l.Threshold <= user.LoyaltyPoints);
-        var nextLoyaltyLevel = await loyaltyQuery.FirstOrDefaultAsync(l => l.Threshold > user.LoyaltyPoints);
+        var loyaltyLevel = await loyaltyQuery
+            .OrderByDescending(l => l.Threshold)
+            .FirstOrDefaultAsync(l => l.Threshold <= user.LoyaltyPoints);
+        var nextLoyaltyLevel = await loyaltyQuery
+            .OrderBy(l => l.Threshold)
+            .FirstOrDefaultAsync(l => l.Threshold > user.LoyaltyPoints);
 
         return Ok(new UserProfileDTO
         {
@@ -129,7 +132,7 @@ public class UserController : ControllerBase
 
     [Authorize(Roles = "Admin")]
     [HttpGet("registrations/pending")]
-    public async Task<List<PendingRequestDTO>> GetPendingRegistrations([FromQuery] DateTime before)
+    public async Task<List<PendingRequestDTO>> GetPendingRegistrations([FromQuery] DateTimeOffset before)
     {
         return await _context.Users
             .AsNoTracking()
@@ -198,7 +201,7 @@ public class UserController : ControllerBase
 
     [Authorize(Roles = "Admin")]
     [HttpGet("delete-requests/pending")]
-    public async Task<List<PendingRequestDTO>> GetDeleteRequests([FromQuery] DateTime before)
+    public async Task<List<PendingRequestDTO>> GetDeleteRequests([FromQuery] DateTimeOffset before)
     {
         return await _context.Users
             .AsNoTracking()

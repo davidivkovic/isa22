@@ -25,6 +25,7 @@ public class AppDbContext : IdentityDbContext<
     public DbSet<Complaint>   Complaints    { get; set; }
     public DbSet<Loyalty>     LoyaltyLevels { get; set; }
     public DbSet<Reservation> Reservations  { get; set; }
+    public DbSet<Sale>        Sales         { get; set; }
     public DbSet<Review>      Reviews       { get; set; }
     public DbSet<Service>     Services      { get; set; }
     public DbSet<Finance>     Finances      { get; set; }

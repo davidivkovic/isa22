@@ -11,6 +11,7 @@ using API.Infrastructure.Extensions;
 using API.DTO.Search;
 using API.Core.Model;
 using Microsoft.EntityFrameworkCore;
+using API.DTO.Report;
 
 [ApiController]
 [Route("boats")]
@@ -33,46 +34,47 @@ public class BoatController : BusinessController<Boat, BoatDTO, CreateBoatDTO, U
     }
 
     [Authorize(Roles = Role.BoatOwner)]
+    public override Task<ActionResult> Delete(Guid id)
+    {
+        return base.Delete(id);
+    }
+
+    [Authorize(Roles = Role.BoatOwner)]
     public override Task<ActionResult> AddImage(Guid id, [FromForm] List<IFormFile> files)
     {
         return base.AddImage(id, files);
     }
 
-    [Authorize(Roles = Role.Customer)]
-    public override Task<ActionResult> MakeReservation([FromRoute] Guid businessId, [FromBody] MakeReservationDTO request)
+    [Authorize(Roles = Role.BoatOwner)]
+    public override Task<ActionResult> PreviewCreateSale([FromRoute] Guid id, [FromBody] CreateSaleDTO request)
     {
-        return base.MakeReservation(businessId, request);
+        return base.PreviewCreateSale(id, request);
+    }
+
+    [Authorize(Roles = Role.BoatOwner)]
+    public override Task<ActionResult> CreateSale([FromRoute] Guid id, [FromBody] CreateSaleDTO request)
+    {
+        return base.CreateSale(id, request);
     }
 
     [Authorize]
-    public override Task<ActionResult> GetReservations(string status)
+    [HttpGet("reservations")]
+    public Task<ActionResult> GetReservations(string status)
     {
-        return base.GetReservations(status);
+        return GetReservations("boats", status);
     }
 
     [Authorize]
     [AllowAnonymous]
     [HttpGet("search")]
-    public async Task<List<BoatSearchResponse>> Search([FromQuery] BoatSearchRequest request)
+    public async Task<ActionResult> Search([FromQuery] BoatSearchRequest request)
     {
-        decimal multiplier = 1;
-        if (User.Identity.IsAuthenticated)
-        {
-            var user = await Context.Users
-                .Include(u => u.Level)
-                .FirstOrDefaultAsync(u => u.Id == User.Id());
-
-            if (user is not null)
-            {
-                multiplier = 1 - Convert.ToDecimal(user.Level?.DiscountPercentage ?? 0 / 100);
-            }
-        }
-
         int totalUnits = new Boat().GetTotalUnits(request.Start, request.End);
+        decimal discountMultiplier = await Context.GetDiscountMultiplier(User.Id());
 
         var query = Context.Boats
             .AsNoTrackingWithIdentityResolution()
-            //.Available(request.Start, request.End)
+            .Available(request.Start.UtcDateTime, request.End.UtcDateTime)
             .Where(c => c.Address.City == request.City)
             .Where(c => c.Address.Country == request.Country)
             .Where(c => c.People == request.People);
@@ -92,14 +94,20 @@ public class BoatController : BusinessController<Boat, BoatDTO, CreateBoatDTO, U
         if (request.Seats != default)
         {
             if (request.Seats >= 5)
-                query = query.Where(b => b.Characteristics.Seats >= request.Seats);
+            {
+                query = query.Where(b => b.Characteristics.Seats >= 5);
+            }
             else
+            { 
                 query = query.Where(b => b.Characteristics.Seats == request.Seats);
+            }
         }
 
+        int totalResults = await query.CountAsync();
         var results = await query
             .OrderBy(request.Direction)
-            .Take(9)
+            .Skip(request.Page * 6)
+            .Take(6)
             .Select(b => new BoatSearchResponse
             {
                 Id = b.Id,
@@ -111,7 +119,7 @@ public class BoatController : BusinessController<Boat, BoatDTO, CreateBoatDTO, U
                 BoatCharacteristics = b.Characteristics,
                 Price = new Money
                 {
-                    Amount = b.PricePerUnit.Amount * request.People * multiplier,
+                    Amount = b.PricePerUnit.Amount,
                     Currency = b.PricePerUnit.Currency
                 }
             })
@@ -119,31 +127,37 @@ public class BoatController : BusinessController<Boat, BoatDTO, CreateBoatDTO, U
 
         results.ForEach(r => r.Image = ImageUrl(r.Id, r.Image));
 
-        return results;
-
+        return Ok(new
+        {
+            results,
+            totalResults,
+        });
     }
-        
 
     [HttpGet("/boat-owner/{id}/boats")]
     [Authorize(Roles = Role.BoatOwner)]
     [AllowAnonymous]
-    public async Task<List<SearchResponse>> SearchOwnersCabins([FromQuery] SearchRequest request)
+    public async Task<ActionResult> SearchOwnersCabins([FromQuery] SearchRequest request)
     {
         var query = Context.Boats
             .Where(b => b.Owner.Id == User.Id())
             .AsNoTrackingWithIdentityResolution();
 
-        if (!String.IsNullOrWhiteSpace(request.Name))
+        if (!string.IsNullOrWhiteSpace(request.Name))
         {
             query = query.Where(b => EF.Functions.ILike(b.Name, $"%{request.Name}%"));
         };
-        if (!String.IsNullOrWhiteSpace(request.City))
+        if (!string.IsNullOrWhiteSpace(request.City))
         {
             query = query.Where(b => EF.Functions.ILike(b.Address.City, $"%{request.City}%"));
         };
-        if (!String.IsNullOrWhiteSpace(request.Country))
+        if (!string.IsNullOrWhiteSpace(request.Country))
         {
             query = query.Where(b => EF.Functions.ILike(b.Address.Country, $"%{request.Country}%"));
+        }
+        if (request.People != 0)
+        {
+            query = query.Where(c => c.People == request.People);
         }
 
         var results = await query
@@ -169,6 +183,18 @@ public class BoatController : BusinessController<Boat, BoatDTO, CreateBoatDTO, U
 
         results.ForEach(r => r.Image = ImageUrl(r.Id, r.Image));
 
-        return results;
+        return Ok(new { results });
+    }
+
+    [Authorize(Roles = Role.BoatOwner)]
+    public override Task<List<ReportReservationResponse>> GetReservationsInPeriod(DateTime startDate, DateTime endDate)
+    {
+        return base.GetReservationsInPeriod(startDate, endDate);
+    }
+
+    [Authorize(Roles = Role.BoatOwner)]
+    public override Task<List<ReportPaymentResponse>> GetPaymentReport(DateTime startDate, DateTime endDate)
+    {
+        return base.GetPaymentReport(startDate, endDate);
     }
 }

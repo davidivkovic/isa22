@@ -24,7 +24,7 @@ watch(
   (route, previousRoute) => {
     if (modalNames.includes(route.name)) {
       isModalOpen.value = true
-      defaultRoute.value = previousRoute.name
+      defaultRoute.value = previousRoute?.name ?? '/'
     }
   },
   { immediate: true }

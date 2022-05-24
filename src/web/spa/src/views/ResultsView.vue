@@ -23,29 +23,31 @@
           </template>
         </Input>
       </div>
-      <div class="w-52">
+      <div class="w-60">
         <DateInput
           required
           @change="value => (start = value)"
           id="start"
           type="datetime-local"
-          ref="startInput"
           v-model="start"
-          :hasTime="$route.params.type !== 'cabins'"
+          :hasTime="
+            $route.params.type !== 'cabins' && $route.params.type !== 'home'
+          "
           placeholder="Start of the journey"
           clearable
           class="h-12 w-full pl-8 text-sm"
         >
         </DateInput>
       </div>
-      <div class="w-52">
+      <div class="w-60">
         <DateInput
           required
           @change="value => (end = value)"
           type="datetime-local"
-          ref="startInput"
           v-model="end"
-          :hasTime="$route.params.type !== 'cabins'"
+          :hasTime="
+            $route.params.type !== 'cabins' && $route.params.type !== 'home'
+          "
           placeholder="End of the journey"
           clearable
           class="h-12 w-full pl-8 text-sm"
@@ -68,9 +70,8 @@
           />
         </template>
       </NumberInput>
-      <Button
-        type="submit"
-        class="absolute right-44 bg-emerald-600 !px-10 text-white"
+      <div class="w-10"></div>
+      <Button type="submit" class="bg-emerald-600 !px-10 text-white"
         >Search</Button
       >
     </form>
@@ -106,7 +107,11 @@
             class="group max-w-[12rem] cursor-pointer space-y-3.5"
           >
             <RouterLink
-              :to="{ name: 'cabin profile', params: { id: result.id } }"
+              :to="{
+                name: routeName,
+                params: { id: result.id },
+                query: { start, end, people }
+              }"
             >
               <component :is="component" :result="result" />
             </RouterLink>
@@ -123,7 +128,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watchEffect, computed } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import api from '../api/api'
 import Dropdown from '@/components/ui/Dropdown.vue'
 import Input from '../components/ui/Input.vue'
@@ -131,12 +136,13 @@ import DateInput from '../components/ui/DateInput.vue'
 import NumberInput from '../components/ui/NumberInput.vue'
 import Button from '../components/ui/Button.vue'
 import FilterPanel from '../components/search/FilterPanel.vue'
-import ResultPreviewItem from '../components/search/ResultPreviewItem.vue'
 import { MapPinIcon, UsersIcon } from 'vue-tabler-icons'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
+import { googleMapsFlatStyle } from '@/components/utility/maps.js'
 import CabinPreviewItem from '../components/search/CabinPreviewItem.vue'
 import BoatPreviewItem from '../components/search/BoatPreviewItem.vue'
 import AdventurePreviewItem from '../components/search/AdventurePreviewItem.vue'
+import { parseISO, formatISO } from 'date-fns'
 
 const route = useRoute()
 const router = useRouter()
@@ -150,6 +156,13 @@ const component = computed(() =>
     : route.params.type == 'boats'
     ? BoatPreviewItem
     : AdventurePreviewItem
+)
+const routeName = computed(() =>
+  route.params.type === 'cabins'
+    ? 'cabin-profile'
+    : route.params.type == 'boats'
+    ? 'boat-profile'
+    : 'adventure-profile'
 )
 
 const sortingOptions = [
@@ -180,17 +193,21 @@ const direction = ref(
 const results = ref([])
 
 const fetchResults = async () => {
-  const [data, error] = await api.business.search(
+  if (Object.keys(route.query).length < 4) return
+  const queryData = { ...route.query }
+  if (route.params.type === 'cabins') {
+    queryData.start = formatISO(parseISO(start.value).setHours(14))
+    queryData.end = formatISO(parseISO(end.value).setHours(12))
+  }
+  console.log(queryData)
+  const [data] = await api.business.search(
     {
-      ...route.query
+      ...queryData
     },
     route.params.type
   )
-  // isLoading.value = loading
-  data && (results.value = data)
+  data && (results.value = data.results)
 }
-
-watchEffect(() => fetchResults())
 
 const changeSelectedOption = value => {
   direction.value = value
@@ -209,7 +226,12 @@ const search = () => {
       direction: direction.value.value
     }
   })
+  setTimeout(() => {
+    fetchResults()
+  }, 100)
 }
+
+fetchResults()
 
 const showMarker = result => {
   const latlng = new google.maps.LatLng(
@@ -298,173 +320,7 @@ const createMap = () => {
     center,
     zoom: 13,
     mapTypeControl: false,
-    styles: [
-      {
-        featureType: 'administrative',
-        elementType: 'labels.text.fill',
-        stylers: [
-          {
-            color: '#444444'
-          }
-        ]
-      },
-      {
-        featureType: 'landscape',
-        elementType: 'all',
-        stylers: [
-          {
-            color: '#f2f2f2'
-          }
-        ]
-      },
-      {
-        featureType: 'poi',
-        elementType: 'all',
-        stylers: [
-          {
-            visibility: 'off'
-          }
-        ]
-      },
-      {
-        featureType: 'poi',
-        elementType: 'geometry.fill',
-        stylers: [
-          {
-            visibility: 'on'
-          },
-          {
-            color: '#e9e9e9'
-          }
-        ]
-      },
-      {
-        featureType: 'poi.attraction',
-        elementType: 'all',
-        stylers: [
-          {
-            visibility: 'on'
-          }
-        ]
-      },
-      {
-        featureType: 'poi.business',
-        elementType: 'all',
-        stylers: [
-          {
-            visibility: 'on'
-          }
-        ]
-      },
-      {
-        featureType: 'poi.government',
-        elementType: 'all',
-        stylers: [
-          {
-            visibility: 'off'
-          }
-        ]
-      },
-      {
-        featureType: 'poi.medical',
-        elementType: 'all',
-        stylers: [
-          {
-            visibility: 'on'
-          }
-        ]
-      },
-      {
-        featureType: 'poi.park',
-        elementType: 'geometry.fill',
-        stylers: [
-          {
-            color: '#deebd8'
-          },
-          {
-            visibility: 'on'
-          }
-        ]
-      },
-      {
-        featureType: 'poi.school',
-        elementType: 'all',
-        stylers: [
-          {
-            visibility: 'on'
-          }
-        ]
-      },
-      {
-        featureType: 'poi.sports_complex',
-        elementType: 'all',
-        stylers: [
-          {
-            visibility: 'on'
-          }
-        ]
-      },
-      {
-        featureType: 'poi.sports_complex',
-        elementType: 'labels',
-        stylers: [
-          {
-            visibility: 'on'
-          }
-        ]
-      },
-      {
-        featureType: 'road',
-        elementType: 'all',
-        stylers: [
-          {
-            saturation: -100
-          },
-          {
-            lightness: 45
-          }
-        ]
-      },
-      {
-        featureType: 'road.highway',
-        elementType: 'all',
-        stylers: [
-          {
-            visibility: 'simplified'
-          }
-        ]
-      },
-      {
-        featureType: 'road.arterial',
-        elementType: 'labels.icon',
-        stylers: [
-          {
-            visibility: 'off'
-          }
-        ]
-      },
-      {
-        featureType: 'transit',
-        elementType: 'all',
-        stylers: [
-          {
-            visibility: 'off'
-          }
-        ]
-      },
-      {
-        featureType: 'water',
-        elementType: 'all',
-        stylers: [
-          {
-            color: '#c4e5f3'
-          },
-          {
-            visibility: 'on'
-          }
-        ]
-      }
-    ]
+    styles: googleMapsFlatStyle
   })
   mapRef = map
 
@@ -478,10 +334,5 @@ const createMap = () => {
   })
 
   markerRef = marker
-
-  google.maps.event.addListener(map, 'click', e => {
-    marker.setPosition(e.latLng)
-    marker.setVisible(true)
-  })
 }
 </script>

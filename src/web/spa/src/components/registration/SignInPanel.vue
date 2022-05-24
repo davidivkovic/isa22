@@ -1,8 +1,10 @@
 <template>
-  <form @submit.prevent class="relative text-left">
+  <form @submit.prevent="signIn()" class="relative text-left">
     <h1 class="mt-4 text-3xl font-medium tracking-tight">Welcome back.</h1>
     <div class="mt-10">
       <Input
+        required
+        autocomplete="email"
         placeholder="Email"
         class="h-12 w-full"
         v-model="email"
@@ -12,6 +14,8 @@
     </div>
     <div class="mt-3">
       <PasswordInput
+        required
+        autocomplete="current-password"
         placeholder="Password"
         class="h-12 w-full"
         v-model="password"
@@ -24,14 +28,17 @@
     </div>
     <div class="mx-auto w-3/4">
       <Button
-        @click="signIn()"
         class="mt-8 w-full !rounded-full bg-emerald-600 !py-4 text-base text-white"
         >Sign in</Button
       >
     </div>
     <Divider class="mt-8">Not a member?</Divider>
     <p class="mt-4 text-center font-thin">
-      <button @click="emit('switchAuth')" class="font-medium underline">
+      <button
+        type="button"
+        @click="emit('switchAuth')"
+        class="font-medium underline"
+      >
         Join
       </button>
       to unlock the best of adventure.com
@@ -61,7 +68,7 @@ const signIn = async () => {
     email: email.value,
     password: password.value
   }
-  const [data, error] = await api.auth.signIn(formData)
+  const [, error] = await api.auth.signIn(formData)
   formError.value = error
 }
 </script>

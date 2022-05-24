@@ -18,4 +18,8 @@ const removeUser = () => {
 
 const isAuthenticated = computed(() => Object.keys(user).length !== 0)
 
-export { user, setUser, removeUser, isAuthenticated }
+const isCustomer = computed(
+  () => !isAuthenticated.value || user?.roles.includes('Customer')
+)
+
+export { user, setUser, removeUser, isAuthenticated, isCustomer }

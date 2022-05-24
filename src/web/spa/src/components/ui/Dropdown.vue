@@ -15,7 +15,7 @@
     </ListboxLabel>
     <div>
       <ListboxButton
-        class="relative flex w-full items-center whitespace-nowrap py-2.5 px-3 text-left text-[13.5px]"
+        class="relative flex w-full items-center whitespace-nowrap py-2.5 px-3 text-left text-[13.5px] font-medium"
         :class="buttonClass(open)"
       >
         {{ selection.name }}

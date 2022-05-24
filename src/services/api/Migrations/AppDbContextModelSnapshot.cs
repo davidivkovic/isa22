@@ -18,7 +18,7 @@ namespace API.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.3")
+                .HasAnnotation("ProductVersion", "6.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -128,19 +128,23 @@ namespace API.Migrations
                     b.Property<double>("DiscountPercentage")
                         .HasColumnType("double precision");
 
-                    b.Property<DateTime>("End")
+                    b.Property<string>("Discriminator")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("End")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
-                    b.Property<DateTime>("Start")
+                    b.Property<DateTimeOffset>("Start")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Status")
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("Timestamp")
+                    b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid?>("UserId")
@@ -157,6 +161,8 @@ namespace API.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Reservations");
+
+                    b.HasDiscriminator<string>("Discriminator").HasValue("Reservation");
                 });
 
             modelBuilder.Entity("API.Core.Model.Review", b =>
@@ -183,7 +189,7 @@ namespace API.Migrations
                     b.Property<bool>("Rejected")
                         .HasColumnType("boolean");
 
-                    b.Property<DateTime>("Timestamp")
+                    b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid?>("UserId")
@@ -210,13 +216,13 @@ namespace API.Migrations
                     b.Property<Guid?>("BusinessId")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("End")
+                    b.Property<DateTimeOffset>("End")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
-                    b.Property<DateTime>("Start")
+                    b.Property<DateTimeOffset>("Start")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
@@ -329,10 +335,10 @@ namespace API.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime>("ExpiresAt")
+                    b.Property<DateTimeOffset>("ExpiresAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("IsDeleted")
@@ -493,6 +499,16 @@ namespace API.Migrations
                     b.HasBaseType("API.Core.Model.Business");
 
                     b.HasDiscriminator().HasValue("Cabin");
+                });
+
+            modelBuilder.Entity("API.Core.Model.Sale", b =>
+                {
+                    b.HasBaseType("API.Core.Model.Reservation");
+
+                    b.Property<int>("People")
+                        .HasColumnType("integer");
+
+                    b.HasDiscriminator().HasValue("Sale");
                 });
 
             modelBuilder.Entity("API.Core.Model.Business", b =>
@@ -665,7 +681,7 @@ namespace API.Migrations
                             b1.Property<string>("Reason")
                                 .HasColumnType("text");
 
-                            b1.Property<DateTime>("Timestamp")
+                            b1.Property<DateTimeOffset>("Timestamp")
                                 .HasColumnType("timestamp with time zone");
 
                             b1.HasKey("ReservationId");
@@ -687,7 +703,7 @@ namespace API.Migrations
                             b1.Property<double>("TaxPercentage")
                                 .HasColumnType("double precision");
 
-                            b1.Property<DateTime>("Timestamp")
+                            b1.Property<DateTimeOffset>("Timestamp")
                                 .HasColumnType("timestamp with time zone");
 
                             b1.HasKey("ReservationId");
@@ -856,7 +872,7 @@ namespace API.Migrations
                             b1.Property<Guid>("UserId")
                                 .HasColumnType("uuid");
 
-                            b1.Property<DateTime>("Expires")
+                            b1.Property<DateTimeOffset>("Expires")
                                 .HasColumnType("timestamp with time zone");
 
                             b1.Property<int>("Points")
@@ -921,7 +937,7 @@ namespace API.Migrations
                             b1.Property<bool>("Rejected")
                                 .HasColumnType("boolean");
 
-                            b1.Property<DateTime>("Timestamp")
+                            b1.Property<DateTimeOffset>("Timestamp")
                                 .HasColumnType("timestamp with time zone");
 
                             b1.HasKey("UserId");
@@ -949,7 +965,7 @@ namespace API.Migrations
                             b1.Property<bool>("Rejected")
                                 .HasColumnType("boolean");
 
-                            b1.Property<DateTime>("Timestamp")
+                            b1.Property<DateTimeOffset>("Timestamp")
                                 .HasColumnType("timestamp with time zone");
 
                             b1.HasKey("UserId");

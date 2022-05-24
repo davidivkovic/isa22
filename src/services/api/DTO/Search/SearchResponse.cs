@@ -29,5 +29,5 @@ public class BoatSearchResponse : SearchResponse
 
 public class AdventureSearchResponse : SearchResponse 
 {
-    public List<String> FishingEquipment { get; set; }
+    public List<string> FishingEquipment { get; set; }
 }

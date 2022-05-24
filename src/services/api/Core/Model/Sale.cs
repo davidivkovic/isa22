@@ -4,10 +4,12 @@ public class Sale : Reservation
 {
     public int People { get; set; }
 
+    public Sale() {}
+
     public Sale(
         Business business,
-        DateTime start,
-        DateTime end,
+        DateTimeOffset start,
+        DateTimeOffset end,
         double discountPercentage,
         int people,
         List<Service> chosenServices
@@ -21,17 +23,18 @@ public class Sale : Reservation
         Services = chosenServices;
     }
 
-    public Money Price(User user)
+    public Money Price(double userDiscountPercentage)
     {
-        double discount = user.Level.DiscountPercentage + DiscountPercentage;
+        double discount = userDiscountPercentage + DiscountPercentage;
         return Business.Price(Start, End, People, discount, Services);
     }
 
-    public void Sell(User user, double taxPercentage)
+    public void Sell(User user, double userDiscountPercentage, double taxPercentage)
     {
         Status = ReservationStatus.Created;
-        Timestamp = DateTime.Now;
-        DiscountPercentage = user.Level.DiscountPercentage;
-        Payment = new (Price(user), taxPercentage);
+        User = user;
+        Timestamp = DateTimeOffset.Now;
+        DiscountPercentage = userDiscountPercentage;
+        Payment = new (Price(DiscountPercentage), taxPercentage);
     }
 }

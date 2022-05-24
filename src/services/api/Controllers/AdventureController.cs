@@ -10,6 +10,8 @@ using API.Infrastructure.Extensions;
 using API.Infrastructure.Data.Queries;
 using API.Core.Model;
 using Microsoft.EntityFrameworkCore;
+using API.DTO.Search;
+using Mapster;
 
 [ApiController]
 [Route("adventures")]
@@ -37,32 +39,121 @@ public class AdventureController : BusinessController<Adventure, AdventureDT0, C
         return base.AddImage(id, files);
     }
 
-    [Authorize(Roles = Role.Customer)]
-    public override Task<ActionResult> MakeReservation([FromRoute] Guid businessId, [FromBody] MakeReservationDTO request)
+    [Authorize(Roles = Role.Fisher)]
+    public override Task<ActionResult> PreviewCreateSale([FromRoute] Guid id, [FromBody] CreateSaleDTO request)
     {
-        return base.MakeReservation(businessId, request);
+        return base.PreviewCreateSale(id, request);
+    }
+
+    [Authorize(Roles = Role.Fisher)]
+    public override Task<ActionResult> CreateSale([FromRoute] Guid id, [FromBody] CreateSaleDTO request)
+    {
+        return base.CreateSale(id, request);
+    }
+        
+    [HttpGet]
+    [Authorize(Roles = Role.Fisher)]
+    public async Task<ActionResult> Get()
+    {
+        var query = Context.Adventures
+            .Where(a => a.Owner.Id == User.Id())
+            .AsNoTrackingWithIdentityResolution();
+        var results = await query
+            .Take(3)
+            .Select(a =>  a.Adapt<AdventureDT0>())
+            .ToListAsync();
+
+        results.ForEach(a => a.WithImages(ImageUrl));
+        return Ok(results);
+    }
+
+    [Authorize(Roles = Role.Fisher)]
+    public override Task<ActionResult> DeleteSale([FromRoute] Guid id, [FromRoute] Guid saleId)
+    {
+        return base.DeleteSale(id, saleId);
     }
 
     [Authorize]
-    public override Task<ActionResult> GetReservations(string status)
+    [HttpGet("reservations")]
+    public Task<ActionResult> GetReservations(string status)
     {
-        return base.GetReservations(status);
+        return GetReservations("adventures", status);
     }
 
-    //[HttpGet]
-    //public async Task<ActionResult> GetAdventures()
-    //{
+    [Authorize]
+    [AllowAnonymous]
+    [HttpGet("search")]
+    public async Task<ActionResult> Search([FromQuery] AdventureSearchRequest request)
+    {
+        int totalUnits = new Adventure().GetTotalUnits(request.Start, request.End);
+        decimal discountMultiplier = await Context.GetDiscountMultiplier(User.Id());
 
-    //    var start = DateTime.UtcNow;
-    //    var end = DateTime.UtcNow + TimeSpan.FromDays(2);
+        var query = Context.Adventures
+            .AsNoTrackingWithIdentityResolution()
+            .Available(request.Start.UtcDateTime, request.End.UtcDateTime)
+            .Where(c => c.Address.City == request.City)
+            .Where(c => c.Address.Country == request.Country)
+            .Where(c => c.People == request.People);
 
-    //    var adventures = await _dbContext.Adventures
-    //        .Include(c => c.Availability)
-    //        .Include(c => c.Reservations)
-    //        .Where(c => c.Address.City == "Belgrade")
-    //        .Available(start, end)
-    //        .ToListAsync();
+        if (request.RatingHigher != default)
+        {
+            query = query.Where(c => c.Rating >= request.RatingHigher);
+        }
+        if (request.PriceLow != default)
+        {
+            query = query.Where(c => c.PricePerUnit.Amount >= request.PriceLow);
+        }
+        if (request.PriceHigh != default)
+        {
+            query = query.Where(c => c.PricePerUnit.Amount <= request.PriceHigh);
+        }
 
-    //    return Ok(adventures);
-    //}
+        int totalResults = await query.CountAsync();
+        var results = await query
+            .OrderBy(request.Direction)
+            .Skip(request.Page * 6)
+            .Take(6)
+            .Select(a => new AdventureSearchResponse
+            {
+                Id = a.Id,
+                Name = a.Name,
+                Address = a.Address,
+                Image = a.Images.FirstOrDefault(),
+                People = a.People,
+                Rating = a.Rating,
+                Price = new Money
+                {
+                    Amount = a.PricePerUnit.Amount,
+                    Currency = a.PricePerUnit.Currency
+                },
+                FishingEquipment = a.FishingEquipment
+            })
+            .ToListAsync();
+
+        results.ForEach(r => r.Image = ImageUrl(r.Id, r.Image));
+
+        return Ok(new
+        {
+            results,
+            totalResults,
+        });
+    }
+
+    [Authorize(Roles = Role.Fisher)]
+    public override Task<ActionResult> GetCalendar(Guid id, DateTimeOffset start, DateTimeOffset end)
+    {
+        return base.GetCalendar(id, start, end);
+    }
+
+    [Authorize(Roles = Role.Fisher)]
+    public override Task<ActionResult> CreateUnavailability(Guid id, DateTimeOffset start, DateTimeOffset end)
+    {
+        return base.CreateUnavailability(id, start, end);
+    }
+
+    [Authorize(Roles = Role.Fisher)]
+    public override Task<ActionResult> DeleteUnavailability(Guid id, Guid eventId)
+    {
+        return base.DeleteUnavailability(id, eventId);
+    }
 }

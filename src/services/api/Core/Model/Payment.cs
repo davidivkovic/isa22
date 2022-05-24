@@ -5,7 +5,7 @@ public class Payment
     public Money    Price              { get; set; }
     public double   DiscountPercentage { get; set; }
     public double   TaxPercentage      { get; set; }
-    public DateTime Timestamp          { get; set; }
+    public DateTimeOffset Timestamp          { get; set; }
     
     private Payment() {}
 
@@ -13,6 +13,6 @@ public class Payment
     {
         Price = price;
         TaxPercentage = taxPercentage;
-        Timestamp = DateTime.Now;
+        Timestamp = DateTimeOffset.Now;
     }
 }

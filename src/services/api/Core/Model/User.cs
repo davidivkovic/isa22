@@ -4,7 +4,7 @@ namespace API.Core.Model;
 
 public class Request
 {
-    public DateTime Timestamp { get; set; }
+    public DateTimeOffset Timestamp { get; set; }
     public string   Reason   { get; set; }
     public string   Answer   { get; set; }
     public bool     Approved { get; set; }
@@ -15,7 +15,7 @@ public class Request
     public Request(string reason)
     {
         Reason = reason;
-        Timestamp = DateTime.UtcNow;
+        Timestamp = DateTimeOffset.UtcNow;
     }
 
     public void Approve()
@@ -32,12 +32,12 @@ public class Request
 
 public class Penalty
 {
-    public int      Points  { get; set; }
-    public DateTime Expires { get; set; }
+    public int            Points  { get; set; }
+    public DateTimeOffset Expires { get; set; }
 
     private void Unexpire()
     {
-        Expires = DateTime.Now.AddMonths(1).AddDays(-DateTime.Now.Day + 1);
+        Expires = DateTimeOffset.Now.AddMonths(1).AddDays(-DateTimeOffset.Now.Day + 1);
     }
 
     public void Increment()

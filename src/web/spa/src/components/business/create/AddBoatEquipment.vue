@@ -138,11 +138,11 @@ const props = defineProps(['equipment', 'characteristics'])
 const emit = defineEmits(['change'])
 
 const state = reactive({
-  topSpeed: props.characteristics.topSpeed ?? '',
-  length: props.characteristics.length ?? '',
-  engines: props.characteristics.engines ?? '',
-  bhp: props.characteristics.bhp ?? '',
-  seats: props.characteristics.seats ?? ''
+  topSpeed: props.characteristics?.topSpeed ?? '',
+  length: props.characteristics?.length ?? '',
+  engines: props.characteristics?.engines ?? '',
+  bhp: props.characteristics?.bhp ?? '',
+  seats: props.characteristics?.seats ?? ''
 })
 
 const fishingItem = ref('')

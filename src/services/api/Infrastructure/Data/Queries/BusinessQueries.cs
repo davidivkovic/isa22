@@ -15,11 +15,11 @@ public static class BusinessQueries
         };
     }
 
-    public static IQueryable<T> Available<T>(this IQueryable<T> query, DateTime start, DateTime end) where T : Business
+    public static IQueryable<T> Available<T>(this IQueryable<T> query, DateTimeOffset start, DateTimeOffset end) where T : Business
     {
         return query
         .Where(b =>
-            b.Availability.Any(s => s.Start <= start && s.End >= end && s.Available) &&
+            //b.Availability.Any(s => s.Start <= start && s.End >= end && s.Available) &&
             !b.Availability.Any(s =>
                 (s.Start <= start && s.End >= end ||
                 s.Start >= start && s.Start < end ||

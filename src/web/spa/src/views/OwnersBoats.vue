@@ -27,6 +27,21 @@
                 />
                 </template>
                 </Input>
+                <NumberInput
+                    required
+                    v-model="people"
+                    clearable
+                    class="h-12 w-24 pl-10"
+                >
+                    <template #prepend="{ focused, hovered }">
+                    <UsersIcon
+                        class="ml-2.5 mr-1.5 h-[18px] w-[18px] transition-all"
+                        :class="[
+                        focused || hovered ? 'text-neutral-700' : 'text-neutral-400'
+                        ]"
+                    />
+                    </template>
+                </NumberInput>
                 <Button type="submit" class=" bg-emerald-600 !px-10 text-white">
                     Search
                 </Button>
@@ -108,14 +123,16 @@
 
 <script setup>
 import {ref, onMounted, computed, watchEffect} from 'vue'
-import Button from '../components/ui/Button.vue';
-import Dropdown from '../components/ui/Dropdown.vue';
+import Button from '../components/ui/Button.vue'
+import Dropdown from '../components/ui/Dropdown.vue'
+import NumberInput from '../components/ui/NumberInput.vue'
 import {
-  MapPinIcon
+  MapPinIcon,
+  UsersIcon
 } from 'vue-tabler-icons'
 import {useRoute, useRouter, RouterLink} from 'vue-router'
-import api from '../api/api';
-import Input from '../components/ui/Input.vue';
+import api from '../api/api'
+import Input from '../components/ui/Input.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -123,6 +140,7 @@ const router = useRouter()
 const city = ref(route.query.city ?? "") 
 const country = ref(route.query.country ?? "")
 const boatsName = ref(route.query.name)
+const people = ref(Number(route.query.people ?? 0))
 
 const sortingOption = [
     {
@@ -168,6 +186,7 @@ const searchBoats = () => {
             country: country.value,
             city: city.value,
             name: boatsName.value,
+            people: people.value,
             direction: direction.value.value
         }
     })

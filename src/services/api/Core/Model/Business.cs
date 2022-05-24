@@ -10,6 +10,25 @@ public class Service
 {
     public string Name  { get; set; }
     public Money  Price { get; set; }
+    public static bool operator == (Service lhs, Service rhs) => lhs?.Name == rhs?.Name;
+    public static bool operator != (Service lhs, Service rhs) => lhs?.Name != rhs?.Name;
+
+    public override bool Equals(object obj)
+    {
+        if (ReferenceEquals(this, obj))
+        {
+            return true;
+        }
+
+        if (obj is null)
+        {
+            return false;
+        }
+
+        return ((Service)obj).Name == Name;
+    }
+
+    public override int GetHashCode() => Name.GetHashCode();
 }
 
 public abstract class Business : Entity
@@ -23,9 +42,9 @@ public abstract class Business : Entity
     public List<Rule>        Rules           { get; set; } = new();
     public List<Service>     Services        { get; set; } = new();
     public List<Slot>        Availability    { get; set; } = new();
+    public List<Reservation> Reservations    { get; set; } = new();
     public List<Review>      Reviews         { get; set; } = new();
     public List<User>        Subscribers     { get; set; } = new();
-    public List<Reservation> Reservations    { get; set; } = new();
     public int               People          { get; set; }
     public int               NumberOfReviews { get; set; }
     public int               Rating          { get; set; }
@@ -63,7 +82,7 @@ public abstract class Business : Entity
         CancellationFee = cancellationFee;
     }
 
-    public bool IsAvailable(DateTime start, DateTime end)
+    public bool IsAvailable(DateTimeOffset start, DateTimeOffset end)
     {
         return Availability.Exists(s => s.Contains(start, end) && s.Available) &&
               !Availability.Exists(s => s.Intersects(start, end) && !s.Available);
@@ -81,14 +100,14 @@ public abstract class Business : Entity
         Rating = (NumberOfReviews * Rating + Rating) / ++NumberOfReviews;
     }
 
-    public int GetTotalUnits(DateTime start, DateTime end)
+    public int GetTotalUnits(DateTimeOffset start, DateTimeOffset end)
     {
         double totalUnits = 1;
-        if (Unit.Hours <= 1)
+        if (Unit.Hours == 1)
         {
             totalUnits = (end - start).TotalHours;
         }
-        else if (Unit.Hours <= 24)
+        else if (Unit.Days == 1)
         {
             totalUnits = (end - start).TotalDays;
         }
@@ -97,8 +116,8 @@ public abstract class Business : Entity
 
     public Money Price
     (
-        DateTime start,
-        DateTime end,
+        DateTimeOffset start,
+        DateTimeOffset end,
         int people,
         double discountPercentage,
         List<Service> chosenServices

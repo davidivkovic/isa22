@@ -1,5 +1,5 @@
 <template>
-  <div class="h-full">
+  <div v-if="isCustomer" class="h-full">
     <div
       :key="selectedImage"
       class="bg-image relative mx-auto h-[80%] overflow-clip rounded-2xl lg:w-4/5"
@@ -26,14 +26,17 @@
     </div>
     <SearchBar class="relative -mt-20" />
   </div>
+  <OwnerDashboard v-else />
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import Button from '@/components/ui/Button.vue'
 import SearchBar from '@/components/homepage/SearchBar.vue'
 import { ArrowRightIcon } from 'vue-tabler-icons'
+import OwnerDashboard from '@/components/homepage/OwnerDashboard.vue'
+import { isCustomer } from '@/stores/userStore'
 
 import cabinsURL from '@/assets/images/cabins.png'
 import boatsURL from '@/assets/images/boats.png'
@@ -47,7 +50,7 @@ const images = {
   adventures: fishingURL
 }
 
-const route = computed(() => useRoute().name)
+const route = computed(() => useRoute()?.name)
 const pacStyle = computed(() => (route.value in images ? '-230px' : '0px'))
 
 const selectedImage = computed(() => {

@@ -32,7 +32,7 @@
         class="flex cursor-pointer items-center space-x-1"
       >
         <BedIcon class="h-5 w-5 text-neutral-400" />
-        <p class="hover:text-neutral-500">Room with {{ item }} beds</p>
+        <p class="hover:text-neutral-500">Room with {{ item.beds }} beds</p>
       </div>
     </div>
   </div>

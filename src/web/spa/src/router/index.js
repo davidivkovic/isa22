@@ -1,13 +1,17 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
-import CreateUpdateBusinessView from '../views/CreateUpdateBusinessView.vue'
+import SignInModal from '../components/registration/SignInModal.vue'
 
 const modalRouteFunc = (to, from, component) => {
   const fromMatch = from.matched[0]
   const toMatch = to.matched[0]
 
-  toMatch.components['modal-router'] = () =>
-    import(/* @vite-ignore */ component)
+  if (typeof component == 'string') {
+    toMatch.components['modal-router'] = () =>
+      import(/* @vite-ignore */ component)
+  } else {
+    toMatch.components['modal-router'] = component
+  }
   fromMatch && (toMatch.components.default = fromMatch.components.default)
   !fromMatch &&
     (toMatch.components.default = () => import('../views/HomeView.vue'))
@@ -18,7 +22,9 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      redirect: '/cabins'
+      // redirect: '/cabins',
+      // name: 'home',
+      component: HomeView
     },
     {
       path: '/cabins',
@@ -38,7 +44,7 @@ const router = createRouter({
     {
       path: '/business/:type/:action',
       name: 'create-update-business',
-      component: CreateUpdateBusinessView
+      component: () => import('../views/CreateUpdateBusinessView.vue')
     },
     {
       path: '/results',
@@ -48,8 +54,7 @@ const router = createRouter({
     {
       path: '/signin',
       name: 'signin',
-      beforeEnter: (to, from) =>
-        modalRouteFunc(to, from, '../components/registration/SignInModal.vue')
+      beforeEnter: (to, from) => modalRouteFunc(to, from, SignInModal)
     },
     {
       path: '/verification',
@@ -70,18 +75,33 @@ const router = createRouter({
     },
     {
       path: '/adventure-profile/:id',
-      name: 'adventure profile',
-      component: () => import('../views/AdventureProfileView.vue')
+      name: 'adventure-profile',
+      component: () => import('../views/business/AdventureProfileView.vue')
+    },
+    {
+      path: '/adventure-profile/:id/calendar',
+      name: 'adventure-calendar',
+      component: () => import('../views/CalendarView.vue')
     },
     {
       path: '/cabin-profile/:id',
-      name: 'cabin profile',
-      component: () => import('../views/CabinProfileView.vue')
+      name: 'cabin-profile',
+      component: () => import('../views/business/CabinProfileView.vue')
+    },
+    {
+      path: '/cabin-profile/:id/calendar',
+      name: 'cabin-calendar',
+      component: () => import('../views/CalendarView.vue')
     },
     {
       path: '/boat-profile/:id',
-      name: 'boat profile',
-      component: () => import('../views/BoatProfileView.vue')
+      name: 'boat-profile',
+      component: () => import('../views/business/BoatProfileView.vue')
+    },
+    {
+      path: '/boat-profile/:id/calendar',
+      name: 'boat-calendar',
+      component: () => import('../views/CalendarView.vue')
     },
     {
       path: '/:type/search',
@@ -114,6 +134,11 @@ const router = createRouter({
       component: () => import('../views/user/ProfileView.vue')
     },
     {
+      path: '/my-reservations',
+      name: 'reservations',
+      component: () => import('../views/user/Reservations.vue')
+    },
+    {
       path: '/requests',
       name: 'requests',
       component: () => import('../views/admin/RequestsView.vue')
@@ -127,6 +152,7 @@ const router = createRouter({
 })
 
 const modalNames = ['signin', 'verification', 'admin-verification']
+const nonSearchRoutes = ['profile', 'reservations']
 
-export { modalNames }
+export { modalNames, nonSearchRoutes }
 export default router

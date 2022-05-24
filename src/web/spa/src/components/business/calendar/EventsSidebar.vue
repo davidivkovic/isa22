@@ -1,0 +1,176 @@
+<template>
+  <div>
+    <div v-if="selectedEvent" class="mb-6">
+      <div class="mb-3 flex items-center space-x-2">
+        <h2 class="text-lg font-medium">Selected event</h2>
+        <div
+          class="h-2.5 w-2.5 rounded-full"
+          :class="{
+            'bg-emerald-600': ['reservation', 'sale'].includes(
+              selectedEvent.type
+            ),
+            'bg-indigo-600': selectedEvent.type == 'unavailable',
+            '!bg-neutral-300': isPast(
+              selectedEvent.chunked
+                ? selectedEvent.originalEvent.end
+                : selectedEvent.end
+            )
+          }"
+        ></div>
+      </div>
+      <div class="rounded-lg border px-4 py-3 text-[15px]">
+        <div class="flex items-center justify-between">
+          <div>
+            <div v-if="selectedEvent.type == 'unavailable'" class="font-medium">
+              {{ selectedEvent.name }}
+            </div>
+            <div
+              v-else-if="selectedEvent.type == 'reservation'"
+              class="font-medium"
+            >
+              Reservation
+            </div>
+            <div v-else class="font-medium">Sale</div>
+          </div>
+          <Button
+            @click="$emit('deleteEvent', selectedEvent)"
+            v-if="
+              selectedEvent.type == 'unavailable' ||
+              (selectedEvent.type == 'sale' && selectedEvent.name == '')
+            "
+            class="-mr-2 !px-3 !py-1 font-semibold text-red-600 hover:bg-red-50"
+          >
+            Delete
+          </Button>
+        </div>
+        <div class="flex items-center space-x-4">
+          <div>
+            <div class="font-medium">
+              {{ format(getEventStart(selectedEvent), 'MMM dd') }}
+            </div>
+            <div class="text-sm text-neutral-600">
+              {{ format(getEventStart(selectedEvent), 'hh:mm a') }}
+            </div>
+          </div>
+          <div class="text-sm text-neutral-600">&rarr;</div>
+          <div>
+            <div class="font-medium">
+              {{ format(getEventEnd(selectedEvent), 'MMM dd') }}
+            </div>
+            <div class="text-sm text-neutral-600">
+              {{ format(getEventEnd(selectedEvent), 'hh:mm a') }}
+            </div>
+          </div>
+        </div>
+        <div
+          v-if="selectedEvent.type == 'sale' && selectedEvent.name == ''"
+          class="mt-1 text-sm font-medium"
+        >
+          Not yet booked
+        </div>
+        <div
+          v-else-if="['reservation', 'sale'].includes(selectedEvent.type)"
+          class="mt-1 flex items-end justify-between"
+        >
+          <div>
+            <p class="text-[13.5px] font-medium">Customer</p>
+            <p
+              class="cursor-pointer text-[15px] font-medium text-indigo-600 underline hover:text-purple-700"
+            >
+              {{ selectedEvent.name }}
+            </p>
+          </div>
+          <button
+            title="Write a report"
+            class="-mr-1 rounded-lg p-1.5 hover:bg-neutral-100"
+          >
+            <ReportSearchIcon stroke-width="1.75" class="pointer-events-none" />
+          </button>
+        </div>
+      </div>
+    </div>
+    <div>
+      <h2 class="mb-3 text-lg font-medium">
+        Showing schedule for {{ format(selectedDay, 'MMM dd') }}
+      </h2>
+      <div v-if="selectedDayEvents.length == 0" class="text-neutral-700">
+        No events for selected date
+      </div>
+      <div v-else class="space-y-3 overflow-y-auto">
+        <div
+          v-for="event in selectedDayEvents"
+          :key="event.id"
+          @click="selectEvent(event)"
+          class="cursor-pointer rounded-lg border px-4 py-3 text-[15px] hover:border-neutral-700"
+          :class="{ 'border-neutral-700': selectedEvent?.id == event.id }"
+        >
+          <div class="flex items-center justify-between">
+            <div>
+              <div v-if="event.type == 'unavailable'" class="font-medium">
+                {{ event.name }}
+              </div>
+              <div v-else-if="event.type == 'reservation'" class="font-medium">
+                Reservation
+              </div>
+              <div v-else class="font-medium">Sale</div>
+            </div>
+          </div>
+          <div class="flex items-center space-x-4">
+            <div>
+              <div class="font-medium">
+                {{ format(getEventStart(event), 'MMM dd') }}
+              </div>
+              <div class="text-sm text-neutral-600">
+                {{ format(getEventStart(event), 'hh:mm a') }}
+              </div>
+            </div>
+            <div class="text-sm text-neutral-600">&rarr;</div>
+            <div>
+              <div class="font-medium">
+                {{ format(getEventEnd(event), 'MMM dd') }}
+              </div>
+              <div class="text-sm text-neutral-600">
+                {{ format(getEventEnd(event), 'hh:mm a') }}
+              </div>
+            </div>
+          </div>
+          <div
+            v-if="event.type == 'sale' && event.name == ''"
+            class="mt-1 text-sm font-medium"
+          >
+            Not yet booked
+          </div>
+          <div
+            v-else-if="['reservation', 'sale'].includes(event.type)"
+            class="mt-1 flex items-end justify-between"
+          >
+            <div>
+              <p class="text-[13.5px] font-medium">Customer</p>
+              <p class="text-[15px]">
+                {{ event.name }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { sub, format, isPast } from 'date-fns'
+import { ReportSearchIcon } from 'vue-tabler-icons'
+import Button from '@/components/ui/Button.vue'
+
+const props = defineProps(['selectedEvent', 'selectedDayEvents', 'selectedDay'])
+const emit = defineEmits(['eventSelected', 'deleteEvent'])
+
+const selectEvent = event => {
+  emit('eventSelected', props.selectedEvent?.id == event.id ? null : event)
+}
+
+const getEventStart = e =>
+  sub(e.chunked ? e.originalEvent.start : e.start, { hours: 2 })
+const getEventEnd = e =>
+  sub(e.chunked ? e.originalEvent.end : e.end, { hours: 2 })
+</script>

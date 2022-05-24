@@ -11,6 +11,7 @@ using API.Infrastructure.Data;
 using API.Infrastructure.Data.Queries;
 using API.Infrastructure.Extensions;
 using API.DTO.Search;
+using API.DTO.Report;
 
 [ApiController]
 [Route("cabins")]
@@ -38,41 +39,30 @@ public class CabinController : BusinessController<Cabin, CabinDTO, CreateCabinDT
         return base.AddImage(id, files);
     }
 
-    [Authorize(Roles = Role.Customer)]
-    public override Task<ActionResult> MakeReservation([FromRoute] Guid businessId, [FromBody] MakeReservationDTO request)
+    [Authorize(Roles = Role.CabinOwner)]
+    public override Task<ActionResult> PreviewCreateSale([FromRoute] Guid id, [FromBody] CreateSaleDTO request)
     {
-        return base.MakeReservation(businessId, request);
+        return base.PreviewCreateSale(id, request);
     }
 
     [Authorize]
-    public override Task<ActionResult> GetReservations(string status)
+    [HttpGet("reservations")]
+    public Task<ActionResult> GetReservations(string status)
     {
-        return base.GetReservations(status);
+        return GetReservations("cabins", status);
     }
 
     [Authorize]
     [AllowAnonymous]
     [HttpGet("search")]
-    public async Task<List<CabinSearchResponse>> Search([FromQuery] CabinSearchRequest request)
+    public async Task<ActionResult> Search([FromQuery] CabinSearchRequest request)
     {
-        decimal multiplier = 1;
-        if (User.Identity.IsAuthenticated)
-        {
-            var user = await Context.Users
-                .Include(u => u.Level)
-                .FirstOrDefaultAsync(u => u.Id == User.Id());
-
-            if (user is not null) 
-            {
-                multiplier = 1 - Convert.ToDecimal(user.Level?.DiscountPercentage ?? 0 / 100);
-            }
-        }
-
         int totalUnits = new Cabin().GetTotalUnits(request.Start, request.End);
+        decimal discountMultiplier = await Context.GetDiscountMultiplier(User.Id());
 
         var query = Context.Cabins
             .AsNoTrackingWithIdentityResolution()
-            //.Available(request.Start, request.End)
+            .Available(request.Start.UtcDateTime, request.End.UtcDateTime)
             .Where(c => c.Address.City == request.City)
             .Where(c => c.Address.Country == request.Country)
             .Where(c => c.People == request.People);
@@ -101,9 +91,11 @@ public class CabinController : BusinessController<Cabin, CabinDTO, CreateCabinDT
             }
         }
 
+        int totalResults = await query.CountAsync();
         var results = await query
             .OrderBy(request.Direction)
-            .Take(9)
+            .Skip(request.Page * 6)
+            .Take(6)
             .Select(c => new CabinSearchResponse
             {
                 Id = c.Id,
@@ -117,7 +109,7 @@ public class CabinController : BusinessController<Cabin, CabinDTO, CreateCabinDT
                 Rating = c.Rating,
                 Price = new Money
                 {
-                    Amount = c.PricePerUnit.Amount * request.People * multiplier,
+                    Amount = c.PricePerUnit.Amount,
                     Currency = c.PricePerUnit.Currency
                 }
             }) 
@@ -125,30 +117,37 @@ public class CabinController : BusinessController<Cabin, CabinDTO, CreateCabinDT
 
         results.ForEach(r => r.Image = ImageUrl(r.Id, r.Image));
 
-        return results;
+        return Ok(new 
+        {
+            results,
+            totalResults,
+        });
     }
 
     [HttpGet("/cabin-owner/{id}/cabins")]
     [Authorize(Roles = Role.CabinOwner)]
-    public async Task<List<CabinSearchResponse>> SearchOwnersCabins([FromQuery] CabinSearchRequest request)
+    public async Task<ActionResult> SearchOwnersCabins([FromQuery] CabinSearchRequest request)
     {
         var query = Context.Cabins
             .Where(c => c.Owner.Id == User.Id())
             .AsNoTrackingWithIdentityResolution();
 
-        if (!String.IsNullOrWhiteSpace(request.Name))
+        if (!string.IsNullOrWhiteSpace(request.Name))
         {
             query = query.Where(a => EF.Functions.ILike(a.Name, $"%{request.Name}%"));
         }
-        if (!String.IsNullOrWhiteSpace(request.City))
+        if (!string.IsNullOrWhiteSpace(request.City))
         {
             query = query.Where(a => EF.Functions.ILike(a.Address.City, $"%{request.City}%"));
         }
-        if (!String.IsNullOrWhiteSpace(request.Country))
+        if (!string.IsNullOrWhiteSpace(request.Country))
         {
             query = query.Where(c => EF.Functions.ILike(c.Address.Country, $"%{request.Country}%"));
         }
-
+        if (request.People != 0)
+        {
+            query = query.Where(c => c.People == request.People);
+        }
         var results = await query
             .OrderBy(request.Direction)
             .Take(9)
@@ -174,6 +173,24 @@ public class CabinController : BusinessController<Cabin, CabinDTO, CreateCabinDT
 
         results.ForEach(r => r.Image = ImageUrl(r.Id, r.Image));
 
-        return results;
+        return Ok(new { results });
+    }
+
+    [Authorize(Roles = Role.CabinOwner)]
+    public override Task<List<ReportReservationResponse>> GetReservationsInPeriod(DateTime startDate, DateTime endDate)
+    {
+        return base.GetReservationsInPeriod(startDate, endDate);
+    }
+
+    [Authorize(Roles = Role.CabinOwner)]
+    public override Task<List<ReportPaymentResponse>> GetPaymentReport(DateTime startDate, DateTime endDate)
+    {
+        return base.GetPaymentReport(startDate, endDate);
+    }
+
+    [Authorize(Roles = Role.CabinOwner)]
+    public override Task<ActionResult> CreateSale([FromRoute] Guid id, [FromBody] CreateSaleDTO request)
+    {
+        return base.CreateSale(id, request);
     }
 }
