@@ -127,7 +127,7 @@ public class BoatController : BusinessController<Boat, BoatDTO, CreateBoatDTO, U
     [HttpGet("/boat-owner/{id}/boats")]
     [Authorize(Roles = Role.BoatOwner)]
     [AllowAnonymous]
-    public async Task<List<SearchResponse>> SearchOwnersCabins([FromQuery] SearchRequest request)
+    public async Task<ActionResult> SearchOwnersCabins([FromQuery] SearchRequest request)
     {
         var query = Context.Boats
             .Where(b => b.Owner.Id == User.Id())
@@ -144,6 +144,10 @@ public class BoatController : BusinessController<Boat, BoatDTO, CreateBoatDTO, U
         if (!string.IsNullOrWhiteSpace(request.Country))
         {
             query = query.Where(b => EF.Functions.ILike(b.Address.Country, $"%{request.Country}%"));
+        }
+        if (request.People != 0)
+        {
+            query = query.Where(c => c.People == request.People);
         }
 
         var results = await query
@@ -169,7 +173,7 @@ public class BoatController : BusinessController<Boat, BoatDTO, CreateBoatDTO, U
 
         results.ForEach(r => r.Image = ImageUrl(r.Id, r.Image));
 
-        return results;
+        return Ok(new { results });
     }
 
     [Authorize(Roles = Role.BoatOwner)]

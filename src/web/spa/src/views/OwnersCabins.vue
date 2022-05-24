@@ -27,6 +27,21 @@
                 />
                 </template>
                 </Input>
+                <NumberInput
+                    required
+                    v-model="people"
+                    clearable
+                    class="h-12 w-24 pl-10"
+                >
+                    <template #prepend="{ focused, hovered }">
+                    <UsersIcon
+                        class="ml-2.5 mr-1.5 h-[18px] w-[18px] transition-all"
+                        :class="[
+                        focused || hovered ? 'text-neutral-700' : 'text-neutral-400'
+                        ]"
+                    />
+                    </template>
+                </NumberInput>
                 <Button type="submit" class=" bg-emerald-600 !px-10 text-white">
                     Search
                 </Button>
@@ -44,8 +59,18 @@
         </div>
     </div>
     <br>
-    <div class="mx-auto max-w-5xl bg-white shadow overflow-hidden sm:rounded-md">
-        <ul role="list" class="divide-y divide-gray-200">
+
+    <div class="mx-auto max-w-5xl bg-white overflow-hidden sm:rounded-md">
+        <h2 class="text-xl font-medium">
+            {{ results.length }}
+            {{ results.length === 1 ? 'Result' : 'Results' }}
+            <span class="font-normal"> for {{ route.query.name }}, {{ currentLocation }}</span>
+            <div v-if="results.length === 0" class="mt-3 text-base font-normal">
+            Unfortunatelly, there are no available
+            {{ $route.params.type }}. Please change the search parameters.
+            </div>
+        </h2>
+        <ul role="list" class="divide-y divide-gray-200 shadow">
             <li  v-for="result in results"
                 :key="result.id"
                 class="group space-y-3.5 max-h-[11rem] h-[11rem]">
@@ -122,24 +147,27 @@
 
 <script setup>
 import {ref, onMounted, computed, watchEffect} from 'vue'
-import Button from '../components/ui/Button.vue';
-import Dropdown from '../components/ui/Dropdown.vue';
+import Button from '../components/ui/Button.vue'
+import Dropdown from '../components/ui/Dropdown.vue'
+import NumberInput from '../components/ui/NumberInput.vue'
 import {
   UserIcon,
   BedIcon,
   HotelServiceIcon,
-  MapPinIcon
+  MapPinIcon,
+  UsersIcon
 } from 'vue-tabler-icons'
 import {useRoute, useRouter, RouterLink} from 'vue-router'
-import api from '../api/api';
-import Input from '../components/ui/Input.vue';
+import api from '../api/api'
+import Input from '../components/ui/Input.vue'
 
 const route = useRoute()
 const router = useRouter()
 
-const city = ref(route.query.city ?? "") 
-const country = ref(route.query.country ?? "")
+const city = ref(route.query.city) 
+const country = ref(route.query.country)
 const cabinsName = ref(route.query.name)
+const people = ref(Number(route.query.people ?? 0))
 
 const sortingOption = [
     {
@@ -156,7 +184,7 @@ const sortingOption = [
     }
 ]
 
-const currentLocation = ref(`${city.value}${country.value}`)
+const currentLocation = ref(`${city.value}, ${country.value}`)
 const newLocation = ref(currentLocation.value)
 
 const direction = ref(
@@ -185,6 +213,7 @@ const searchCabins = () => {
             country: country.value,
             city: city.value,
             name: cabinsName.value,
+            people: people.value,
             direction: direction.value.value
         }
     })

@@ -126,7 +126,7 @@ public class CabinController : BusinessController<Cabin, CabinDTO, CreateCabinDT
 
     [HttpGet("/cabin-owner/{id}/cabins")]
     [Authorize(Roles = Role.CabinOwner)]
-    public async Task<List<CabinSearchResponse>> SearchOwnersCabins([FromQuery] CabinSearchRequest request)
+    public async Task<ActionResult> SearchOwnersCabins([FromQuery] CabinSearchRequest request)
     {
         var query = Context.Cabins
             .Where(c => c.Owner.Id == User.Id())
@@ -144,7 +144,10 @@ public class CabinController : BusinessController<Cabin, CabinDTO, CreateCabinDT
         {
             query = query.Where(c => EF.Functions.ILike(c.Address.Country, $"%{request.Country}%"));
         }
-
+        if (request.People != 0)
+        {
+            query = query.Where(c => c.People == request.People);
+        }
         var results = await query
             .OrderBy(request.Direction)
             .Take(9)
@@ -170,17 +173,18 @@ public class CabinController : BusinessController<Cabin, CabinDTO, CreateCabinDT
 
         results.ForEach(r => r.Image = ImageUrl(r.Id, r.Image));
 
-        return results;
+        return Ok(new { results });
     }
 
     [Authorize(Roles = Role.CabinOwner)]
-    public override Task<ActionResult> PreviewCreateSale([FromRoute] Guid id, [FromBody] CreateSaleDTO request)
-    {
-        return base.PreviewCreateSale(id, request);
-    }
-
     public override Task<List<ReportReservationResponse>> GetReservationsInPeriod(DateTime startDate, DateTime endDate)
     {
-        return base.GetReservationsInTime
+        return base.GetReservationsInPeriod(startDate, endDate);
+    }
+
+    [Authorize(Roles = Role.CabinOwner)]
+    public override Task<List<ReportPaymentResponse>> GetPaymentReport(DateTime startDate, DateTime endDate)
+    {
+        return base.GetPaymentReport(startDate, endDate);
     }
 }
