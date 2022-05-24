@@ -3,6 +3,7 @@
     <MenuButton class="mt-0.5 flex space-x-2 rounded-full">
       <img
         :src="userDefaultImg"
+        alt=""
         class="h-10 w-10 rounded-full border border-gray-300"
       />
       <div class="text-sm">

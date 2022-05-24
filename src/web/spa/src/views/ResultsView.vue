@@ -128,7 +128,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watchEffect, computed } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import api from '../api/api'
 import Dropdown from '@/components/ui/Dropdown.vue'
 import Input from '../components/ui/Input.vue'
@@ -138,6 +138,7 @@ import Button from '../components/ui/Button.vue'
 import FilterPanel from '../components/search/FilterPanel.vue'
 import { MapPinIcon, UsersIcon } from 'vue-tabler-icons'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
+import { googleMapsFlatStyle } from '@/components/utility/maps.js'
 import CabinPreviewItem from '../components/search/CabinPreviewItem.vue'
 import BoatPreviewItem from '../components/search/BoatPreviewItem.vue'
 import AdventurePreviewItem from '../components/search/AdventurePreviewItem.vue'
@@ -199,7 +200,7 @@ const fetchResults = async () => {
     queryData.end = formatISO(parseISO(end.value).setHours(12))
   }
   console.log(queryData)
-  const [data, error] = await api.business.search(
+  const [data] = await api.business.search(
     {
       ...queryData
     },
@@ -319,173 +320,7 @@ const createMap = () => {
     center,
     zoom: 13,
     mapTypeControl: false,
-    styles: [
-      {
-        featureType: 'administrative',
-        elementType: 'labels.text.fill',
-        stylers: [
-          {
-            color: '#444444'
-          }
-        ]
-      },
-      {
-        featureType: 'landscape',
-        elementType: 'all',
-        stylers: [
-          {
-            color: '#f2f2f2'
-          }
-        ]
-      },
-      {
-        featureType: 'poi',
-        elementType: 'all',
-        stylers: [
-          {
-            visibility: 'off'
-          }
-        ]
-      },
-      {
-        featureType: 'poi',
-        elementType: 'geometry.fill',
-        stylers: [
-          {
-            visibility: 'on'
-          },
-          {
-            color: '#e9e9e9'
-          }
-        ]
-      },
-      {
-        featureType: 'poi.attraction',
-        elementType: 'all',
-        stylers: [
-          {
-            visibility: 'on'
-          }
-        ]
-      },
-      {
-        featureType: 'poi.business',
-        elementType: 'all',
-        stylers: [
-          {
-            visibility: 'on'
-          }
-        ]
-      },
-      {
-        featureType: 'poi.government',
-        elementType: 'all',
-        stylers: [
-          {
-            visibility: 'off'
-          }
-        ]
-      },
-      {
-        featureType: 'poi.medical',
-        elementType: 'all',
-        stylers: [
-          {
-            visibility: 'on'
-          }
-        ]
-      },
-      {
-        featureType: 'poi.park',
-        elementType: 'geometry.fill',
-        stylers: [
-          {
-            color: '#deebd8'
-          },
-          {
-            visibility: 'on'
-          }
-        ]
-      },
-      {
-        featureType: 'poi.school',
-        elementType: 'all',
-        stylers: [
-          {
-            visibility: 'on'
-          }
-        ]
-      },
-      {
-        featureType: 'poi.sports_complex',
-        elementType: 'all',
-        stylers: [
-          {
-            visibility: 'on'
-          }
-        ]
-      },
-      {
-        featureType: 'poi.sports_complex',
-        elementType: 'labels',
-        stylers: [
-          {
-            visibility: 'on'
-          }
-        ]
-      },
-      {
-        featureType: 'road',
-        elementType: 'all',
-        stylers: [
-          {
-            saturation: -100
-          },
-          {
-            lightness: 45
-          }
-        ]
-      },
-      {
-        featureType: 'road.highway',
-        elementType: 'all',
-        stylers: [
-          {
-            visibility: 'simplified'
-          }
-        ]
-      },
-      {
-        featureType: 'road.arterial',
-        elementType: 'labels.icon',
-        stylers: [
-          {
-            visibility: 'off'
-          }
-        ]
-      },
-      {
-        featureType: 'transit',
-        elementType: 'all',
-        stylers: [
-          {
-            visibility: 'off'
-          }
-        ]
-      },
-      {
-        featureType: 'water',
-        elementType: 'all',
-        stylers: [
-          {
-            color: '#c4e5f3'
-          },
-          {
-            visibility: 'on'
-          }
-        ]
-      }
-    ]
+    styles: googleMapsFlatStyle
   })
   mapRef = map
 

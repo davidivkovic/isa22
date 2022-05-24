@@ -620,7 +620,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { RouterLink } from 'vue-router'
+import { useRoute, useRouter, RouterLink } from 'vue-router'
 import {
   PhotoIcon,
   XIcon,
@@ -653,8 +653,8 @@ import CreateSaleModal from '@/components/business/view/CreateSaleModal.vue'
 import defaultImg from '@/assets/images/default.png'
 import { isAuthenticated, user } from '@/stores/userStore.js'
 import { computed } from '@vue/reactivity'
-import { useRoute, useRouter } from 'vue-router'
 import { format, parseISO, differenceInDays, differenceInHours } from 'date-fns'
+import { googleMapsFlatStyle } from '@/components/utility/maps.js'
 import boatImage from '@/assets/images/boat.png'
 import api from '@/api/api'
 import ErrorAlert from '@/components/ui/alerts/ErrorAlert.vue'
@@ -699,7 +699,7 @@ const route = useRoute()
 const router = useRouter()
 
 const makeQuickReservation = async sale => {
-  const [_, error] = await api.business.makeQuickReservation(
+  const [, error] = await api.business.makeQuickReservation(
     props.entity.id,
     props.entityType,
     sale.id
@@ -714,7 +714,7 @@ const makeQuickReservation = async sale => {
 }
 
 const makeReservation = async () => {
-  const [_, error] = await api.business.makeResrvation(
+  const [, error] = await api.business.makeResrvation(
     props.entity.id,
     props.entityType,
     parseISO(route.query.start),
@@ -843,173 +843,7 @@ const createMap = () => {
     center,
     zoom: 13,
     mapTypeControl: false,
-    styles: [
-      {
-        featureType: 'administrative',
-        elementType: 'labels.text.fill',
-        stylers: [
-          {
-            color: '#444444'
-          }
-        ]
-      },
-      {
-        featureType: 'landscape',
-        elementType: 'all',
-        stylers: [
-          {
-            color: '#f2f2f2'
-          }
-        ]
-      },
-      {
-        featureType: 'poi',
-        elementType: 'all',
-        stylers: [
-          {
-            visibility: 'off'
-          }
-        ]
-      },
-      {
-        featureType: 'poi',
-        elementType: 'geometry.fill',
-        stylers: [
-          {
-            visibility: 'on'
-          },
-          {
-            color: '#e9e9e9'
-          }
-        ]
-      },
-      {
-        featureType: 'poi.attraction',
-        elementType: 'all',
-        stylers: [
-          {
-            visibility: 'on'
-          }
-        ]
-      },
-      {
-        featureType: 'poi.business',
-        elementType: 'all',
-        stylers: [
-          {
-            visibility: 'on'
-          }
-        ]
-      },
-      {
-        featureType: 'poi.government',
-        elementType: 'all',
-        stylers: [
-          {
-            visibility: 'off'
-          }
-        ]
-      },
-      {
-        featureType: 'poi.medical',
-        elementType: 'all',
-        stylers: [
-          {
-            visibility: 'on'
-          }
-        ]
-      },
-      {
-        featureType: 'poi.park',
-        elementType: 'geometry.fill',
-        stylers: [
-          {
-            color: '#deebd8'
-          },
-          {
-            visibility: 'on'
-          }
-        ]
-      },
-      {
-        featureType: 'poi.school',
-        elementType: 'all',
-        stylers: [
-          {
-            visibility: 'on'
-          }
-        ]
-      },
-      {
-        featureType: 'poi.sports_complex',
-        elementType: 'all',
-        stylers: [
-          {
-            visibility: 'on'
-          }
-        ]
-      },
-      {
-        featureType: 'poi.sports_complex',
-        elementType: 'labels',
-        stylers: [
-          {
-            visibility: 'on'
-          }
-        ]
-      },
-      {
-        featureType: 'road',
-        elementType: 'all',
-        stylers: [
-          {
-            saturation: -100
-          },
-          {
-            lightness: 45
-          }
-        ]
-      },
-      {
-        featureType: 'road.highway',
-        elementType: 'all',
-        stylers: [
-          {
-            visibility: 'simplified'
-          }
-        ]
-      },
-      {
-        featureType: 'road.arterial',
-        elementType: 'labels.icon',
-        stylers: [
-          {
-            visibility: 'off'
-          }
-        ]
-      },
-      {
-        featureType: 'transit',
-        elementType: 'all',
-        stylers: [
-          {
-            visibility: 'off'
-          }
-        ]
-      },
-      {
-        featureType: 'water',
-        elementType: 'all',
-        stylers: [
-          {
-            color: '#c4e5f3'
-          },
-          {
-            visibility: 'on'
-          }
-        ]
-      }
-    ]
+    styles: googleMapsFlatStyle
   })
   mapRef = map
 
