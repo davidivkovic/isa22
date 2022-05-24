@@ -31,27 +31,28 @@
 
   <Logo />
   <div v-if="isNonSearchRoute" class="flex space-x-8 pl-8">
-    <div class="cursor-pointer space-y-1">
+    <RouterLink
+      :to="{ name: 'profile' }"
+      v-slot="{ isActive }"
+      class="cursor-pointer space-y-1"
+    >
       <div>My profile</div>
       <div
-        v-if="selectedTab === 3"
+        v-if="isActive"
         class="h-0.5 w-full rounded-full bg-emerald-600"
       ></div>
-    </div>
-    <div class="cursor-pointer space-y-1">
-      <div>Past reservations</div>
+    </RouterLink>
+    <RouterLink
+      :to="{ name: 'reservations' }"
+      v-slot="{ isActive }"
+      class="cursor-pointer space-y-1"
+    >
+      <div>My reservations</div>
       <div
-        v-if="selectedTab === 4"
+        v-if="isActive"
         class="h-0.5 w-full rounded-full bg-emerald-600"
       ></div>
-    </div>
-    <div class="cursor-pointer space-y-1">
-      <div>Future reservations</div>
-      <div
-        v-if="selectedTab === 5"
-        class="h-0.5 w-full rounded-full bg-emerald-600"
-      ></div>
-    </div>
+    </RouterLink>
   </div>
   <div class="flex items-center space-x-5">
     <div v-if="isAuthenticated" class="flex space-x-2">
@@ -85,7 +86,8 @@ const isNonSearchRoute = computed(() =>
 )
 
 const selectedTab = computed(() => {
-  if (currentRoute.value.includes('cabins')) return 0
+  if (currentRoute.value.includes('cabins') || currentRouteName.value == 'home')
+    return 0
   else if (currentRoute.value.includes('boats')) return 1
   else if (currentRoute.value.includes('adventures')) return 2
   else if (currentRoute.value.includes('profile')) return 3

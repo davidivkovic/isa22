@@ -103,11 +103,11 @@ public abstract class Business : Entity
     public int GetTotalUnits(DateTimeOffset start, DateTimeOffset end)
     {
         double totalUnits = 1;
-        if (Unit.Hours <= 1)
+        if (Unit.Hours == 1)
         {
             totalUnits = (end - start).TotalHours;
         }
-        else if (Unit.Hours <= 24)
+        else if (Unit.Days == 1)
         {
             totalUnits = (end - start).TotalDays;
         }
