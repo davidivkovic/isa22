@@ -11,6 +11,7 @@ using API.Infrastructure.Data.Queries;
 using API.Core.Model;
 using Microsoft.EntityFrameworkCore;
 using API.DTO.Search;
+using Mapster;
 
 [ApiController]
 [Route("adventures")]
@@ -49,6 +50,22 @@ public class AdventureController : BusinessController<Adventure, AdventureDT0, C
     {
         return base.CreateSale(id, request);
     }
+        
+    [HttpGet]
+    [Authorize(Roles = Role.Fisher)]
+    public async Task<ActionResult> Get()
+    {
+        var query = Context.Adventures
+            .Where(a => a.Owner.Id == User.Id())
+            .AsNoTrackingWithIdentityResolution();
+        var results = await query
+            .Take(3)
+            .Select(a =>  a.Adapt<AdventureDT0>())
+            .ToListAsync();
+
+        results.ForEach(a => a.WithImages(ImageUrl));
+        return Ok(results);
+    }
 
     [Authorize]
     [HttpGet("reservations")]
@@ -67,7 +84,7 @@ public class AdventureController : BusinessController<Adventure, AdventureDT0, C
 
         var query = Context.Adventures
             .AsNoTrackingWithIdentityResolution()
-            //.Available(request.Start, request.End)
+            .Available(request.Start.UtcDateTime, request.End.UtcDateTime)
             .Where(c => c.Address.City == request.City)
             .Where(c => c.Address.Country == request.Country)
             .Where(c => c.People == request.People);

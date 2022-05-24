@@ -62,7 +62,7 @@ public class CabinController : BusinessController<Cabin, CabinDTO, CreateCabinDT
 
         var query = Context.Cabins
             .AsNoTrackingWithIdentityResolution()
-            //.Available(request.Start, request.End)
+            .Available(request.Start.UtcDateTime, request.End.UtcDateTime)
             .Where(c => c.Address.City == request.City)
             .Where(c => c.Address.Country == request.Country)
             .Where(c => c.People == request.People);
