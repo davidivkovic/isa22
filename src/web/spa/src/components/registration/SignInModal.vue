@@ -5,10 +5,6 @@
     :light="true"
     class="w-[500px] bg-white px-14 py-10"
   >
-    <!-- <XIcon
-      @click="closeModal()"
-      class="absolute top-3 right-3 h-6 w-6 cursor-pointer text-black"
-    ></XIcon> -->
     <Transition
       enter-active-class="transition-opacity duration-100"
       enter-from-class="opacity-0"
@@ -24,12 +20,13 @@
 </template>
 
 <script setup>
-import { shallowRef } from 'vue'
+import { ref, shallowRef, watch, onBeforeMount } from 'vue'
 import Modal from '../ui/Modal.vue'
 import SignInForm from './SignInPanel.vue'
 import RegistrationForm from './RegistrationPanel.vue'
-import { XIcon } from 'vue-tabler-icons'
-import { useModal } from '@/stores/modalStore.js'
+
+const isModalOpen = ref(false)
+const closeModal = ref()
 
 const authPanel = shallowRef(SignInForm)
 const switchAuth = () => {
@@ -37,5 +34,10 @@ const switchAuth = () => {
     authPanel.value === SignInForm ? RegistrationForm : SignInForm
 }
 
-const { isModalOpen, closeModal } = useModal()
+onBeforeMount(async () => {
+  const { useModal } = await import('@/stores/modalStore.js')
+  const { isModalOpen: isOpen, closeModal: close } = useModal()
+  watch(isOpen, () => (isModalOpen.value = isOpen.value), { immediate: true })
+  closeModal.value = close
+})
 </script>
