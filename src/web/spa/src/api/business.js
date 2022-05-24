@@ -93,12 +93,8 @@ const createSale = async (id, type, data) =>
 const remove = async (id, type) =>
   fetch(instance.post(`${endpoints[type]}/${id}/delete`))
 
-const makeQuickReservation = async (type, saleId) =>
-  fetch(
-    instance.post(`${endpoints[type]}/make-quick-reservation`, {
-      id: saleId
-    })
-  )
+const makeQuickReservation = async (id, type, saleId) =>
+  fetch(instance.post(`${endpoints[type]}/${id}/sales/${saleId}/book`))
 
 const makeResrvation = async (id, type, start, end, people, services) =>
   fetch(
@@ -107,6 +103,19 @@ const makeResrvation = async (id, type, start, end, people, services) =>
       start,
       end,
       services
+    })
+  )
+
+const cancelReservation = async (type, reservationId) =>
+  fetch(
+    instance.post(`${endpoints[type]}/reservations/${reservationId}/cancel`)
+  )
+
+const review = async (id, type, content, rating) =>
+  fetch(
+    instance.post(`${endpoints[type]}/${id}/review`, {
+      content,
+      rating
     })
   )
 
@@ -126,5 +135,7 @@ export default {
   createSale,
   ownersBusinesses,
   makeQuickReservation,
-  makeResrvation
+  makeResrvation,
+  cancelReservation,
+  review
 }

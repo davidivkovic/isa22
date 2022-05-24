@@ -79,7 +79,7 @@ public class BusinessController<
     [Authorize]
     [AllowAnonymous]
     [HttpGet("{id}")]
-    public async Task<ActionResult> Get([FromRoute]Guid id, [FromQuery] DateTimeOffset start, [FromQuery] DateTimeOffset end)
+    public async Task<ActionResult> Get([FromRoute] Guid id, [FromQuery] DateTimeOffset start, [FromQuery] DateTimeOffset end)
     {
         var business = await Context.Set<TBusiness>()
             .AsNoTracking()
@@ -112,6 +112,12 @@ public class BusinessController<
             .Take(3)
             .ToListAsync();
 
+        var reviews = await Context.Reviews
+            .Include(s => s.User)
+            .Where(s => s.Business.Id == business.Id)
+            .Take(3)
+            .ToListAsync();
+
         Loyalty loyaltyLevel = null;
 
         if (user is not null && start != default && end != default)
@@ -130,6 +136,8 @@ public class BusinessController<
                 new()
             );
         }
+
+        businessDTO.Reviews = reviews.Select(r => r.Adapt<ReviewDTO>()).ToList();
 
         businessDTO.Sales = sales.Select(s =>
         {
@@ -232,7 +240,7 @@ public class BusinessController<
 
         return Ok(business.Id);
     }
-    
+
     [HttpPost("{id}/delete")]
     public virtual async Task<ActionResult> Delete(Guid id)
     {
@@ -371,13 +379,14 @@ public class BusinessController<
 
 
     [Authorize(Roles = Role.Customer)]
-    [HttpPost("make-quick-reservation")]
-    public async Task<ActionResult> MakeQuickReservation([FromBody] MakeQuickReservationDTO request)
+    [HttpPost("{id}/sales/{saleId}/book")]
+    public async Task<ActionResult> MakeQuickReservation([FromQuery] Guid id, [FromQuery] Guid saleId)
     {
         var sale = await Context.Set<Sale>()
                     .Include(s => s.Business)
+                    .Where(s => s.Business.Id == id)
                     .Include(s => s.User)
-                    .FirstOrDefaultAsync(s => s.Id == request.Id);
+                    .FirstOrDefaultAsync(s => s.Id == saleId);
 
         if (sale is null)
         {
@@ -395,6 +404,28 @@ public class BusinessController<
         var loyalty = await Context.GetLoyaltyLevel(User.Id());
 
         sale.Sell(user, loyalty?.DiscountPercentage ?? 0, finance.TaxPercentage);
+        await Context.SaveChangesAsync();
+
+        return Ok();
+    }
+
+
+    [Authorize(Roles = Role.Customer)]
+    [HttpPost("{id}/review")]
+    public async Task<ActionResult> Review([FromRoute] Guid id, [FromBody] CreateReviewDTO request)
+    {
+        var business = await Context.Set<TBusiness>()
+                    .FirstOrDefaultAsync(b => b.Id == id);
+        var user = await Context.Users.FindAsync(User.Id());
+
+        // Check if user had previous reservation
+
+        if (business is null)
+        {
+            return BadRequest($"The specified {BusinessType} does not exist.");
+        }
+
+        business.Review(user, request.Rating, request.Content);
         await Context.SaveChangesAsync();
 
         return Ok();
@@ -449,7 +480,8 @@ public class BusinessController<
 
         var reservationsQuery = Context.Reservations
             .AsNoTrackingWithIdentityResolution()
-            .Where(r => r.User.Id == User.Id());
+            .Where(r => r.User.Id == User.Id())
+            .Where(r => r.Status != "Cancelled");
 
         reservationsQuery = businessType switch
         {
@@ -474,9 +506,32 @@ public class BusinessController<
             .ToListAsync();
 
         reservations.ForEach(r => r.Business.WithImages(ImageUrl));
+        reservations.ForEach(r => r.IsCancellable = r.Start - currentTime >= TimeSpan.FromDays(3));
 
         return Ok(reservations);
     }
+
+    [Authorize(Roles = Role.Customer)]
+    [HttpPost("reservations/{reservationId}/cancel")]
+    public async Task<ActionResult> CancelReservation([FromRoute] Guid reservationId)
+    {
+        var reservation = await Context.Set<Reservation>().FirstOrDefaultAsync(r => r.Id == reservationId);
+
+        if (reservation == null)
+        {
+            return BadRequest($"The specified reservation does not exist.");
+        }
+
+        bool canceled = reservation.Cancel();
+        if(!canceled)
+        {
+            return BadRequest($"The specified reservation cannot be canceled.");
+        }
+
+        await Context.SaveChangesAsync();
+        return Ok();
+
+    }    
 
     [HttpGet("{id}/calendar")]
     public virtual async Task<ActionResult> GetCalendar(Guid id, DateTimeOffset start, DateTimeOffset end)

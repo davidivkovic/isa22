@@ -10,11 +10,6 @@ public class MakeReservationDTO
     public List<Service> Services { get; set; }
 }
 
-public class MakeQuickReservationDTO
-{
-    public Guid Id { get; set; }
-}
-
 public class ReservationDTO
 {
     public Guid Id { get; set; }
@@ -26,6 +21,7 @@ public class ReservationDTO
     public Payment Payment { get; set; }
     public DateTimeOffset Timestamp { get; set; }
     public int Units { get; set; }
+    public bool IsCancellable { get; set; }
 }
 
 public class CreateSaleDTO
