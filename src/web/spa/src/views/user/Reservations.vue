@@ -207,6 +207,8 @@
     :address="address"
     :duration="duration"
     :unit="unit"
+    :businessType="currentBusinessType"
+    :id="id"
   />
   <CancelReservation
     @modalClosed="isCancelModalOpen = false"
@@ -280,6 +282,7 @@ const reservationStatuses = [
 const reservations = ref()
 const isReviewModalOpen = ref(false)
 const isCancelModalOpen = ref(false)
+const id = ref()
 const name = ref()
 const address = ref()
 const start = ref()
@@ -370,6 +373,7 @@ const writeReview = reservation => {
   start.value = format(parseISO(reservation.start), 'MMM d, yyyy')
   end.value = format(parseISO(reservation.end), 'MMM d, yyyy')
   address.value = formatAddress(reservation.business.address)
+  id.value = reservation.business.id
   duration.value = differenceInHours(
     parseISO(reservation.end),
     parseISO(reservation.start)

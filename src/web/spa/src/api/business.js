@@ -111,6 +111,14 @@ const cancelReservation = async (type, reservationId) =>
     instance.post(`${endpoints[type]}/reservations/${reservationId}/cancel`)
   )
 
+const review = async (id, type, content, rating) =>
+  fetch(
+    instance.post(`${endpoints[type]}/${id}/review`, {
+      content,
+      rating
+    })
+  )
+
 export default {
   get,
   create,
@@ -128,5 +136,6 @@ export default {
   ownersBusinesses,
   makeQuickReservation,
   makeResrvation,
-  cancelReservation
+  cancelReservation,
+  review
 }
