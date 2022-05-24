@@ -11,6 +11,7 @@ using API.Infrastructure.Extensions;
 using API.DTO.Search;
 using API.Core.Model;
 using Microsoft.EntityFrameworkCore;
+using API.DTO.Report;
 
 [ApiController]
 [Route("boats")]
@@ -169,5 +170,17 @@ public class BoatController : BusinessController<Boat, BoatDTO, CreateBoatDTO, U
         results.ForEach(r => r.Image = ImageUrl(r.Id, r.Image));
 
         return results;
+    }
+
+    [Authorize(Roles = Role.BoatOwner)]
+    public override Task<List<ReportReservationResponse>> GetReservationsInPeriod(DateTime startDate, DateTime endDate)
+    {
+        return base.GetReservationsInPeriod(startDate, endDate);
+    }
+
+    [Authorize(Roles = Role.BoatOwner)]
+    public override Task<List<ReportPaymentResponse>> GetPaymentReport(DateTime startDate, DateTime endDate)
+    {
+        return base.GetPaymentReport(startDate, endDate);
     }
 }

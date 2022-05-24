@@ -11,6 +11,7 @@ using API.Infrastructure.Data;
 using API.Infrastructure.Data.Queries;
 using API.Infrastructure.Extensions;
 using API.DTO.Search;
+using API.DTO.Report;
 
 [ApiController]
 [Route("cabins")]
@@ -170,5 +171,16 @@ public class CabinController : BusinessController<Cabin, CabinDTO, CreateCabinDT
         results.ForEach(r => r.Image = ImageUrl(r.Id, r.Image));
 
         return results;
+    }
+
+    [Authorize(Roles = Role.CabinOwner)]
+    public override Task<ActionResult> PreviewCreateSale([FromRoute] Guid id, [FromBody] CreateSaleDTO request)
+    {
+        return base.PreviewCreateSale(id, request);
+    }
+
+    public override Task<List<ReportReservationResponse>> GetReservationsInPeriod(DateTime startDate, DateTime endDate)
+    {
+        return base.GetReservationsInTime
     }
 }
