@@ -12,6 +12,7 @@ using API.Infrastructure.Data.Queries;
 using API.Infrastructure.Extensions;
 using API.DTO.Search;
 using API.DTO.Report;
+using API.Services.Email;
 
 [ApiController]
 [Route("cabins")]
@@ -19,7 +20,7 @@ public class CabinController : BusinessController<Cabin, CabinDTO, CreateCabinDT
 {
     protected override string BusinessType => "cabin";
 
-    public CabinController(AppDbContext dbContext) : base(dbContext) { }
+    public CabinController(AppDbContext dbContext, Mailer mailer) : base(dbContext, mailer) { }
 
     [Authorize(Roles = Role.CabinOwner)]
     public override Task<ActionResult> Update(UpdateCabinDTO dto)

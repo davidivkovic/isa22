@@ -2,6 +2,7 @@
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
 
 using API.DTO;
@@ -9,8 +10,9 @@ using API.Infrastructure.Data;
 using API.Infrastructure.Extensions;
 using API.Infrastructure.Data.Queries;
 using API.Core.Model;
-using Microsoft.EntityFrameworkCore;
 using API.DTO.Search;
+using API.Services.Email;
+
 using Mapster;
 
 [ApiController]
@@ -19,7 +21,7 @@ public class AdventureController : BusinessController<Adventure, AdventureDT0, C
 {
     protected override string BusinessType => "adventure";
 
-    public AdventureController(AppDbContext dbContext) : base(dbContext) { }
+    public AdventureController(AppDbContext dbContext, Mailer mailer) : base(dbContext, mailer) { }
 
     [Authorize(Roles = Role.Fisher)]
     public override Task<IActionResult> Create(CreateAdventureDTO dto)

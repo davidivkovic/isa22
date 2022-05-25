@@ -16,6 +16,8 @@ using API.Infrastructure.Extensions;
 using API.Services;
 using API.Infrastructure.Data.Queries;
 using API.DTO.Report;
+using API.Services.Email;
+using API.Services.Email.Messages;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -30,13 +32,15 @@ public class BusinessController<
     where TUpdateDTO : UpdateBusinessDTO
     where TCreateDTO : CreateBusinessDTO
 {
-    protected virtual string BusinessType { get; set; }
+    private readonly Mailer _mailer;
 
+    protected virtual string BusinessType { get; set; }
     protected AppDbContext Context { get; }
 
-    public BusinessController(AppDbContext dbContext)
+    public BusinessController(AppDbContext dbContext, Mailer mailer)
     {
         Context = dbContext;
+        _mailer = mailer;
     }
 
     protected string ImageUrl(Guid id, string image)
@@ -375,6 +379,7 @@ public class BusinessController<
         var business = await Context.Set<TBusiness>()
             .Include(b => b.Owner)
             .Include(b => b.Reservations.Where(r => r.Id == saleId))
+                .ThenInclude(r => r.User)
             .FirstOrDefaultAsync(b => b.Id == id);
 
         if (business is null)
@@ -385,6 +390,11 @@ public class BusinessController<
         if (business.Owner.Id != User.Id())
         {
             return StatusCode(403);
+        }
+
+        if (business.Reservations.Exists(r => r.User is not null))
+        {
+            return BadRequest("Cannot delete a sale after reservation.");
         }
 
         business.Reservations.ForEach(r => r.Delete());
@@ -447,6 +457,12 @@ public class BusinessController<
 
         sale.Sell(user, loyalty?.DiscountPercentage ?? 0, finance.TaxPercentage);
         await Context.SaveChangesAsync();
+
+        _mailer.Send(user, new ReservationCreated(
+            sale,
+            ImageUrl(sale.Business.Id, sale.Business.Images.FirstOrDefault()),
+            "#contactUrl"
+         ));
 
         return Ok();
     }
@@ -530,6 +546,12 @@ public class BusinessController<
 
         Context.Add(reservation);
         await Context.SaveChangesAsync();
+
+        _mailer.Send(user, new ReservationCreated(
+            reservation,
+            ImageUrl(reservation.Business.Id, reservation.Business.Images.FirstOrDefault()),
+            "#contactUrl"
+         ));
 
         return Ok(reservation.Id);
     }

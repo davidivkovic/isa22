@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto w-2/3 pb-10">
+  <div class="mx-auto max-w-4.5xl pb-10">
     <h1 class="mt-8 text-2xl font-medium">Reservations</h1>
     <div class="mt-3 flex space-x-3">
       <Dropdown
@@ -15,7 +15,7 @@
         class="mt-auto w-fit"
       />
     </div>
-    <div class="mt-4 space-y-3">
+    <div class="mt-4 space-y-6">
       <div
         v-for="reservation in reservations"
         :key="reservation.id"
@@ -94,7 +94,7 @@
             />
             <div>
               <RouterLink
-                :to="`/adventure-profile/${reservation.business.id}`"
+                :to="`/${businessProfiles[currentBusinessType]}/${reservation.business.id}`"
                 class="font-medium"
                 >{{ reservation.business.name }}</RouterLink
               >
@@ -254,6 +254,12 @@ const businessTypes = [
   }
 ]
 
+const businessProfiles = {
+  adventures: 'adventure-profile',
+  cabins: 'cabin-profile',
+  boats: 'boat-profile'
+}
+
 const timeFormats = {
   cabins: 'MMM d, yyyy',
   boats: 'MMM d, yyyy HH:mm',
@@ -291,7 +297,6 @@ const duration = ref()
 const unit = ref()
 const reservationId = ref()
 const currentBusinessType = ref(businessTypes[0].value)
-console.log(currentBusinessType.value)
 const currentReservationStatus = ref(reservationStatuses[0].value)
 
 const reservationStatus = reservation => {

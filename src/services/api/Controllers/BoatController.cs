@@ -12,6 +12,7 @@ using API.DTO.Search;
 using API.Core.Model;
 using Microsoft.EntityFrameworkCore;
 using API.DTO.Report;
+using API.Services.Email;
 
 [ApiController]
 [Route("boats")]
@@ -19,7 +20,7 @@ public class BoatController : BusinessController<Boat, BoatDTO, CreateBoatDTO, U
 {
     protected override string BusinessType => "boat";
 
-    public BoatController(AppDbContext dbContext) : base(dbContext) { }
+    public BoatController(AppDbContext dbContext, Mailer mailer) : base(dbContext, mailer) { }
 
     [Authorize(Roles = Role.BoatOwner)]
     public override Task<IActionResult> Create(CreateBoatDTO dto)
