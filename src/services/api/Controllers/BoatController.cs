@@ -13,6 +13,7 @@ using API.Core.Model;
 using Microsoft.EntityFrameworkCore;
 using API.DTO.Report;
 using API.Services.Email;
+using Mapster;
 
 [ApiController]
 [Route("boats")]
@@ -63,6 +64,29 @@ public class BoatController : BusinessController<Boat, BoatDTO, CreateBoatDTO, U
     public Task<ActionResult> GetReservations(string status)
     {
         return GetReservations("boats", status);
+    }
+
+    [HttpGet]
+    [Authorize(Roles = Role.BoatOwner)]
+    public async Task<ActionResult> Get()
+    {
+        var query = Context.Boats
+            .Where(a => a.Owner.Id == User.Id())
+            .AsNoTrackingWithIdentityResolution();
+        var results = await query
+            .Take(3)
+            .Select(a => a.Adapt<BoatDTO>())
+            .ToListAsync();
+
+        results.ForEach(a => a.WithImages(ImageUrl));
+        return Ok(results);
+    }
+
+    [HttpGet("upcoming-reservations")]
+    [Authorize(Roles = Role.BoatOwner)]
+    public override Task<ActionResult> GetUpcomingReservations()
+    {
+        return base.GetUpcomingReservations();
     }
 
     [Authorize]
@@ -184,7 +208,7 @@ public class BoatController : BusinessController<Boat, BoatDTO, CreateBoatDTO, U
 
         results.ForEach(r => r.Image = ImageUrl(r.Id, r.Image));
 
-        return Ok(new { results });
+        return Ok(results);
     }
 
     [Authorize(Roles = Role.BoatOwner)]

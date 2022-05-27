@@ -13,6 +13,7 @@ using API.Infrastructure.Extensions;
 using API.DTO.Search;
 using API.DTO.Report;
 using API.Services.Email;
+using Mapster;
 
 [ApiController]
 [Route("cabins")]
@@ -51,6 +52,29 @@ public class CabinController : BusinessController<Cabin, CabinDTO, CreateCabinDT
     public Task<ActionResult> GetReservations(string status)
     {
         return GetReservations("cabins", status);
+    }
+
+    [HttpGet]
+    [Authorize(Roles = Role.CabinOwner)]
+    public async Task<ActionResult> Get()
+    {
+        var query = Context.Cabins
+            .Where(a => a.Owner.Id == User.Id())
+            .AsNoTrackingWithIdentityResolution();
+        var results = await query
+            .Take(6)
+            .ProjectToType<CabinDTO>()
+            .ToListAsync();
+
+        results.ForEach(a => a.WithImages(ImageUrl));
+        return Ok(results);
+    }
+
+    [HttpGet("upcoming-reservations")]
+    [Authorize(Roles = Role.CabinOwner)]
+    public override Task<ActionResult> GetUpcomingReservations()
+    {
+        return base.GetUpcomingReservations();
     }
 
     [Authorize]
@@ -174,7 +198,7 @@ public class CabinController : BusinessController<Cabin, CabinDTO, CreateCabinDT
 
         results.ForEach(r => r.Image = ImageUrl(r.Id, r.Image));
 
-        return Ok(new { results });
+        return Ok(results);
     }
 
     [Authorize(Roles = Role.CabinOwner)]

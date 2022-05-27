@@ -508,6 +508,24 @@ public class BusinessController<
         return Ok();
     }
 
+    [HttpGet("upcoming-reservations")]
+    public virtual async Task<ActionResult> GetUpcomingReservations()
+    {
+        var results = await Context.Reservations
+            .AsNoTrackingWithIdentityResolution()
+            .Where(a => a.Business.Owner.Id == User.Id())
+            .Where(a => a.Status != "Canceled")
+            .Where(b => b.Business is TBusiness)
+            .Where(a => a.End >= DateTime.Now)
+            .OrderBy(a => a.Start)
+            .Take(6)
+            .ProjectToType<ReservationDTO>()
+            .ToListAsync();
+
+        results.ForEach(a => a.Business.WithImages(ImageUrl));
+        return Ok(results);
+    }
+
     [Authorize(Roles = Role.Customer)]
     [HttpPost("{id}/make-reservation")]
     public async Task<ActionResult> MakeReservation([FromRoute] Guid id, [FromBody] MakeReservationDTO request)
@@ -827,7 +845,7 @@ public class BusinessController<
         double income = 0;
         foreach (Payment payment in payments)
         {
-            income += (double)payment.Price.Amount * (1 - payment.DiscountPercentage) * (1 - payment.TaxPercentage);
+            income += (double)payment.Price.Amount * (1 - payment.DiscountPercentage / 100) * (1 - payment.TaxPercentage / 100);
         }
         return income;
     }
