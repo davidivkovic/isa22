@@ -1,7 +1,7 @@
 <template>
  <div class="justify-between">
      <div class="space-y-2">
-        <div class="flex mx-auto items-center justify-between py-6 max-w-5xl shadow">
+        <div class="flex mx-auto items-center justify-between py-6 max-w-5xl">
             <form @submit.prevent="searchCabins()"
             class="max-auto ml-20 flex max-w-6xl justify-center space-x-3"
             >
@@ -60,48 +60,52 @@
     </div>
     <br>
 
-    <div class="mx-auto max-w-5xl bg-white overflow-hidden sm:rounded-md">
+    <div class="mx-auto max-w-5xl bg-white sm:rounded-md">
         <h2 class="text-xl font-medium">
-            {{ results.length }}
-            {{ results.length === 1 ? 'Result' : 'Results' }}
+            {{ results?.length }}
+            {{ results?.length === 1 ? 'Result' : 'Results' }}
             <span class="font-normal"> for {{ route.query.name }}, {{ currentLocation }}</span>
             <div v-if="results.length === 0" class="mt-3 text-base font-normal">
             Unfortunatelly, there are no available
             {{ $route.params.type }}. Please change the search parameters.
             </div>
         </h2>
-        <ul role="list" class="divide-y divide-gray-200 shadow">
-            <li  v-for="result in results"
+        <br>
+        <div role="list" class="space-y-6">
+            <div v-for="result in results"
                 :key="result.id"
-                class="group space-y-3.5 max-h-[11rem] h-[11rem]">
+                class="max-h-[11rem] h-[13rem] rounded-xl border border-neutral-300">
                 <div class="flex items-center px-4 py-4 sm:px-6">
                     <div class="min-2-0 flex-1 flex">
                         <div class="relative h-36 w-48 ">
                             <h4 class="absolute top-2 right-1.5 rounded-xl bg-emerald-50 px-2.5 text-[13px] font-semibold tracking-tight text-emerald-300">
-                                {{result.rating.toPrecision(2)}}
+                                {{result.rating?.toPrecision(2) ?? 0}}
                             </h4>
                                 <img
                                 alt=""
                                 :src="result.image"
-                                class="h-full w-full rounded object-cover ring-2 ring-emerald-500"
+                                class="h-full w-full object-cover rounded-xl cursor-pointer "
+                                @click="showCabin(result.id)" 
                                 :class="{'ring-opacity-100': result.selected}"/>
                         </div>
                         <div class="ml-3 flex-1 px-4">
                             <div class="w-full flex justify-between">
                                 <div class="mb-20 content-start">
                                     <div>
-                                        <h1 class="text-[20px] font-semibold">
+                                        <h1
+                                        @click="showCabin(result.id)" 
+                                        class="text-[20px] font-semibold cursor-pointer hover:text-emerald-500">
                                             {{result.name}}
                                         </h1>
                                         <h2 class="text-[17px] text-gray-500">
-                                            {{result.address.street}} {{result.address.apartment}}
+                                            {{result.address?.street}} {{result.address?.apartment}}
                                         </h2>
                                     </div>
                                     <div class="max-w-md p-1">
                                         <p class="text-[15px] max-h-[5.6rem] text-ellipsis overflow-clip">{{result.description}}</p>
                                     </div>
                                 </div>
-                                <div class="space-x-2 space-y- items-end mt-8">
+                                <div class="space-x-2 items-end mt-4 w-[7rem]">
                                     <div class="ml-[8px] flex justify-left space-x-1 text-neutral-500">
                                         <h4 class="font- text-[13px] font-mono">Rooms: &nbsp;{{result.rooms}} </h4>
                                         <HotelServiceIcon stroke-width="2" class="h-4 w-4 pb-px text-emerald-500"/>
@@ -117,9 +121,9 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="space-y-2 pt-1.5 mt-4 w-[13%]">
+                        <div class="space-y-2 pt-1.5 w-[13%]">
                             <div class="flex items-center justify-center space-x-1 pt-1.5">
-                                <h3 class="text-lg font-semibold tracking-tight text-emerald-500">
+                                <h3 class="text-lg font-semibold tracking-tight text-emerald-400">
                                     {{result.price.symbol}} {{result.price.amount}}
                                 </h3>
                                 <span class="font text-sm text-gray-600">/night</span>
@@ -128,34 +132,39 @@
                                 <h2 class="text-[11px]">
                                     Cancellation fee 
                                 </h2>
-                                <h3 class="text-[10px] font-bold">
+                                <h2 class="text-[10px] font-bold">
                                     {{result.price.symbol}} {{result.cancellationFee}}
-                                </h3>
+                                </h2>
                             </div>
-                            <Button class="w-full bg-emerald-500 text-white text-center">
-                                Show
-                            </Button>
+                            <Menu
+                            @selected="e => optionSelected(e)"
+                            :values="result.values"/>
                         </div>
                     </div>
                 </div> 
-            </li>
-        </ul>
+            </div>
+        </div>
     </div>
     
  </div>
 </template>
 
 <script setup>
-import {ref, onMounted, computed, watchEffect} from 'vue'
+import {shallowRef, ref, onMounted, computed, watchEffect} from 'vue'
 import Button from '../components/ui/Button.vue'
 import Dropdown from '../components/ui/Dropdown.vue'
 import NumberInput from '../components/ui/NumberInput.vue'
+import CabinPreviewItem from '../components/search/CabinPreviewItem.vue'
+import Menu from '@/components/ui/Menu.vue'
 import {
   UserIcon,
   BedIcon,
   HotelServiceIcon,
   MapPinIcon,
-  UsersIcon
+  UsersIcon,
+  TrashIcon,
+  CalendarIcon,
+  PencilIcon
 } from 'vue-tabler-icons'
 import {useRoute, useRouter, RouterLink} from 'vue-router'
 import api from '../api/api'
@@ -163,6 +172,7 @@ import Input from '../components/ui/Input.vue'
 
 const route = useRoute()
 const router = useRouter()
+let markerRef, mapRef
 
 const city = ref(route.query.city) 
 const country = ref(route.query.country)
@@ -201,10 +211,23 @@ const fetchResults = async () => {
         },
         route.params.id
     )
+    if (!error) {
+        data.forEach((b) => {
+            b.values = [
+                { name: 'Calendar', value: `/cabin-profile/${b.id}/calendar`, icon: shallowRef(CalendarIcon)},
+                { name: 'Edit', value: ["edit", b.id], icon: shallowRef(PencilIcon) },
+                { name: 'Delete', value: 'delete', icon: shallowRef(TrashIcon) }
+            ]
+        })
+    }
     data && (results.value = data)
 }
 
 watchEffect(() => fetchResults())
+
+const showCabin = (id) => {
+    router.push("/cabin-profile/" + id);
+}
 
 const searchCabins = () => {
     router.push({
@@ -219,11 +242,26 @@ const searchCabins = () => {
     })
 }
 
+const optionSelected = value => {
+    if (value == "delete") {
+        console.log("Deleted")
+    }
+    else if (value[0] == "edit") {
+          router.push({
+                name: 'create-update-business',
+                params: { type: "cabins", action: 'update' },
+                query: { id: value[1]}
+            })
+    } else {
+        router.push(value)
+    }
+}
+
 const changeSelectedOption = value => {
   direction.value = value
   searchCabins()
 }
-/** 
+/*
 onMounted(() => createAutocompleteInput())
 
 const createAutocompleteInput = () => {
@@ -271,5 +309,4 @@ const extractFromAddress = (address, key) => {
   return address?.address_components?.find(a => a.types.includes(key))
     ?.long_name
 }*/
-
 </script>
