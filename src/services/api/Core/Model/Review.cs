@@ -13,6 +13,7 @@ public class Review : Entity
     public void Approve()
     {
         Approved = true;
+        Business.Rate(Rating);
     }
 
     public void Deny()

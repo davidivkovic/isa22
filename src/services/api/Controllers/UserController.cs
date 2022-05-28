@@ -130,7 +130,7 @@ public class UserController : ControllerBase
         });
     }
 
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = Role.Admin)]
     [HttpGet("registrations/pending")]
     public async Task<List<PendingRequestDTO>> GetPendingRegistrations([FromQuery] DateTimeOffset before)
     {
@@ -149,7 +149,7 @@ public class UserController : ControllerBase
             .ToListAsync();
     }
 
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = Role.Admin)]
     [HttpPost("registrations/{email}/update")]
     public async Task<ActionResult> AcceptRegistration([FromRoute] string email, [FromBody] string reason)
     {
@@ -199,7 +199,7 @@ public class UserController : ControllerBase
     }
 
 
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = Role.Admin)]
     [HttpGet("delete-requests/pending")]
     public async Task<List<PendingRequestDTO>> GetDeleteRequests([FromQuery] DateTimeOffset before)
     {
@@ -218,7 +218,7 @@ public class UserController : ControllerBase
             .ToListAsync();
     }
 
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = Role.Admin)]
     [HttpPost("delete-requests/{email}/update")]
     public async Task<ActionResult> AcceptDeleteRequest([FromRoute] string email, [FromBody] string reason)
     {
@@ -262,5 +262,45 @@ public class UserController : ControllerBase
         return Ok();
     }
 
+    [Authorize(Roles = Role.Admin)]
+    [HttpPost("reviews/{id}/update")]
+    public async Task<ActionResult> ApproveReview([FromRoute] Guid id, [FromRoute] bool approve)
+    {
+        var review = await _context.Reviews
+            .Include(r => r.Business)
+            .FirstOrDefaultAsync(r => r.Id == id);
 
+        if (review is null)
+        {
+            return BadRequest();
+        }
+
+        if (approve)
+        {
+            review.Approve();
+        }
+        else
+        {
+            review.Deny();
+        }
+
+        await _context.SaveChangesAsync();
+
+        return Ok();
+    }
+
+    [Authorize(Roles = Role.Admin)]
+    [HttpGet("reviews/pending")]
+    public async Task<List<PendingReviewDTO>> GetPendingReviews([FromQuery] DateTimeOffset before)
+    {
+        return await _context.Reviews
+            .AsNoTracking()
+            .Where(r => !r.Approved)
+            .Where(r => !r.Rejected)
+            .Where(r => r.Timestamp <= before)
+            .OrderByDescending(r => r.Timestamp)
+            .Take(10)
+            .ProjectToType<PendingReviewDTO>()
+            .ToListAsync();
+    }
 }

@@ -47,7 +47,7 @@ public abstract class Business : Entity
     public List<User>        Subscribers     { get; set; } = new();
     public int               People          { get; set; }
     public int               NumberOfReviews { get; set; }
-    public int               Rating          { get; set; }
+    public double            Rating          { get; set; }
     public double            CancellationFee { get; set; }
     public virtual           TimeSpan Unit   { get; }
 
@@ -88,16 +88,23 @@ public abstract class Business : Entity
               !Availability.Exists(s => s.Intersects(start, end) && !s.Available);
     }
 
-    public void Review(User user, double rating, string content)
+    public Review Review(User user, double rating, string content)
     {
-        Reviews.Add(new Review
+        Review r = new()
         {
             User = user,
-            Business = this, 
-            Rating = rating, 
-            Content = content 
-        });
-        Rating = (NumberOfReviews * Rating + Rating) / ++NumberOfReviews;
+            Business = this,
+            Rating = rating,
+            Content = content
+        };
+
+        Reviews.Add(r);
+        return r;
+    }
+
+    public void Rate(double rating)
+    {
+        Rating = (NumberOfReviews * Rating + rating) / ++NumberOfReviews;
     }
 
     public int GetTotalUnits(DateTimeOffset start, DateTimeOffset end)

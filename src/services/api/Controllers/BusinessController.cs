@@ -134,8 +134,9 @@ public class BusinessController<
             .ToListAsync();
 
         var reviews = await Context.Reviews
-            .Include(s => s.User)
-            .Where(s => s.Business.Id == business.Id)
+            .Include(r => r.User)
+            .Where(r => r.Business.Id == business.Id)
+            .Where(r => r.Approved)
             .Take(3)
             .ToListAsync();
 
@@ -473,6 +474,7 @@ public class BusinessController<
     public async Task<ActionResult> Review([FromRoute] Guid id, [FromBody] CreateReviewDTO request)
     {
         var business = await Context.Set<TBusiness>()
+                    .Include(b => b.Owner)
                     .FirstOrDefaultAsync(b => b.Id == id);
 
         if (business is null)
@@ -488,9 +490,10 @@ public class BusinessController<
             .ToListAsync();
 
         var reviews = await Context.Reviews
+            .Include(r => r.User)
+            .Include(r => r.Business)
             .Where(r => r.User.Id == user.Id)
-            .Include(s => s.User)
-            .Where(s => s.Business.Id == id)
+            .Where(r => r.Business.Id == id)
             .ToListAsync();
 
         if (reservations.Count == 0)
@@ -503,8 +506,16 @@ public class BusinessController<
             return BadRequest($"You have already reviewed this business.");
         }
 
-        business.Review(user, request.Rating, request.Content);
+        Review review = business.Review(user, request.Rating, request.Content);
         await Context.SaveChangesAsync();
+
+        _mailer.Send(business.Owner, new NewReview(
+            review,
+            reservations[0],
+            ImageUrl(business.Id, business.Images.FirstOrDefault()),
+            "#contactUrl"
+        ));
+
         return Ok();
     }
 
