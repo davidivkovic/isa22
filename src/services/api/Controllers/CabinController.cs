@@ -47,13 +47,6 @@ public class CabinController : BusinessController<Cabin, CabinDTO, CreateCabinDT
         return base.PreviewCreateSale(id, request);
     }
 
-    [Authorize]
-    [HttpGet("reservations")]
-    public Task<ActionResult> GetReservations(string status)
-    {
-        return GetReservations("cabins", status);
-    }
-
     [HttpGet]
     [Authorize(Roles = Role.CabinOwner)]
     public async Task<ActionResult> Get()
@@ -68,13 +61,6 @@ public class CabinController : BusinessController<Cabin, CabinDTO, CreateCabinDT
 
         results.ForEach(a => a.WithImages(ImageUrl));
         return Ok(results);
-    }
-
-    [HttpGet("upcoming-reservations")]
-    [Authorize(Roles = Role.CabinOwner)]
-    public override Task<ActionResult> GetUpcomingReservations()
-    {
-        return base.GetUpcomingReservations();
     }
 
     [Authorize]
@@ -199,18 +185,6 @@ public class CabinController : BusinessController<Cabin, CabinDTO, CreateCabinDT
         results.ForEach(r => r.Image = ImageUrl(r.Id, r.Image));
 
         return Ok(results);
-    }
-
-    [Authorize(Roles = Role.CabinOwner)]
-    public override Task<List<ReportReservationResponse>> GetReservationsInPeriod(DateTime startDate, DateTime endDate)
-    {
-        return base.GetReservationsInPeriod(startDate, endDate);
-    }
-
-    [Authorize(Roles = Role.CabinOwner)]
-    public override Task<List<ReportPaymentResponse>> GetPaymentReport(DateTime startDate, DateTime endDate)
-    {
-        return base.GetPaymentReport(startDate, endDate);
     }
 
     [Authorize(Roles = Role.CabinOwner)]

@@ -1,168 +1,175 @@
 <template>
-  <div class="mx-auto flex h-full w-3/4 flex-col py-8">
-    <h1 class="text-4xl font-bold">👋 Welcome Miladin</h1>
+  <div class="mx-auto mt-3 mb-8 flex h-full w-4/5 max-w-7xl flex-col">
+    <h1 class="text-4xl font-bold">👋 Welcome {{ user.firstName }}</h1>
     <h2 class="mt-2 text-lg text-gray-800">
-      You currently haves
-      <span class="underline underline-offset-2"> {{reservations.length}} active reservations.</span>
+      You currently have
+      <span :class="reservations.length > 0 && 'underline underline-offset-2'">
+        {{ reservations.length > 0 ? reservations.length : 'no' }} active
+        reservations.</span
+      >
     </h2>
     <div class="mt-10 flex w-full flex-1 space-x-5">
       <div
-        class="relative h-[35rem] w-1/3 rounded-3xl border border-gray-300 py-5 px-6 " 
+        class="relative h-[35rem] w-1/3 rounded-2xl border border-gray-300 py-5 px-6"
       >
         <div class="flex items-center justify-between">
-          <h3 class="font-medium">My {{ businessType[user.roles[0]][0] }}</h3>
+          <h3 class="font-medium capitalize">
+            My {{ businessType[user.roles[0]] }}
+          </h3>
           <Button
-            class="flex items-center space-x-1 !rounded-md border border-gray-300 !py-2.5 cursor-pointer"
+            class="cursor-pointer !rounded-md border border-gray-300 !p-0 hover:bg-neutral-50"
           >
-              <RouterLink :to="`/business/${currentBusinessType}/create`">
-                <p class="!font-medium">Add</p>
-              </RouterLink>
+            <RouterLink
+              :to="`/business/${currentBusinessType}/create`"
+              class="flex items-center justify-center space-x-1 py-2.5 pl-4 pr-3"
+            >
+              <p class="!font-medium">Add</p>
               <PlusIcon class="h-4 w-4 stroke-[3] text-emerald-600" />
+            </RouterLink>
           </Button>
         </div>
-        <div class="mt-5 h-[80%] space-y-4 overflow-y-scroll">
-          <div
-            v-for="business in businesses"
-            :key="business?.id"
-            class="flex space-x-5"
-          >
-            <img
-              :src="business.images[0]"
-              alt="Business image"
-              class="h-28 w-28 rounded-xl object-cover"
-            />
-            <div class="flex flex-col justify-between">
+        <div class="mt-5 h-[80%] space-y-5 overflow-y-auto">
+          <div v-for="business in businesses" :key="business?.id">
+            <RouterLink
+              :to="`/${businessProfiles[currentBusinessType]}/${business.id}`"
+              class="flex items-center space-x-3"
+            >
               <div>
-                <div class="font-medium">              
-                  <RouterLink
-                :to="`/${businessProfiles[currentBusinessType]}/${business.id}`"
-                class="font-medium hover:text-emerald-400 cursor-pointer"
-                >{{ business.name }}</RouterLink
-              ></div>
-                <div class="text-[13px] text-gray-600">
-                  {{ formatAddress(business.address) }}
-                </div>
-
-                <div class="mt-1 flex items-center space-x-1 rounded-full">
-                  <UserIcon class="h-4 w-4" />
-                  <div>{{ business.people }}</div>
-                </div>
-              </div>
-
-              <div class="text-sm text-gray-400">
-                Current status:
-                <span
-                  class="rounded-full bg-emerald-50 px-3 py-1.5 text-[13px] font-bold text-emerald-700"
-                  >Booked</span
+                <img
+                  :src="business.images[0]"
+                  alt="Business image"
+                  class="h-14 w-[4.5rem] rounded-t-md object-cover"
+                />
+                <div
+                  class="w-full rounded-b-md bg-emerald-600 px-3 py-0.5 text-center text-[13px] font-medium text-white"
                 >
+                  Booked
+                </div>
               </div>
-            </div>
+              <div>
+                <span class="font-medium"> {{ business.name }} </span>
+                <div class="text-sm leading-5 text-gray-600">
+                  {{ business.address.city }}, {{ business.address.country }}
+                </div>
+                <div class="text-sm text-gray-600">
+                  {{ business.address.street }},
+                  {{ business.address.apartment }}
+                </div>
+              </div>
+            </RouterLink>
           </div>
         </div>
-        <a href="" class="absolute bottom-6 font-medium underline cursor-pointer">
-          View all {{businessType[user.roles[0]][0]}}
+        <a
+          href=""
+          class="absolute bottom-6 cursor-pointer font-medium underline"
+        >
+          View all
+          <span class="capitalize">
+            {{ businessType[user.roles[0]] }}
+          </span>
         </a>
       </div>
-      <div class="h-[35rem] w-1/3 rounded-3xl border border-gray-300 px-5 py-6">
+      <div class="h-[35rem] w-1/3 rounded-2xl border border-gray-300 px-5 py-6">
         <div class="-mt-1.5 flex items-center justify-between">
           <h3 class="font-medium">Earnings Trend</h3>
           <Dropdown :slim="false" class="!px-2 !py-1" :values="incomeOptions" />
         </div>
-        <div class="mt-4 text-3xl font-bold">$4,565</div>
+        <div class="mt-2 text-3xl font-bold">$4,565</div>
+        <div class="mt-5 flex items-end space-x-3">
+          <TransitionGroup name="list">
+            <div
+              v-for="(point, index) in earnings.values"
+              :key="point.year"
+              :style="{ transitionDelay: 40 * (index + 1) + 'ms' }"
+            >
+              <div
+                :style="{
+                  height: (point.total / earnings.max) * 120 + 'px'
+                }"
+                class="w-4 rounded bg-gradient-to-b from-teal-200 via-indigo-400 to-purple-500"
+              ></div>
+            </div>
+          </TransitionGroup>
+        </div>
       </div>
-      <div class="h-[35rem] w-1/3 rounded-3xl border border-gray-300 px-5 py-6 space-y-4">
+      <div
+        class="h-[35rem] w-1/3 space-y-4 rounded-2xl border border-gray-300 px-5 py-6"
+      >
         <h3 class="font-medium">Upcoming reservations</h3>
-        <div class="overflow-y-scroll h-[90%] space-y-3">
+        <div class="space-y-5 overflow-y-auto">
           <div
-          v-for="reservation in reservations"
-          :key="reservation.id"
-          class="px-4 py-3.5"
+            class="relative"
+            v-for="reservation in reservations"
+            :key="reservation.id"
           >
-         <div class="flex justify-between pt-0">
-          <div class="flex space-x-4">
-            <div class="relative">            
-              <div class="text-sm rounded-xl absolute bottom-2 right-1 bg-emerald-50 px-2">
-                  {{ reservation.cost.subtotal }}
+            <div class="flex items-center space-x-3">
+              <div>
+                <img
+                  :src="reservation.business.images[0]"
+                  alt="Business image"
+                  class="h-14 w-[4.5rem] rounded-t-md object-cover"
+                />
+                <div
+                  class="w-full rounded-b bg-emerald-600 py-0.5 px-2 text-center text-[13px] font-medium text-white 2xl:right-0"
+                >
+                  {{ cost(reservation) }}
+                </div>
               </div>
-              <img
-              :src="reservation.business.images[0]"
-              alt=""
-              class="h-24 w-24 rounded-lg object-cover"
-            /></div>
-            <div class="space-y-1">
-              <RouterLink
-                :to="`/${businessProfiles[currentBusinessType]}/${reservation.business.id}`"
-                class="font-medium hover:text-emerald-400 cursor-pointer"
-                >{{ reservation.business.name }}</RouterLink
-              >
-              <h3 class="mt-1 text-sm text-neutral-500">
-                {{ reservation.business.address.street }}
-                {{ reservation.business.address.apartment }}
-              </h3>
-              <h3 class="text-sm text-neutral-500">
-                {{ reservation.business.address.city }},
-                {{ reservation.business.address.country }}
-              </h3>
-              <div class="space-x-1 text-sm">
-                <span class="text-neutral-500">from</span>
-                <span class="font-medium">
+              <div>
+                <RouterLink
+                  :to="`/${businessProfiles[currentBusinessType]}/${reservation.business.id}`"
+                  class="cursor-pointer font-medium hover:text-emerald-400"
+                  >{{ reservation.business.name }}</RouterLink
+                >
+                <div class="text-sm leading-4 text-gray-600">
+                  {{ reservation.business.address.city }},
+                  {{ reservation.business.address.country }}
+                </div>
+                <div class="mt-1 text-sm font-medium">
                   {{
                     format(
                       parseJSON(reservation.start),
                       timeFormats[currentBusinessType]
                     )
                   }}
-                </span>
-                <span class="text-neutral-500">to</span>
-                <span class="font-medium">
-                  {{
-                    format(
-                      parseJSON(reservation.end),
-                      timeFormats[currentBusinessType]
-                    )
-                  }}
-                </span>
+                </div>
+                <div class="text-sm">
+                  <span class="text-sm text-neutral-500">Client</span>
+                  {{ reservation.user.firstName }}
+                  {{ reservation.user.lastName }}
+                </div>
               </div>
             </div>
           </div>
-      </div>
+        </div>
       </div>
     </div>
-    </div>
-  </div>
   </div>
 </template>
 
+<style>
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.4s cubic-bezier(1, 0.18, 0.38, 0.98);
+  transform: scaleY(1);
+  transform-origin: bottom;
+}
+.list-enter-from,
+.list-leave-to {
+  transform: scaleY(0);
+  transform-origin: bottom;
+}
+</style>
+
 <script setup>
 import { ref } from 'vue'
+import { RouterLink } from 'vue-router'
 import api from '@/api/api.js'
-import { PlusIcon, UserIcon } from 'vue-tabler-icons'
+import { PlusIcon } from 'vue-tabler-icons'
 import Button from '../ui/Button.vue'
 import Dropdown from '../ui/Dropdown.vue'
-import { formatAddress } from '@/components/utility/address.js'
 import { user } from '@/stores/userStore'
-import {
-  format,
-  parseJSON,
-  isPast,
-  differenceInHours,
-  parseISO
-} from 'date-fns'
-
-const businessTypes = [
-  {
-    name: 'Cabins',
-    value: 'cabins'
-  },
-  {
-    name: 'Boats',
-    value: 'boats'
-  },
-  {
-    name: 'Adventures',
-    value: 'adventures'
-  },
-]
+import { add, format, parseJSON, sub } from 'date-fns'
 
 const incomeOptions = [
   {
@@ -187,13 +194,16 @@ const timeFormats = {
 
 const businesses = ref([])
 const businessType = {
-  'Cabin Owner': ['Cabins',0],
-  'Boat Owner': ['Boats',1],
-  'Fishing Instructor': ['Adventures',2]
+  'Cabin Owner': 'cabins',
+  'Boat Owner': 'boats',
+  Fisher: 'adventures'
 }
 const reservations = ref([])
-
-const currentBusinessType = ref(businessTypes[businessType[user.roles[0]][1]].value)
+const currentBusinessType = ref(businessType[user.roles[0]])
+const earnings = ref({
+  max: 0,
+  values: []
+})
 
 const businessProfiles = {
   adventures: 'adventure-profile',
@@ -201,77 +211,48 @@ const businessProfiles = {
   boats: 'boat-profile'
 }
 
-const costs = reservation => {
-  const symbol = reservation.payment.price.symbol
-  const total = reservation.payment.price.amount
-  const tax = 1 + reservation.payment.taxPercentage / 100
-
-  return {
-    base: symbol + calculateBase(reservation).toFixed(2),
-    baseDetails: `
-      ${reservation.business.people}
-       x
-      ${reservation.units}
-       x
-      ${symbol}${reservation.business.pricePerUnit.amount.toFixed(2)}
-    `,
-    servicesTotal: symbol + calculateServices(reservation).toFixed(2),
-    services: reservation.services.map(s => ({
-      name: s.name,
-      price: (s.price.amount / tax).toFixed(2)
-    })),
-    subtotal: symbol + calculateSubtotal(reservation).toFixed(2),
-    discount: (
-      calculateSubtotal(reservation) *
-      (reservation.payment.discountPercentage / 100)
-    ).toFixed(2),
-    tax: (total - total / tax).toFixed(2),
-    total: symbol + total.toFixed(2)
-  }
-}
-
-const calculateBase = reservation => {
+const cost = reservation => {
   return (
-    (reservation.business.pricePerUnit.amount /
-      (1 + reservation.payment.taxPercentage / 100)) *
-    reservation.business.people *
-    reservation.units
+    reservation.payment.price.symbol +
+    (
+      reservation.payment.price.amount *
+      (1 - reservation.payment.taxPercentage / 100)
+    ).toFixed(2)
   )
-}
-
-const calculateServices = reservation => {
-  return (
-    reservation.services.reduce(
-      (sum, service) => sum + service.price.amount,
-      0
-    ) /
-    (1 + reservation.payment.taxPercentage / 100)
-  )
-}
-
-const calculateSubtotal = reservation => {
-  return calculateBase(reservation) + calculateServices(reservation)
 }
 
 const fetchBusinesses = async () => {
   const [data] = await api.business.ownersBusinesses(
-    businessType[user.roles[0]][0].toLowerCase()
+    businessType[user.roles[0]]
   )
   data && (businesses.value = data)
 }
 
 const fetchReservations = async () => {
-  const [data, error] = await api.business.upcomingReservations(
-    businessType[user.roles[0]][0].toLowerCase()
+  const [data, error] = await api.business.getReservations(
+    'pending',
+    businessType[user.roles[0]],
+    3
   )
   if (!error) {
-    data.forEach(r => {
-      r.cost = costs(r)
-    })
+    reservations.value = data
   }
-  data && (reservations.value = data)
+}
+
+const fetchReport = async () => {
+  const [data, error] = await api.finances.getReport(
+    sub(new Date(), { months: 1 }),
+    add(new Date(), { months: 3 })
+  )
+  if (!error) {
+    earnings.value = {
+      max: Math.max(...data.map(r => Number(r.total))),
+      values: data
+    }
+  }
 }
 
 fetchReservations()
 fetchBusinesses()
+fetchReport()
 </script>

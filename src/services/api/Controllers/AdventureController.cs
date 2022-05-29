@@ -76,13 +76,6 @@ public class AdventureController : BusinessController<Adventure, AdventureDT0, C
     }
 
     [Authorize]
-    [HttpGet("reservations")]
-    public Task<ActionResult> GetReservations(string status)
-    {
-        return GetReservations("adventures", status);
-    }
-
-    [Authorize]
     [AllowAnonymous]
     [HttpGet("search")]
     public async Task<ActionResult> Search([FromQuery] AdventureSearchRequest request)

@@ -15,7 +15,6 @@ using API.Infrastructure.Data;
 using API.Infrastructure.Extensions;
 using API.Services;
 using API.Infrastructure.Data.Queries;
-using API.DTO.Report;
 using API.Services.Email;
 using API.Services.Email.Messages;
 
@@ -519,24 +518,6 @@ public class BusinessController<
         return Ok();
     }
 
-    [HttpGet("upcoming-reservations")]
-    public virtual async Task<ActionResult> GetUpcomingReservations()
-    {
-        var results = await Context.Reservations
-            .AsNoTrackingWithIdentityResolution()
-            .Where(a => a.Business.Owner.Id == User.Id())
-            .Where(a => a.Status != "Canceled")
-            .Where(b => b.Business is TBusiness)
-            .Where(a => a.End >= DateTime.Now)
-            .OrderBy(a => a.Start)
-            .Take(6)
-            .ProjectToType<ReservationDTO>()
-            .ToListAsync();
-
-        results.ForEach(a => a.Business.WithImages(ImageUrl));
-        return Ok(results);
-    }
-
     [Authorize(Roles = Role.Customer)]
     [HttpPost("{id}/make-reservation")]
     public async Task<ActionResult> MakeReservation([FromRoute] Guid id, [FromBody] MakeReservationDTO request)
@@ -585,23 +566,29 @@ public class BusinessController<
         return Ok(reservation.Id);
     }
 
+    [Authorize]
     [HttpGet("reservations")]
-    protected async Task<ActionResult> GetReservations(string businessType, string status)
+    public async Task<ActionResult> GetReservations(string status, int size = 10)
     {
+        size = Math.Clamp(size, 0, 20);
         var currentTime = DateTimeOffset.Now;
+        var isCustomer = User.IsInRole(Role.Customer);
 
         var reservationsQuery = Context.Reservations
+            .Include(r => r.Payment)
             .AsNoTrackingWithIdentityResolution()
-            .Where(r => r.User.Id == User.Id())
-            .Where(r => r.Status != "Cancelled");
+            .Where(r => !(r is Sale))
+            .Where(r => r.Business is TBusiness)
+            .Where(r => r.Status != Reservation.ReservationStatus.Cancelled);
 
-        reservationsQuery = businessType switch
+        if (isCustomer)
         {
-            "boats" => reservationsQuery.Where(b => b.Business is Boat),
-            "adventures" => reservationsQuery.Where(b => b.Business is Adventure),
-            "cabins" => reservationsQuery.Where(b => b.Business is Cabin),
-            "all" or _ => reservationsQuery
-        };
+            reservationsQuery = reservationsQuery.Where(r => r.User.Id == User.Id());
+        }
+        else
+        {
+            reservationsQuery = reservationsQuery.Where(r => r.Business.Owner.Id == User.Id());
+        }
 
         reservationsQuery = status switch
         {
@@ -613,7 +600,7 @@ public class BusinessController<
 
         var reservations = await reservationsQuery
             .OrderBy(r => r.Start)
-            .Take(10)
+            .Take(size)
             .ProjectToType<ReservationDTO>()
             .ToListAsync();
 
@@ -773,92 +760,4 @@ public class BusinessController<
 
         return Ok();
     }
-
-    [Authorize]
-    [HttpGet("reservations-rating")]
-    public virtual async Task<List<ReportReservationResponse>> GetReservationsInPeriod(DateTime startDate, DateTime endDate)
-    {
-        List<ReportReservationResponse> result = new List<ReportReservationResponse>();
-
-        int days = GetDaysSpan(endDate - startDate);
-
-        var reservations = getReservationsInSpanPeriod(startDate - TimeSpan.FromDays(days), endDate);
-
-        result.Add(new ReportReservationResponse() { NumOfReservations = reservations.Count, Date = startDate });
-
-        while (startDate < endDate)
-        {
-            DateTime lastDate = startDate + TimeSpan.FromDays(days);
-            if (lastDate > endDate)
-            {
-                lastDate = endDate;
-            }
-            reservations = getReservationsInSpanPeriod(startDate, lastDate);
-
-            result.Add(new ReportReservationResponse() { NumOfReservations = reservations.Count, Date = lastDate });
-            startDate += TimeSpan.FromDays(30);
-        }
-
-        return result;
-    }
-
-    [Authorize]
-    [HttpGet("payment-rating")]
-    public virtual async Task<List<ReportPaymentResponse>> GetPaymentReport(DateTime startDate, DateTime endDate)
-    {
-        List<ReportPaymentResponse> result = new List<ReportPaymentResponse>();
-
-        int days = GetDaysSpan(endDate - startDate);
-
-        double income = GetIncomeInPeriod(startDate - TimeSpan.FromDays(days), endDate);
-
-        result.Add(new ReportPaymentResponse() { Date = startDate, IncomeAmount = income });
-
-        while (startDate < endDate)
-        {
-            DateTime lastDate = startDate + TimeSpan.FromDays(days);
-            if (lastDate > endDate)
-            {
-                lastDate = endDate;
-            }
-            income = GetIncomeInPeriod(startDate, lastDate);
-
-            result.Add(new ReportPaymentResponse() { Date = startDate, IncomeAmount = income });
-            startDate += TimeSpan.FromDays(30);
-        }
-
-        return result;
-    }
-    protected List<ReservationDTO> getReservationsInSpanPeriod(DateTime startDate, DateTime endDate)
-    {
-        return Context.Reservations
-            .AsNoTrackingWithIdentityResolution()
-            .Where(r => r.Business.Owner.Id == User.Id())
-            .Where(r => r.Start >= startDate && r.End <= endDate)
-            .Where(r => r.Status == "Fulfilled")
-            .ProjectToType<ReservationDTO>().ToList();
-    }
-
-    protected int GetDaysSpan(TimeSpan daysDifference)
-    {
-        if (daysDifference.Days > 365) return 30;
-        else if (daysDifference.Days > 30) return 7;
-        else return 1;
-    }
-
-    protected double GetIncomeInPeriod(DateTime startDate, DateTime endDate)
-    {
-        var reservations = getReservationsInSpanPeriod(startDate, endDate);
-
-        var payments = (from r in reservations
-                        select r.Payment);
-
-        double income = 0;
-        foreach (Payment payment in payments)
-        {
-            income += (double)payment.Price.Amount * (1 - payment.DiscountPercentage / 100) * (1 - payment.TaxPercentage / 100);
-        }
-        return income;
-    }
-
 }

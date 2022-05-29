@@ -95,7 +95,7 @@ public abstract class Business : Entity
             User = user,
             Business = this,
             Rating = rating,
-            Content = content
+            Content = content,
         };
 
         Reviews.Add(r);

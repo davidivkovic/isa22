@@ -86,7 +86,7 @@
             {{ results.length === 1 ? 'Result' : 'Results' }}
             <span class="font-normal"> for {{ currentLocation }}</span>
             <div v-if="results.length === 0" class="mt-3 text-base font-normal">
-              Unfortunatelly, there are no available
+              Unfortunately, there are no available
               {{ $route.params.type }}. Please change the search parameters.
             </div>
           </h2>

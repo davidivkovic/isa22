@@ -68,6 +68,8 @@ public static class Role
     public const string BoatOwner = "Boat Owner";
     public const string CabinOwner = "Cabin Owner";
     public const string Fisher = "Fisher";
+    public const string BusinessOwner = $"{BoatOwner}, {CabinOwner}, {Fisher}";
+    public const string BusinessOwnerOrAdmin = $"{BusinessOwner}, {Admin}";
 
     public static readonly List<string> Available = new()
     {

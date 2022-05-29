@@ -40,15 +40,15 @@ const searchCabins = (query, id) =>
 
 const searchBoats = (query, id) =>
   fetch(instance.get(`boat-owner/${id}/boats`, { params: { ...query } }))
- 
-const ownersBusinesses = async type => fetch(instance.get(`${type}`))
-const upcomingReservations = async type => fetch(instance.get(`/${type}/upcoming-reservations`))
 
-const getReservations = async (status, type) =>
+const ownersBusinesses = async type => fetch(instance.get(`${type}`))
+
+const getReservations = async (status, type, size = 10) =>
   fetch(
     instance.get(`${endpoints[type]}/reservations`, {
       params: {
-        status
+        status,
+        size
       }
     })
   )
@@ -147,6 +147,5 @@ export default {
   makeQuickReservation,
   makeResrvation,
   cancelReservation,
-  review,
-  upcomingReservations
+  review
 }

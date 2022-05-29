@@ -20,8 +20,8 @@ public static class CookieExtensions
         {
             IsEssential = true,
             HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.None
+            Secure = false,
+            SameSite = SameSiteMode.Unspecified
         });
     }
 }

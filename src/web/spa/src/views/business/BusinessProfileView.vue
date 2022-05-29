@@ -5,20 +5,7 @@
   <SuccessAlert @close="successAlert = false" v-if="successAlert"
     >Reservation sucessfully made.</SuccessAlert
   >
-  <div class="mx-auto h-screen max-w-6xl space-y-5 border-t !py-8">
-    <div v-if="isOwnersBusiness || user.role == 'Admin'" class="">
-      <Button
-        @click="editBusiness()"
-        class="border !py-1 !text-base font-medium"
-        >Edit</Button
-      >
-      <Button
-        v-if="props.entity.isDeletable"
-        @click="deleteBusiness()"
-        class="!py-0 !text-base font-bold text-red-500"
-        >Delete</Button
-      >
-    </div>
+  <div class="mx-auto !mt-2 !mb-8 h-screen max-w-6xl space-y-5">
     <div class="flex w-full space-x-10">
       <div class="h-full w-[62.5%] space-y-3">
         <div class="flex h-[405px] space-x-4">
@@ -66,30 +53,50 @@
             </div>
           </div>
         </div>
-        <div class="relative !mt-3 h-max flex-1">
+        <div class="relative !mt-5 h-max flex-1">
           <div class="flex w-full items-center justify-between">
-            <div class="text-[38px] font-medium">
+            <div class="text-3xl font-medium">
               {{ props.entity.name }}
             </div>
             <p class="">
-              <span class="text-3xl font-bold text-emerald-600"
+              <span class="text-2xl font-bold text-emerald-600"
                 >{{ props.entity.pricePerUnit.symbol
                 }}{{ props.entity.pricePerUnit.amount.toFixed(2) }}</span
               >
               / {{ entityType == 'cabins' ? 'night' : 'hour' }}
             </p>
           </div>
-          <div
-            class="-mt-2 flex items-center space-x-1 border-b pb-5 text-gray-500"
-          >
-            <MapPinIcon class="h-5 w-5" />
-            <h2 class="">
-              {{ props.entity.address.street }}
-              {{ props.entity.address.apartment }},
-              {{ props.entity.address.postalCode }}
-              {{ props.entity.address.city }},
-              {{ props.entity.address.country }}
-            </h2>
+          <div class="border-b pb-5">
+            <div class="-mt-1 flex items-center space-x-1 text-gray-700">
+              <MapPinIcon class="h-5 w-5" />
+              <h2 class="pt-0.5">
+                {{ props.entity.address.street }}
+                {{ props.entity.address.apartment }},
+                {{ props.entity.address.postalCode }}
+                {{ props.entity.address.city }},
+                {{ props.entity.address.country }}
+              </h2>
+            </div>
+            <div
+              v-if="isOwnersBusiness || user.role == 'Admin'"
+              class="mt-3 flex"
+            >
+              <Button
+                @click="editBusiness()"
+                class="mr-2 flex space-x-1 border !py-1 !text-sm hover:bg-neutral-50"
+              >
+                <span class="font-medium">Edit</span>
+                <PencilIcon class="-mt-0.5 h-5 w-5" />
+              </Button>
+              <Button
+                v-if="props.entity.isDeletable"
+                @click="deleteBusiness()"
+                class="flex space-x-1 border !py-1 !text-sm text-red-500 hover:bg-neutral-50"
+              >
+                <span class="font-medium">Delete</span>
+                <TrashIcon class="-mt-px h-5 w-5" />
+              </Button>
+            </div>
           </div>
           <div v-if="props.entityType == 'cabins'" class="mt-5 flex space-x-14">
             <div class="flex items-center space-x-1 rounded-full">
@@ -261,14 +268,16 @@
       </div>
       <div class="flex-1 space-y-5">
         <div class="flex space-x-2">
-          <div class="bg-emerald-50 p-1 text-xl font-bold text-emerald-700">
-            {{ props.entity.rating.toFixed(2) }}
+          <div
+            class="flex items-center rounded-md bg-emerald-600 px-2 text-xl font-bold text-white"
+          >
+            {{ props.entity.rating.toFixed(1) }}
           </div>
           <div class="-space-y-1">
-            <div class="text-sm font-medium text-gray-500">
+            <div class="font-medium">
               {{ ratingDesc }}
             </div>
-            <div class="text-[13px]">
+            <div class="text-sm">
               {{ props.entity.numberOfReviews }} reviews
             </div>
           </div>
@@ -278,7 +287,7 @@
             class="flex items-center space-x-2 text-sm font-medium text-gray-600"
           >
             <UsersIcon class="h-4 w-4 text-gray-600" />
-            <div>{{ people }} {{ people == 1 ? 'Person' : 'Persons' }}</div>
+            <div>{{ people }} {{ people == 1 ? 'Person' : 'People' }}</div>
           </div>
           <div class="text-sm">
             {{ units }} {{ entityType == 'cabins' ? 'Nights' : 'Hours' }} incl.
@@ -293,11 +302,11 @@
           <div class="!mt-3 flex justify-between">
             <div>
               <p>Price:</p>
-              <p class="text-xs text-gray-500">
+              <p class="text-sm text-gray-500">
                 {{ props.entity.pricePerUnit.symbol
                 }}{{ props.entity.pricePerUnit.amount }} x {{ units }}
-                {{ entityType == 'cabins' ? 'nights' : 'hours' }} x
-                {{ people }} people
+                {{ entityType == 'cabins' ? 'Nights' : 'Hours' }} x
+                {{ people }} {{ people == 1 ? 'Person' : 'People' }}
               </p>
             </div>
             <p>
@@ -349,8 +358,8 @@
           <div class="flex justify-between">
             <div>
               <p>Discount:</p>
-              <p v-if="!user?.loyaltyLevel" class="text-xs text-gray-500">
-                no loyalty status
+              <p v-if="!user?.loyaltyLevel" class="text-sm text-gray-500">
+                No loyalty level
               </p>
               <div
                 v-else
@@ -431,10 +440,12 @@
             discount!
           </p>
           <div v-for="(sale, ind) in sortedSales" :key="sale.id">
-            <div class="rounded-md border px-3 py-4">
+            <div class="rounded-lg border px-4 pt-3.5 pb-2.5">
               <div class="flex w-full items-center justify-between">
-                <div class="grid space-y-1 text-[13px] text-gray-500">
-                  <p v-if="sale.services.length == 0">No services</p>
+                <div class="-mt-3.5 grid space-y-1 text-[13px] text-gray-500">
+                  <p class="-mt-4" v-if="sale.services.length == 0">
+                    No services
+                  </p>
                   <div v-else class="whitespace-nowrap font-medium">
                     <p>
                       {{
@@ -454,7 +465,7 @@
                     </p>
                   </div>
                 </div>
-                <div class="flex space-x-5">
+                <div class="flex items-center space-x-3">
                   <div class="flex flex-col items-end">
                     <p
                       v-if="ind != 0"
@@ -469,19 +480,19 @@
                       }}
                     </p>
                     <p
-                      class="bg-emerald-50 p-1 text-xs font-medium text-emerald-700"
+                      class="rounded-md bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700"
                       v-else
                     >
-                      Top deal
+                      Top Deal
                     </p>
-                    <p class="text-lg font-bold text-emerald-700">
+                    <p class="text-xl font-bold text-emerald-700">
                       {{ sale.price.symbol }}{{ sale.price.amount.toFixed(2) }}
                     </p>
                   </div>
                   <Button
                     @click="makeQuickReservation(sale)"
                     v-if="!isOwnersBusiness"
-                    class="= h-12 whitespace-nowrap rounded-full bg-emerald-600 text-white"
+                    class="mb-1 whitespace-nowrap !rounded-lg bg-emerald-600 !px-3 text-white"
                   >
                     Book now
                   </Button>
@@ -489,7 +500,7 @@
               </div>
               <details class="space-y-2">
                 <summary
-                  class="-mt-1.5 flex cursor-pointer items-center space-x-1"
+                  class="-mt-2.5 flex cursor-pointer items-center space-x-1"
                 >
                   <p class="text-[13px]">Read more</p>
                   <ChevronDownIcon
@@ -643,7 +654,9 @@ import {
   ChecksIcon,
   CheckIcon,
   ChevronDownIcon,
-  CalendarIcon
+  CalendarIcon,
+  PencilIcon,
+  TrashIcon
 } from 'vue-tabler-icons'
 import Checkbox from '@/components/ui/Checkbox.vue'
 import Button from '@/components/ui/Button.vue'
@@ -819,7 +832,7 @@ const subscribe = () => {
   setTimeout(() => {
     isLoading.value = false
     isSubscribed.value = true
-  }, 2000)
+  }, 400)
 }
 
 const unsubscribe = () => {
@@ -827,7 +840,7 @@ const unsubscribe = () => {
   setTimeout(() => {
     isLoading.value = false
     isSubscribed.value = false
-  }, 2000)
+  }, 400)
 }
 
 const oldPrice = (newPrice, discPer) => {
