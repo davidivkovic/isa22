@@ -67,7 +67,7 @@ public class BoatController : BusinessController<Boat, BoatDTO, CreateBoatDTO, U
             .Where(a => a.Owner.Id == User.Id())
             .AsNoTrackingWithIdentityResolution();
         var results = await query
-            .Take(3)
+            .Take(6)
             .Select(a => a.Adapt<BoatDTO>())
             .ToListAsync();
 

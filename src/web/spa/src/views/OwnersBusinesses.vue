@@ -282,11 +282,12 @@ const direction = ref(
 const results = ref([])
 
 const fetchResults = async () => {
-  const [data, error] = await api.business.searchCabins(
+  const [data, error] = await api.business.searchBussines(
     {
       ...route.query
     },
-    route.params.id
+    route.params.id,
+    userType[1]
   )
   if (!error) {
     data.forEach(b => {

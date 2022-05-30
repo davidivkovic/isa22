@@ -61,8 +61,8 @@ public class AdventureController : BusinessController<Adventure, AdventureDT0, C
             .Where(a => a.Owner.Id == User.Id())
             .AsNoTrackingWithIdentityResolution();
         var results = await query
-            .Take(3)
-            .Select(a =>  a.Adapt<AdventureDT0>())
+            .Take(6)
+            .ProjectToType<AdventureDT0>()
             .ToListAsync();
 
         results.ForEach(a => a.WithImages(ImageUrl));
@@ -132,6 +132,70 @@ public class AdventureController : BusinessController<Adventure, AdventureDT0, C
             results,
             totalResults,
         });
+    }
+
+    [HttpGet("/adventure-owner/{id}/adventrues")]
+    [Authorize(Roles = Role.Fisher)]
+    public async Task<ActionResult> SearchOwnersAdventures([FromQuery] AdventureSearchRequest request)
+    {
+        var query = Context.Adventures
+            .Where(c => c.Owner.Id == User.Id())
+            .AsNoTrackingWithIdentityResolution();
+
+        if (!string.IsNullOrWhiteSpace(request.Name))
+        {
+            query = query.Where(a => EF.Functions.ILike(a.Name, $"%{request.Name}%"));
+        }
+        if (!string.IsNullOrWhiteSpace(request.City))
+        {
+            query = query.Where(a => EF.Functions.ILike(a.Address.City, $"%{request.City}%"));
+        }
+        if (!string.IsNullOrWhiteSpace(request.Country))
+        {
+            query = query.Where(c => EF.Functions.ILike(c.Address.Country, $"%{request.Country}%"));
+        }
+        if (request.People != 0)
+        {
+            query = query.Where(c => c.People == request.People);
+        }
+        var results = await query
+            .OrderBy(request.Direction)
+            .Take(9)
+            .Select(c => new AdventureSearchResponse
+            {
+                Id = c.Id,
+                Name = c.Name,
+                Description = c.Description,
+                Address = c.Address,
+                Image = c.Images.FirstOrDefault(),
+                People = c.People,
+                Rating = c.Rating,
+                CancellationFee = c.CancellationFee,
+                Price = new Money
+                {
+                    Amount = c.PricePerUnit.Amount,
+                    Currency = c.PricePerUnit.Currency
+                }
+            })
+            .ToListAsync();
+
+        results.ForEach(r => r.Image = ImageUrl(r.Id, r.Image));
+
+        return Ok(results);
+    }
+
+    [HttpGet("upcoming-reservations")]
+    [Authorize(Roles = Role.Fisher)]
+    public override Task<ActionResult> GetUpcomingReservations()
+    {
+        return base.GetUpcomingReservations();
+    }
+
+    [HttpGet("all-owners-reservations")]
+    [Authorize(Roles = Role.Fisher)]
+    public override Task<ActionResult> GetAllOwnersReservations()
+    {
+        return base.GetAllOwnersReservations();
     }
 
     [Authorize(Roles = Role.Fisher)]
