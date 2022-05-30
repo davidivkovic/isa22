@@ -134,7 +134,7 @@ public class AdventureController : BusinessController<Adventure, AdventureDT0, C
         });
     }
 
-    [HttpGet("/adventure-owner/{id}/adventrues")]
+    [HttpGet("/adventure-owner/{id}/adventures")]
     [Authorize(Roles = Role.Fisher)]
     public async Task<ActionResult> SearchOwnersAdventures([FromQuery] AdventureSearchRequest request)
     {

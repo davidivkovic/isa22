@@ -290,11 +290,12 @@ const fetchResults = async () => {
     {
       ...route.query
     },
-    route.params.id,
-    userType[1]
+    route.params?.id,
+    userType[1],
+    userType[0]
   )
   if (!error) {
-    data.forEach(b => {
+    data?.forEach(b => {
       b.values = [
         {
           name: 'Calendar',

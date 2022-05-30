@@ -56,7 +56,7 @@ const ownerType = computed(() => {
   return {
     'Cabin Owner': 'cabin-owner',
     'Boat Owner': 'boat-owner',
-    Fisher: 'fisher'
+    Fisher: 'adventure-owner'
   }[user.roles[0]]
 })
 

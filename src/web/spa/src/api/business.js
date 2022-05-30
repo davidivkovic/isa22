@@ -41,8 +41,8 @@ const searchCabins = (query, id) =>
 const searchBoats = (query, id) =>
   fetch(instance.get(`boat-owner/${id}/boats`, { params: { ...query } }))
 
-const searchBussines = (query, id, type) =>
-  fetch(instance.get(`${type}/${id}/boats`, { params: { ...query } }))
+const searchBussines = (query, id, userType, business) =>
+  fetch(instance.get(`${userType}/${id}/${business}`, { params: { ...query } }))
 
 const ownersBusinesses = async type => fetch(instance.get(`${type}`))
 const upcomingReservations = async type =>
