@@ -9,11 +9,13 @@
       ></div>
     </div>
     <div class="cursor-pointer space-y-1">
-      <div>My {{ businessName }}</div>
-      <div
-        v-if="selectedTab === 4"
-        class="h-0.5 w-full rounded-full bg-emerald-600"
-      ></div>
+      <RouterLink :to="`/${ownerType}/${user.id}/${businessName}`">
+        <div>My {{ businessName }}</div>
+        <div
+          v-if="selectedTab === 4"
+          class="h-0.5 w-full rounded-full bg-emerald-600"
+        ></div>
+      </RouterLink>
     </div>
     <div class="cursor-pointer space-y-1">
       <div>Income</div>
@@ -23,11 +25,13 @@
       ></div>
     </div>
     <div class="cursor-pointer space-y-1">
-      <div>Resevations</div>
-      <div
-        v-if="selectedTab === 5"
-        class="h-0.5 w-full rounded-full bg-emerald-600"
-      ></div>
+      <RouterLink :to="`/${ownerType}/${user.id}/reservations`">
+        <div>Resevations</div>
+        <div
+          v-if="selectedTab === 5"
+          class="h-0.5 w-full rounded-full bg-emerald-600"
+        ></div>
+      </RouterLink>
     </div>
   </div>
   <div class="flex space-x-3">
@@ -44,15 +48,24 @@ import { RouterLink, useRoute } from 'vue-router'
 import Logo from './Logo.vue'
 import SignInButton from './SignInButton.vue'
 import Button from '../ui/Button.vue'
+import { user } from '@/stores/userStore'
 
 const currentRoute = computed(() => useRoute().path)
 
+const ownerType = computed(() => {
+  return {
+    'Cabin Owner': 'cabin-owner',
+    'Boat Owner': 'boat-owner',
+    Fisher: 'fisher'
+  }[user.roles[0]]
+})
+
 const businessName = computed(() => {
   return {
-    0: 'cabins',
-    1: 'boats',
-    2: 'adventures'
-  }[selectedTab.value]
+    'Cabin Owner': 'cabins',
+    'Boat Owner': 'boats',
+    Fisher: 'adventures'
+  }[user.roles[0]]
 })
 
 const selectedTab = computed(() => {
