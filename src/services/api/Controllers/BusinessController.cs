@@ -760,4 +760,37 @@ public class BusinessController<
 
         return Ok();
     }
+
+    [HttpGet("upcoming-reservations")]
+    public virtual async Task<ActionResult> GetUpcomingReservations()
+    {
+        var results = await Context.Reservations
+            .AsNoTrackingWithIdentityResolution()
+            .Where(a => a.Business.Owner.Id == User.Id())
+            .Where(a => a.Status != "Canceled")
+            .Where(b => b.Business is TBusiness)
+            .Where(a => a.End >= DateTime.Now)
+            .OrderBy(a => a.Start)
+            .Take(6)
+            .ProjectToType<ReservationDTO>()
+            .ToListAsync();
+
+        results.ForEach(a => a.Business.WithImages(ImageUrl));
+        return Ok(results);
+    }
+
+    [HttpGet("all-owners-reservations")]
+    public virtual async Task<ActionResult> GetAllOwnersReservations()
+    {
+        var results = await Context.Reservations
+            .AsNoTrackingWithIdentityResolution()
+            .Where(a => a.Business.Owner.Id == User.Id())
+            .Where(b => b.Business is TBusiness)
+            .OrderByDescending(a => a.Start)
+            .ProjectToType<ReservationDTO>()
+            .ToListAsync();
+
+        results.ForEach(a => a.Business.WithImages(ImageUrl));
+        return Ok(results);
+    }
 }

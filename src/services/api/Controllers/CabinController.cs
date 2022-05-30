@@ -192,4 +192,18 @@ public class CabinController : BusinessController<Cabin, CabinDTO, CreateCabinDT
     {
         return base.CreateSale(id, request);
     }
+
+    [HttpGet("upcoming-reservations")]
+    [Authorize(Roles = Role.CabinOwner)]
+    public override Task<ActionResult> GetUpcomingReservations()
+    {
+        return base.GetUpcomingReservations();
+    }
+
+    [HttpGet("all-owners-reservations")]
+    [Authorize(Roles = Role.CabinOwner)]
+    public override Task<ActionResult> GetAllOwnersReservations()
+    {
+        return base.GetAllOwnersReservations();
+    }
 }
