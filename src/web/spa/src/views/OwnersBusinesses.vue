@@ -132,6 +132,7 @@
                   </div>
                   <div class="mt-4 w-[7rem] items-end space-x-2">
                     <div
+                      v-if="userType[0] == 'cabins'"
                       class="justify-left ml-[8px] flex space-x-1 text-neutral-500"
                     >
                       <h4 class="font- font-mono text-[13px]">
@@ -142,7 +143,10 @@
                         class="h-4 w-4 pb-px text-emerald-500"
                       />
                     </div>
-                    <div class="justify-left flex space-x-1 text-neutral-500">
+                    <div
+                      v-if="userType[0] == 'cabins'"
+                      class="justify-left flex space-x-1 text-neutral-500"
+                    >
                       <h4 class="font- font-mono text-[13px]">
                         Beds: &nbsp;&nbsp;{{ result.beds }}
                       </h4>
