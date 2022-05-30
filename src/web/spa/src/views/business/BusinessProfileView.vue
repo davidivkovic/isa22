@@ -617,6 +617,7 @@
     :isOpen="isDeleteModalOpen"
     :businessId="entity.id"
     :type="props.entityType"
+    :back="true"
     @modalClosed="isDeleteModalOpen = false"
   />
   <CreateSaleModal

@@ -196,4 +196,18 @@ public class BoatController : BusinessController<Boat, BoatDTO, CreateBoatDTO, U
 
         return Ok(results);
     }
+
+    [HttpGet("upcoming-reservations")]
+    [Authorize(Roles = Role.BoatOwner)]
+    public override Task<ActionResult> GetUpcomingReservations()
+    {
+        return base.GetUpcomingReservations();
+    }
+
+    [HttpGet("all-owners-reservations")]
+    [Authorize(Roles = Role.BoatOwner)]
+    public override Task<ActionResult> GetAllOwnersReservations()
+    {
+        return base.GetAllOwnersReservations();
+    }
 }
