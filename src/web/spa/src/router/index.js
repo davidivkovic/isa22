@@ -144,7 +144,7 @@ const router = createRouter({
       component: () => import('../views/BoatOwnerHomePage.vue')
     },
     {
-      path: '/boat-owner/:id/boats',
+      path: '/my-boats',
       name: 'owners boats',
       component: () => import('../views/OwnersBusinesses.vue')
     },

@@ -177,10 +177,15 @@ public class BoatController : BusinessController<Boat, BoatDTO, CreateBoatDTO, U
         {
             query = query.Where(c => c.People == request.People);
         }
+        int page = request.Page;
+        if (page == 0) page = 1;
+
+        int totalResults = await query.CountAsync();
 
         var results = await query
             .OrderBy(request.Direction)
-            .Take(9)
+            .Skip((page - 1) * 6)
+            .Take(6)
             .Select(c => new SearchResponse
             {
                 Id = c.Id,
@@ -201,7 +206,7 @@ public class BoatController : BusinessController<Boat, BoatDTO, CreateBoatDTO, U
 
         results.ForEach(r => r.Image = ImageUrl(r.Id, r.Image));
 
-        return Ok(results);
+        return Ok(new { results, totalResults });
     }
 
     [HttpGet("upcoming-reservations")]

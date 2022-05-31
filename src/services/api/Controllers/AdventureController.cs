@@ -165,9 +165,15 @@ public class AdventureController : BusinessController<Adventure, AdventureDT0, C
         {
             query = query.Where(c => c.People == request.People);
         }
+        int page = request.Page;
+        if (page == 0) page = 1;
+
+        int totalResults = await query.CountAsync();
+
         var results = await query
             .OrderBy(request.Direction)
-            .Take(9)
+            .Skip((page - 1) * 6)
+            .Take(6)
             .Select(c => new AdventureSearchResponse
             {
                 Id = c.Id,
@@ -188,6 +194,11 @@ public class AdventureController : BusinessController<Adventure, AdventureDT0, C
 
         results.ForEach(r => r.Image = ImageUrl(r.Id, r.Image));
 
+        return Ok(new
+        {
+            results,
+            totalResults,
+        });
         return Ok(results);
     }
 
