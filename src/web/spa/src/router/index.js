@@ -84,12 +84,12 @@ const router = createRouter({
       component: () => import('../views/CalendarView.vue')
     },
     {
-      path: '/adventure-owner/:id/adventures',
+      path: '/my-adventures',
       name: 'owners adventures',
       component: () => import('../views/OwnersBusinesses.vue')
     },
     {
-      path: '/adventure-owner/:id/reservations',
+      path: '/adventures-reservations',
       name: 'adventure owners reservations',
       component: () => import('../views/OwnersReservations.vue')
     },
@@ -104,12 +104,12 @@ const router = createRouter({
       component: () => import('../views/CalendarView.vue')
     },
     {
-      path: '/cabin-owner/:id/reservations',
+      path: '/cabins-reservations',
       name: 'cabin owners reservations',
       component: () => import('../views/OwnersReservations.vue')
     },
     {
-      path: '/boat-owner/:id/reservations',
+      path: '/boats-reservations',
       name: 'boat owners reservations',
       component: () => import('../views/OwnersReservations.vue')
     },
@@ -134,7 +134,7 @@ const router = createRouter({
       component: () => import('../views/CabinOwnerHomePage.vue')
     },
     {
-      path: '/cabin-owner/:id/cabins',
+      path: '/my-cabins',
       name: 'owners cabins',
       component: () => import('../views/OwnersBusinesses.vue')
     },
@@ -167,6 +167,11 @@ const router = createRouter({
       path: '/loyalty',
       name: 'loyalty',
       component: () => import('../components/admin/LoyaltyProgram.vue')
+    },
+    {
+      path: '/get-profile/:id',
+      name: 'user profile',
+      component: () => import('../views/UserProfile.vue')
     }
   ]
 })

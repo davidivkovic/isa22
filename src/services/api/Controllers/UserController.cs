@@ -303,4 +303,32 @@ public class UserController : ControllerBase
             .ProjectToType<PendingReviewDTO>()
             .ToListAsync();
     }
+
+
+    [Authorize]
+    [HttpGet("get-profile/{id}")]
+    public async Task<ActionResult> GetProfile([FromRoute] Guid id)
+    {
+        var user = await _context.Users
+            .AsNoTracking()
+            .Where(u => u.Id == id)
+            .FirstOrDefaultAsync();
+
+        var loyaltyQuery = _context.LoyaltyLevels
+            .AsNoTracking();
+
+        var loyaltyLevel = await loyaltyQuery
+            .OrderByDescending(l => l.Threshold)
+            .FirstOrDefaultAsync(l => l.Threshold <= user.LoyaltyPoints);
+
+        return Ok(new UserProfileDTO
+        {
+            User = user.Adapt<UserDTO>(),
+            LoyaltyLevel = new()
+            {
+                Points = user.LoyaltyPoints,
+                Current = loyaltyLevel
+            }
+        });
+    }
 }
