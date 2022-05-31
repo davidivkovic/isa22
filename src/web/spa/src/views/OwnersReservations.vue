@@ -96,6 +96,38 @@
           </div>
         </div>
       </div>
+      <div
+        v-if="reservations.length"
+        class="mt-10 flex justify-between space-x-10 text-sm"
+      >
+        <p>
+          Showing <span class="font-medium"> 1</span> to
+          <span class="font-medium"> {{ reservations.length }} </span> of
+          <span class="font-medium"> {{ totalResults }} </span> results
+        </p>
+        <div class="flex space-x-5">
+          <button
+            @click="previousPage()"
+            v-if="hasPrevious"
+            class="flex items-center space-x-2 hover:underline"
+          >
+            <ArrowLeftIcon class="h-4 w-4" />
+            <p>Previous</p>
+          </button>
+          <p>
+            Page <span class="font-medium">{{ currentPage }}</span> of
+            <span class="font-medium">{{ totalPages }} </span>
+          </p>
+          <button
+            @click="nextPage()"
+            v-if="hasNext"
+            class="flex items-center space-x-2 hover:underline"
+          >
+            <p>Next</p>
+            <ArrowRightIcon class="h-4 w-4" />
+          </button>
+        </div>
+      </div>
     </div>
   </div>
   <CreateReview
@@ -175,6 +207,14 @@ const currentBusinessType = ref(
   businessTypes[businessType[user.roles[0]][1]].value
 )
 
+const currentPage = ref(1)
+const totalPages = ref(1)
+const totalResults = ref(0)
+const hasNext = computed(() => currentPage.value < totalPages.value)
+const hasPrevious = computed(
+  () => currentPage.value >= totalPages.value && totalPages.value > 1
+)
+
 const reservationStatus = reservation => {
   if (isPast(parseJSON(reservation.end))) return 'Completed'
   if (isPast(parseJSON(reservation.start))) return 'Ongoing'
@@ -214,17 +254,31 @@ const calculateSubtotal = reservation => {
   return calculateBase(reservation) + calculateServices(reservation)
 }
 
-watchEffect(async () => {
+const search = async () => {
   const [reservationsData, reservationsError] =
     await api.business.allReservations(
-      businessType[user.roles[0]][0].toLowerCase()
+      businessType[user.roles[0]][0].toLowerCase(),
+      currentPage.value
     )
   if (!reservationsError) {
-    reservations.value = reservationsData
-    reservations.value.forEach(r => {
+    totalResults.value = reservationsData.totalResults
+    reservations.value = reservationsData.results
+    reservationsData.results.forEach(r => {
       r.cost = costs(r)
       r.detailsVisible = false
     })
   }
-})
+}
+
+watchEffect(() => search())
+
+const nextPage = () => {
+  currentPage.value++
+  search()
+}
+
+const previousPage = () => {
+  currentPage.value--
+  search()
+}
 </script>

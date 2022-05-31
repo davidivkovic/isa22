@@ -166,9 +166,15 @@ public class CabinController : BusinessController<Cabin, CabinDTO, CreateCabinDT
         {
             query = query.Where(c => c.People == request.People);
         }
+        int page = request.Page;
+        if (page == 0) page = 1;
+
+        int totalResults = await query.CountAsync();
+
         var results = await query
             .OrderBy(request.Direction)
-            .Take(9)
+            .Skip((page-1) * 6)
+            .Take(6)
             .Select(c => new CabinSearchResponse
             {
                 Id = c.Id,
@@ -191,7 +197,7 @@ public class CabinController : BusinessController<Cabin, CabinDTO, CreateCabinDT
 
         results.ForEach(r => r.Image = ImageUrl(r.Id, r.Image));
 
-        return Ok(results);
+        return Ok(new { results, totalResults });
     }
 
     [Authorize(Roles = Role.CabinOwner)]
@@ -209,8 +215,8 @@ public class CabinController : BusinessController<Cabin, CabinDTO, CreateCabinDT
 
     [HttpGet("owners-reservations")]
     [Authorize(Roles = Role.CabinOwner)]
-    public override Task<ActionResult> GetAllOwnersReservations()
+    public override Task<ActionResult> GetAllOwnersReservations(int pageNumber)
     {
-        return base.GetAllOwnersReservations();
+        return base.GetAllOwnersReservations(pageNumber);
     }
 }

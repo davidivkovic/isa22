@@ -840,18 +840,26 @@ public class BusinessController<
         return Ok(results);
     }
 
-    [HttpGet("all-owners-reservations")]
-    public virtual async Task<ActionResult> GetAllOwnersReservations()
+    [HttpGet("owners-reservations")]
+    public virtual async Task<ActionResult> GetAllOwnersReservations(int pageNumber)
     {
-        var results = await Context.Reservations
+        var query = Context.Reservations
             .AsNoTrackingWithIdentityResolution()
             .Where(a => a.Business.Owner.Id == User.Id())
-            .Where(b => b.Business is TBusiness)
+            .Where(b => b.Business is TBusiness);
+
+        int totalResults = await query.CountAsync();
+        int page = pageNumber;
+        if (page == 0) page = 1;
+
+        var results = await query
+            .Skip((page-1) * 6)
+            .Take(6)
             .OrderByDescending(a => a.Start)
             .ProjectToType<ReservationDTO>()
             .ToListAsync();
 
         results.ForEach(a => a.Business.WithImages(ImageUrl));
-        return Ok(results);
+        return Ok( new { results, totalResults });
     }
 }

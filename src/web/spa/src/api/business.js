@@ -45,8 +45,10 @@ const searchBussines = (query, business) =>
 const ownersBusinesses = async type => fetch(instance.get(`${type}`))
 const upcomingReservations = async type =>
   fetch(instance.get(`/${type}/upcoming-reservations`))
-const allReservations = async type =>
-  fetch(instance.get(`/${type}/owners-reservations`))
+const allReservations = async (type, pageNumber) =>
+  fetch(
+    instance.get(`/${type}/owners-reservations`, { params: { pageNumber } })
+  )
 
 const getReservations = async (status, type, size = 10) =>
   fetch(

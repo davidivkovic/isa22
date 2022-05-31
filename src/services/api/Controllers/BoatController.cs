@@ -213,8 +213,8 @@ public class BoatController : BusinessController<Boat, BoatDTO, CreateBoatDTO, U
 
     [HttpGet("owners-reservations")]
     [Authorize(Roles = Role.BoatOwner)]
-    public override Task<ActionResult> GetAllOwnersReservations()
+    public override Task<ActionResult> GetAllOwnersReservations(int pageNumber)
     {
-        return base.GetAllOwnersReservations();
+        return base.GetAllOwnersReservations(pageNumber);
     }
 }

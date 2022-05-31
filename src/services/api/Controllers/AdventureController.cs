@@ -200,9 +200,9 @@ public class AdventureController : BusinessController<Adventure, AdventureDT0, C
 
     [HttpGet("owners-reservations")]
     [Authorize(Roles = Role.Fisher)]
-    public override Task<ActionResult> GetAllOwnersReservations()
+    public override Task<ActionResult> GetAllOwnersReservations(int pageNumber)
     {
-        return base.GetAllOwnersReservations();
+        return base.GetAllOwnersReservations(pageNumber);
     }
 
     [Authorize(Roles = Role.Fisher)]
