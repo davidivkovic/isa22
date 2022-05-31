@@ -97,12 +97,12 @@
         </div>
       </div>
       <div
-        v-if="reservations.length"
+        v-if="reservations?.length"
         class="mt-10 flex justify-between space-x-10 text-sm"
       >
         <p>
           Showing <span class="font-medium"> 1</span> to
-          <span class="font-medium"> {{ reservations.length }} </span> of
+          <span class="font-medium"> {{ reservations?.length }} </span> of
           <span class="font-medium"> {{ totalResults }} </span> results
         </p>
         <div class="flex space-x-5">
@@ -148,6 +148,7 @@ import { ref, watchEffect, computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import Dropdown from '@/components/ui/Dropdown.vue'
 import { user } from '@/stores/userStore'
+import { ArrowLeftIcon, ArrowRightIcon } from 'vue-tabler-icons'
 import {
   format,
   parseJSON,
