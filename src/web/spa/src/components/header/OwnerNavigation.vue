@@ -2,35 +2,31 @@
   <Logo class="" />
   <div class="flex space-x-8">
     <div class="cursor-pointer space-y-1">
-      <div>My profile</div>
-      <div
-        v-if="selectedTab === 3"
-        class="h-0.5 w-full rounded-full bg-emerald-600"
-      ></div>
+      <RouterLink :to="{ name: 'profile' }" v-slot="{ isActive }">
+        <div>My profile</div>
+        <div
+          v-if="isActive"
+          class="h-1 w-full rounded-full bg-emerald-600"
+        ></div>
+      </RouterLink>
     </div>
     <div class="cursor-pointer space-y-1">
-      <RouterLink :to="`/${ownerType}/${user.id}/${businessName}`">
+      <RouterLink :to="`/my-${businessName}`" v-slot="{ isActive }">
         <div>My {{ businessName }}</div>
         <div
-          v-if="selectedTab === 4"
-          class="h-0.5 w-full rounded-full bg-emerald-600"
+          v-if="isActive"
+          class="h-1 w-full rounded-full bg-emerald-600"
         ></div>
       </RouterLink>
     </div>
     <div class="cursor-pointer space-y-1">
       <div>Income</div>
-      <div
-        v-if="selectedTab === 5"
-        class="h-0.5 w-full rounded-full bg-emerald-600"
-      ></div>
+      <div v-if="isActive" class="h-1 w-full rounded-full bg-emerald-600"></div>
     </div>
     <div class="cursor-pointer space-y-1">
-      <RouterLink :to="`/${ownerType}/${user.id}/reservations`">
+      <RouterLink :to="`/${businessName}-reservations`" v-slot="{ isActive }">
         <div>Resevations</div>
-        <div
-          v-if="selectedTab === 5"
-          class="h-0.5 w-full rounded-full bg-emerald-600"
-        ></div>
+        <div v-if="isActive" class="h-1 w-full rounded-full bg-emerald-600" />
       </RouterLink>
     </div>
   </div>

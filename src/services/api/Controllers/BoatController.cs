@@ -152,7 +152,7 @@ public class BoatController : BusinessController<Boat, BoatDTO, CreateBoatDTO, U
         });
     }
 
-    [HttpGet("/boat-owner/{id}/boats")]
+    [HttpGet("my-boats")]
     [Authorize(Roles = Role.BoatOwner)]
     [AllowAnonymous]
     public async Task<ActionResult> SearchOwnersCabins([FromQuery] SearchRequest request)
@@ -211,7 +211,7 @@ public class BoatController : BusinessController<Boat, BoatDTO, CreateBoatDTO, U
         return base.GetUpcomingReservations();
     }
 
-    [HttpGet("all-owners-reservations")]
+    [HttpGet("owners-reservations")]
     [Authorize(Roles = Role.BoatOwner)]
     public override Task<ActionResult> GetAllOwnersReservations()
     {

@@ -64,9 +64,11 @@
           class="absolute bottom-6 cursor-pointer font-medium underline"
         >
           View all
-          <span class="capitalize">
-            {{ businessType[user.roles[0]] }}
-          </span>
+          <RouterLink :to="`my-${businessType[user.roles[0]]}`">
+            <span class="capitalize">
+              {{ businessType[user.roles[0]] }}
+            </span>
+          </RouterLink>
         </a>
       </div>
       <div class="h-[35rem] w-1/3 rounded-2xl border border-gray-300 px-5 py-6">

@@ -35,20 +35,18 @@ const getName = async (id, type) =>
 const search = (query, type, page) =>
   fetch(instance.get(`${type}/search`, { params: { ...query, page } }))
 
-const searchCabins = (query, id) =>
-  fetch(instance.get(`cabin-owner/${id}/cabins`, { params: { ...query } }))
-
-const searchBoats = (query, id) =>
-  fetch(instance.get(`boat-owner/${id}/boats`, { params: { ...query } }))
-
-const searchBussines = (query, id, userType, business) =>
-  fetch(instance.get(`${userType}/${id}/${business}`, { params: { ...query } }))
+const searchBussines = (query, business) =>
+  fetch(
+    instance.get(`${endpoints[business]}/my-${business}`, {
+      params: { ...query }
+    })
+  )
 
 const ownersBusinesses = async type => fetch(instance.get(`${type}`))
 const upcomingReservations = async type =>
   fetch(instance.get(`/${type}/upcoming-reservations`))
 const allReservations = async type =>
-  fetch(instance.get(`/${type}/all-owners-reservations`))
+  fetch(instance.get(`/${type}/owners-reservations`))
 
 const getReservations = async (status, type, size = 10) =>
   fetch(

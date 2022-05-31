@@ -142,7 +142,7 @@ public class CabinController : BusinessController<Cabin, CabinDTO, CreateCabinDT
         });
     }
 
-    [HttpGet("/cabin-owner/{id}/cabins")]
+    [HttpGet("my-cabins")]
     [Authorize(Roles = Role.CabinOwner)]
     public async Task<ActionResult> SearchOwnersCabins([FromQuery] CabinSearchRequest request)
     {
@@ -207,7 +207,7 @@ public class CabinController : BusinessController<Cabin, CabinDTO, CreateCabinDT
         return base.GetUpcomingReservations();
     }
 
-    [HttpGet("all-owners-reservations")]
+    [HttpGet("owners-reservations")]
     [Authorize(Roles = Role.CabinOwner)]
     public override Task<ActionResult> GetAllOwnersReservations()
     {

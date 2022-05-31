@@ -77,16 +77,21 @@
               </h3>
               <div class="mx-auto flex">
                 <RouterLink
-                :to="`/profile`"
-                class="flex hover:text-emerald-700">
-                Miladin Momcilovic
+                  :to="`/get-profile/${reservation.user.id}`"
+                  class="flex hover:text-emerald-700"
+                >
+                  {{
+                    reservation.user.firstName + ' ' + reservation.user.lastName
+                  }}
                 </RouterLink>
               </div>
             </div>
           </div>
-          <div class="flex flex-col relative w-[10.5rem]">
+          <div class="relative flex w-[10.5rem] flex-col">
             <div class="absolute bottom-0 left-0">
-              <div class="font-medium">Total Income: {{ reservation.cost.subtotal }}</div>
+              <div class="font-medium">
+                Total Income: {{ reservation.cost.subtotal }}
+              </div>
             </div>
           </div>
         </div>
@@ -136,14 +141,12 @@ const businessTypes = [
     name: 'Adventures',
     value: 'adventures'
   }
-
 ]
 const businessType = {
-  'Cabin Owner': ['Cabins',0],
-  'Boat Owner': ['Boats',1],
-  'Fishing Instructor': ['Adventures',2]
+  'Cabin Owner': ['Cabins', 0],
+  'Boat Owner': ['Boats', 1],
+  'Fishing Instructor': ['Adventures', 2]
 }
-
 
 const businessProfiles = {
   adventures: 'adventure-profile',
@@ -168,7 +171,9 @@ const end = ref()
 const duration = ref()
 const unit = ref()
 const reservationId = ref()
-const currentBusinessType = ref(businessTypes[businessType[user.roles[0]][1]].value)
+const currentBusinessType = ref(
+  businessTypes[businessType[user.roles[0]][1]].value
+)
 
 const reservationStatus = reservation => {
   if (isPast(parseJSON(reservation.end))) return 'Completed'
@@ -211,7 +216,9 @@ const calculateSubtotal = reservation => {
 
 watchEffect(async () => {
   const [reservationsData, reservationsError] =
-    await api.business.allReservations(    businessType[user.roles[0]][0].toLowerCase())
+    await api.business.allReservations(
+      businessType[user.roles[0]][0].toLowerCase()
+    )
   if (!reservationsError) {
     reservations.value = reservationsData
     reservations.value.forEach(r => {
@@ -220,5 +227,4 @@ watchEffect(async () => {
     })
   }
 })
-
 </script>

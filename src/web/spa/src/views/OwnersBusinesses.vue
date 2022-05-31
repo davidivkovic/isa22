@@ -118,6 +118,10 @@
                         {{ result.name }}
                       </h1>
                       <h2 class="text-[17px] text-gray-500">
+                        {{ result.address?.city }}
+                        {{ result.address?.country }}
+                      </h2>
+                      <h2 class="text-[17px] text-gray-500">
                         {{ result.address?.street }}
                         {{ result.address?.apartment }}
                       </h2>
@@ -242,8 +246,8 @@ const reloadList = id => {
 }
 
 const userTypes = {
-  'Cabin Owner': ['cabin', 'cabin-owner', 'owners cabins', 'cabin-profile'],
-  'Boat Owner': ['boat', 'boat-owner', 'owners boats', 'boat-profile'],
+  'Cabin Owner': ['cabins', 'cabin-owner', 'owners cabins', 'cabin-profile'],
+  'Boat Owner': ['boats', 'boat-owner', 'owners boats', 'boat-profile'],
   Fisher: [
     'adventures',
     'adventure-owner',
@@ -290,8 +294,6 @@ const fetchResults = async () => {
     {
       ...route.query
     },
-    route.params?.id,
-    userType[1],
     userType[0]
   )
   if (!error) {
@@ -313,7 +315,7 @@ const fetchResults = async () => {
 watchEffect(() => fetchResults())
 
 const showElement = id => {
-  router.push(`/${userType[1]}/` + id)
+  router.push(`/${userType[3]}/` + id)
 }
 
 const search = () => {
@@ -336,7 +338,7 @@ const optionSelected = value => {
   } else if (value[0] == 'edit') {
     router.push({
       name: 'create-update-business',
-      params: { type: `${userType[0]}s`, action: 'update' },
+      params: { type: `${userType[0]}`, action: 'update' },
       query: { id: value[1] }
     })
   } else {

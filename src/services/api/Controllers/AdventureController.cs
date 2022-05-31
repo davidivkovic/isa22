@@ -76,13 +76,6 @@ public class AdventureController : BusinessController<Adventure, AdventureDT0, C
     }
 
     [Authorize]
-    [HttpGet("reservations")]
-    public Task<ActionResult> GetReservations(string status)
-    {
-        return GetReservations(status);
-    }
-
-    [Authorize]
     [HttpGet("subscriptions")]
     public Task<ActionResult> GetSubcriptions()
     {
@@ -148,7 +141,7 @@ public class AdventureController : BusinessController<Adventure, AdventureDT0, C
         });
     }
 
-    [HttpGet("/adventure-owner/{id}/adventures")]
+    [HttpGet("my-adventures")]
     [Authorize(Roles = Role.Fisher)]
     public async Task<ActionResult> SearchOwnersAdventures([FromQuery] AdventureSearchRequest request)
     {
@@ -205,7 +198,7 @@ public class AdventureController : BusinessController<Adventure, AdventureDT0, C
         return base.GetUpcomingReservations();
     }
 
-    [HttpGet("all-owners-reservations")]
+    [HttpGet("owners-reservations")]
     [Authorize(Roles = Role.Fisher)]
     public override Task<ActionResult> GetAllOwnersReservations()
     {
