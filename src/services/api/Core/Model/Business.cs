@@ -96,6 +96,7 @@ public abstract class Business : Entity
             Business = this,
             Rating = rating,
             Content = content,
+            Timestamp = DateTimeOffset.UtcNow
         };
 
         Reviews.Add(r);
@@ -106,6 +107,9 @@ public abstract class Business : Entity
     {
         Rating = (NumberOfReviews * Rating + rating) / ++NumberOfReviews;
     }
+    public void Subscribe(User user) => Subscribers.Add(user);
+
+    public void Unsubscribe(User user) => Subscribers.Remove(user);
 
     public int GetTotalUnits(DateTimeOffset start, DateTimeOffset end)
     {

@@ -64,6 +64,13 @@ public class CabinController : BusinessController<Cabin, CabinDTO, CreateCabinDT
     }
 
     [Authorize]
+    [HttpGet("subscriptions")]
+    public Task<ActionResult> GetSubcriptions()
+    {
+        return GetSubcriptions("cabins");
+    }
+
+    [Authorize]
     [AllowAnonymous]
     [HttpGet("search")]
     public async Task<ActionResult> Search([FromQuery] CabinSearchRequest request)
@@ -120,7 +127,7 @@ public class CabinController : BusinessController<Cabin, CabinDTO, CreateCabinDT
                 Rating = c.Rating,
                 Price = new Money
                 {
-                    Amount = c.PricePerUnit.Amount,
+                    Amount = c.PricePerUnit.Amount * request.People,
                     Currency = c.PricePerUnit.Currency
                 }
             }) 

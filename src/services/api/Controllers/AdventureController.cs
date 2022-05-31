@@ -76,6 +76,20 @@ public class AdventureController : BusinessController<Adventure, AdventureDT0, C
     }
 
     [Authorize]
+    [HttpGet("reservations")]
+    public Task<ActionResult> GetReservations(string status)
+    {
+        return GetReservations(status);
+    }
+
+    [Authorize]
+    [HttpGet("subscriptions")]
+    public Task<ActionResult> GetSubcriptions()
+    {
+        return GetSubcriptions("adventures");
+    }
+
+    [Authorize]
     [AllowAnonymous]
     [HttpGet("search")]
     public async Task<ActionResult> Search([FromQuery] AdventureSearchRequest request)
@@ -118,7 +132,7 @@ public class AdventureController : BusinessController<Adventure, AdventureDT0, C
                 Rating = a.Rating,
                 Price = new Money
                 {
-                    Amount = a.PricePerUnit.Amount,
+                    Amount = a.PricePerUnit.Amount * request.People,
                     Currency = a.PricePerUnit.Currency
                 },
                 FishingEquipment = a.FishingEquipment

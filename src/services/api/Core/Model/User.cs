@@ -111,4 +111,9 @@ public class User : IdentityUser<Guid>, IDeletable
     .Contains(r));
 
     public void Delete() => IsDeleted = true;
+
+    public void Subscribe(Business business) => Subscriptions.Add(business);
+    public void Unsubscribe(Business business) => Subscriptions.Remove(business);
+
+
 }

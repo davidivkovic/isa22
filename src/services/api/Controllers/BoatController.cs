@@ -76,6 +76,13 @@ public class BoatController : BusinessController<Boat, BoatDTO, CreateBoatDTO, U
     }
 
     [Authorize]
+    [HttpGet("subscriptions")]
+    public Task<ActionResult> GetSubcriptions()
+    {
+        return GetSubcriptions("boats");
+    }
+
+    [Authorize]
     [AllowAnonymous]
     [HttpGet("search")]
     public async Task<ActionResult> Search([FromQuery] BoatSearchRequest request)
@@ -130,7 +137,7 @@ public class BoatController : BusinessController<Boat, BoatDTO, CreateBoatDTO, U
                 BoatCharacteristics = b.Characteristics,
                 Price = new Money
                 {
-                    Amount = b.PricePerUnit.Amount,
+                    Amount = b.PricePerUnit.Amount * request.People,
                     Currency = b.PricePerUnit.Currency
                 }
             })

@@ -126,6 +126,9 @@ public class BusinessController<
             })
             .FirstOrDefaultAsync();
 
+
+        businessDTO.IsSubscribed = user?.IsSubscribed ?? false;
+
         var sales = await Context.Sales
             .Include(s => s.Business)
             .Where(s => s.Business.Id == business.Id)
@@ -373,6 +376,43 @@ public class BusinessController<
         return Ok(sale.Adapt<SaleDTO>());
     }
 
+    [Authorize(Roles = Role.Customer)]
+    [HttpPost("{id}/subscribe")]
+    public async Task<ActionResult> Subscribe([FromRoute] Guid id)
+    {
+        var business = await Context.Set<TBusiness>()
+                    .FirstOrDefaultAsync(b => b.Id == id);
+
+        var user = await Context.Users
+                   .Include(u => u.Subscriptions)
+                   .FirstOrDefaultAsync(u => u.Id == User.Id());
+
+        bool isSubscribed = user.Subscriptions.Contains(business);
+        if (isSubscribed)
+        {
+            return BadRequest($"You are already subscribed to this {BusinessType}.");
+        }
+
+        user.Subscribe(business);
+        await Context.SaveChangesAsync();
+
+        return Ok();
+    }
+
+    [Authorize(Roles = Role.Customer)]
+    [HttpPost("{id}/unsubscribe")]
+    public async Task<ActionResult> Unubscribe([FromRoute] Guid id)
+    {
+        var user = await Context.Users
+                   .Include(u => u.Subscriptions)
+                   .FirstOrDefaultAsync(u => u.Id == User.Id());
+
+        user.Subscriptions.RemoveAll(b => b.Id == id);
+        await Context.SaveChangesAsync();
+
+        return Ok();
+    }
+
     [HttpPost("{id}/sales/delete")]
     public virtual async Task<ActionResult> DeleteSale([FromRoute] Guid id, [FromRoute] Guid saleId)
     {
@@ -432,7 +472,7 @@ public class BusinessController<
 
     [Authorize(Roles = Role.Customer)]
     [HttpPost("{id}/sales/{saleId}/book")]
-    public async Task<ActionResult> MakeQuickReservation([FromQuery] Guid id, [FromQuery] Guid saleId)
+    public async Task<ActionResult> MakeQuickReservation([FromRoute] Guid id, [FromRoute] Guid saleId)
     {
         var sale = await Context.Set<Sale>()
                     .Include(s => s.Business)
@@ -608,6 +648,27 @@ public class BusinessController<
         reservations.ForEach(r => r.IsCancellable = r.Start - currentTime >= TimeSpan.FromDays(3));
 
         return Ok(reservations);
+    }
+
+    [HttpGet("subscriptions")]
+    protected async Task<ActionResult> GetSubcriptions(string businessType)
+    {
+        var user = await Context.Users
+                    .Include(u => u.Subscriptions)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(u => u.Id == User.Id());
+
+        var query = businessType switch
+        {
+            "boats" => user.Subscriptions.Where(s => s is Boat),
+            "adventures" => user.Subscriptions.Where(s => s is Adventure),
+            "cabins" => user.Subscriptions.Where(s => s is Cabin),
+            "all" or _ => user.Subscriptions
+        };
+
+        var subscriptions = query.Select(s => s.Adapt<BusinessDTO>()).ToList();
+        subscriptions.ForEach(s => s.WithImages(ImageUrl));
+        return Ok(subscriptions);
     }
 
     [Authorize(Roles = Role.Customer)]
