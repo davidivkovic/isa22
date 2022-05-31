@@ -125,9 +125,12 @@
           class="mt-10 flex justify-between space-x-10 text-sm"
         >
           <p>
-            Showing <span class="font-medium"> 1</span> to
-            <span class="font-medium"> {{ results.length }} </span> of
-            <span class="font-medium"> {{ totalResults }} </span> results
+            Showing
+            <span class="font-medium"> {{ resultsFrom }}</span> to
+            <span class="font-medium">
+              {{ resultsTo }}
+            </span>
+            of <span class="font-medium"> {{ totalResults }} </span> results
           </p>
           <div class="flex space-x-5">
             <button
@@ -220,9 +223,13 @@ const sortingOptions = [
   }
 ]
 
-const currentPage = ref(1)
+const currentPage = ref(route.query?.page ?? 1)
 const totalPages = ref(1)
 const totalResults = ref(0)
+const resultsFrom = computed(() => 1 + 6 * (currentPage.value - 1))
+const resultsTo = computed(
+  () => 6 * (currentPage.value - 1) + results.value.length
+)
 const hasNext = computed(() => currentPage.value < totalPages.value)
 const hasPrevious = computed(
   () => currentPage.value >= totalPages.value && totalPages.value > 1

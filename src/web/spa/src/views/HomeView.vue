@@ -50,11 +50,12 @@ const images = {
   adventures: fishingURL
 }
 
-const route = computed(() => useRoute()?.name)
-const pacStyle = computed(() => (route.value in images ? '-230px' : '0px'))
+const route = useRoute()
+const routeName = computed(() => route?.name)
+const pacStyle = computed(() => (routeName.value in images ? '-230px' : '0px'))
 
 const selectedImage = computed(() => {
-  if (route.value in images) return images[route.value]
+  if (routeName.value in images) return images[routeName.value]
   else if (selectedImage.value) return selectedImage.value
   return defaultImage
 })
