@@ -548,15 +548,51 @@ public class BusinessController<
         Review review = business.Review(user, request.Rating, request.Content);
         await Context.SaveChangesAsync();
 
-        _mailer.Send(business.Owner, new NewReview(
-            review,
-            reservations[0],
-            ImageUrl(business.Id, business.Images.FirstOrDefault()),
-            "#contactUrl"
-        ));
+        //_mailer.Send(business.Owner, new NewReview(
+        //    review,
+        //    reservations[0],
+        //    ImageUrl(business.Id, business.Images.FirstOrDefault()),
+        //    "#contactUrl"
+        //));
 
         return Ok();
     }
+
+    [Authorize(Roles = Role.Customer)]
+    [HttpPost("reservations/{reservationId}/complain")]
+    public async Task<ActionResult> Complain([FromRoute] Guid reservationId, [FromBody] CreateComplaintDTO request)
+    {
+        var user = await Context.Users.FindAsync(User.Id());
+
+        var reservation = await Context.Reservations
+            .Where(r => r.User.Id == user.Id)
+            .Where(r => r.Id == reservationId)
+            .FirstOrDefaultAsync();
+
+        var isPast = reservation.End < DateTimeOffset.UtcNow;
+
+        if (reservation is null)
+        {
+            return BadRequest("You must have a completed reservation in order to leave a complaint.");
+        }
+
+        if(reservation.Complaint is not null)
+        {
+            return BadRequest("You have already complained about this reservation.");
+        }
+
+        if (!isPast)
+        {
+            return BadRequest("The reservation is still not over.");
+        }
+
+        reservation.Complain(request.Content);
+
+        await Context.SaveChangesAsync();
+        return Ok(reservation.Complaint);
+
+    }
+
 
     [Authorize(Roles = Role.Customer)]
     [HttpPost("{id}/make-reservation")]
@@ -845,6 +881,7 @@ public class BusinessController<
     {
         var query = Context.Reservations
             .AsNoTrackingWithIdentityResolution()
+            .Include(r => r.User)
             .Where(a => a.Business.Owner.Id == User.Id())
             .Where(b => b.Business is TBusiness);
 

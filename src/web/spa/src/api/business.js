@@ -134,6 +134,13 @@ const review = async (id, type, content, rating) =>
     })
   )
 
+const complain = async (reservationId, type, content) =>
+  fetch(
+    instance.post(`${endpoints[type]}/reservations/${reservationId}/complain`, {
+      content
+    })
+  )
+
 const subscribe = async (id, type) =>
   fetch(instance.post(`${endpoints[type]}/${id}/subscribe`))
 
@@ -162,6 +169,7 @@ export default {
   makeResrvation,
   cancelReservation,
   review,
+  complain,
   upcomingReservations,
   allReservations,
   searchBussines,

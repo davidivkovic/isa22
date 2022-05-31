@@ -243,7 +243,7 @@
     :duration="duration"
     :unit="unit"
     :businessType="currentBusinessType"
-    :id="id"
+    :reservationId="reservationId"
   />
 </template>
 <script setup>
@@ -418,6 +418,7 @@ const saveData = reservation => {
   end.value = format(parseISO(reservation.end), 'MMM d, yyyy')
   address.value = formatAddress(reservation.business.address)
   id.value = reservation.business.id
+  reservationId.value = reservation.id
   duration.value = differenceInHours(
     parseISO(reservation.end),
     parseISO(reservation.start)

@@ -6,7 +6,7 @@
     class="bg-white py-14 px-10 text-left"
   >
     <form ref="reviewForm" @submit.prevent="submitComplaint()">
-      <h1 class="text-gray-600">You had a bad experice with</h1>
+      <h1 class="text-gray-600">You had a bad experice?</h1>
       <h2 class="text-3xl font-medium">{{ name }}</h2>
       <div class="text-gray-600">
         {{ duration }} {{ unit }} in {{ address }}
@@ -21,7 +21,7 @@
         required
         v-model="content"
         rows="5"
-        placeholder="The adventure was really fun because..."
+        placeholder="The adventure wasn't fun at all..."
         class="mt-3 rounded-2xl"
       />
       <p class="text-sm text-red-500">{{ errorMessage }}</p>
@@ -37,14 +37,6 @@ import Modal from '@/components/ui/Modal.vue'
 import TextArea from '@/components/ui/TextArea.vue'
 import Button from '@/components/ui/Button.vue'
 import api from '@/api/api'
-import {
-  MoodCryIcon,
-  MoodSadIcon,
-  MoodEmptyIcon,
-  MoodSmileIcon,
-  MoodHappyIcon
-} from 'vue-tabler-icons'
-import { useRouter } from 'vue-router'
 
 const props = defineProps([
   'name',
@@ -55,37 +47,27 @@ const props = defineProps([
   'duration',
   'unit',
   'businessType',
-  'id'
+  'reservationId'
 ])
 
-const router = useRouter()
+const emit = defineEmits(['modalClosed'])
 const reviewForm = ref()
 const content = ref('')
 const errorMessage = ref('')
 
-const routes = {
-  cabins: 'cabin-profile',
-  boats: 'boat-profile',
-  adventures: 'adventure-profile'
-}
-
 const submitComplaint = async () => {
   errorMessage.value = ''
   console.log(content.value)
-  //   const [_, error] = await api.business.review(
-  //     props.id,
-  //     props.businessType,
-  //     content.value,
-  //     selectedGrade.value
-  //   )
+  const [_, error] = await api.business.complain(
+    props.reservationId,
+    props.businessType,
+    content.value
+  )
 
-  //   if (error) {
-  //     errorMessage.value = error
-  //   } else {
-  //     router.push({
-  //       name: routes[props.businessType],
-  //       params: { id: props.id }
-  //     })
-  //   }
+  if (error) {
+    errorMessage.value = error
+  } else {
+    emit('modalClosed')
+  }
 }
 </script>

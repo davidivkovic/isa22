@@ -14,6 +14,11 @@
         public double Rating { get; set; }
     }
 
+    public class CreateComplaintDTO
+    {
+        public string Content { get; set; }
+    }
+
     public class PendingReviewDTO
     {
         public UserDTO User { get; set; }

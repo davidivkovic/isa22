@@ -89,4 +89,13 @@ public class Reservation : Entity
         }
         return false;
     }
+
+    public void Complain(string content)
+    {
+        Complaint = new()
+        {
+            Reason = content,
+            Timestamp = DateTimeOffset.UtcNow
+        };
+    }
 }

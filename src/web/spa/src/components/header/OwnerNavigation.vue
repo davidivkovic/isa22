@@ -21,7 +21,7 @@
     </div>
     <div class="cursor-pointer space-y-1">
       <div>Income</div>
-      <div v-if="isActive" class="h-1 w-full rounded-full bg-emerald-600"></div>
+      <!-- <div v-if="isActive" class="h-1 w-full rounded-full bg-emerald-600"></div> -->
     </div>
     <div class="cursor-pointer space-y-1">
       <RouterLink :to="`/${businessName}-reservations`" v-slot="{ isActive }">
