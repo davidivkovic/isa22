@@ -2,10 +2,7 @@
   <ErrorAlert @close="errorAlert = false" v-if="errorAlert">{{
     reservationError
   }}</ErrorAlert>
-  <SuccessAlert @close="successAlert = false" v-if="successAlert"
-    >Reservation sucessfully made.</SuccessAlert
-  >
-  <div class="mx-auto !mt-2 !mb-8 h-screen max-w-6xl space-y-5">
+  <div class="mx-auto h-screen max-w-6xl space-y-5 border-t !py-8">
     <div class="flex w-full space-x-10">
       <div class="h-full w-[62.5%] space-y-3">
         <div class="flex h-[405px] space-x-4">
@@ -79,11 +76,11 @@
             </div>
             <div
               v-if="isOwnersBusiness || user.role == 'Admin'"
-              class="mt-3 flex"
+              class="mt-3 flex space-x-3"
             >
               <Button
                 @click="editBusiness()"
-                class="mr-2 flex space-x-1 border !py-1 !text-sm hover:bg-neutral-50"
+                class="flex space-x-1 border !py-1 !text-sm hover:bg-neutral-50"
               >
                 <span class="font-medium">Edit</span>
                 <PencilIcon class="-mt-0.5 h-5 w-5" />
@@ -96,6 +93,17 @@
                 <span class="font-medium">Delete</span>
                 <TrashIcon class="-mt-px h-5 w-5" />
               </Button>
+              <RouterLink
+                v-if="isOwnersBusiness"
+                :to="`${$route.path}/calendar`"
+              >
+                <Button
+                  class="mr-2 flex space-x-1 border !py-1 !text-sm hover:bg-neutral-50"
+                >
+                  <span class="font-medium">View Calendar</span>
+                  <CalendarIcon class="-mt-px h-5 w-5" />
+                </Button>
+              </RouterLink>
             </div>
           </div>
           <div v-if="props.entityType == 'cabins'" class="mt-5 flex space-x-14">
@@ -672,7 +680,6 @@ import { googleMapsFlatStyle } from '@/components/utility/maps.js'
 import boatImage from '@/assets/images/boat.png'
 import api from '@/api/api'
 import ErrorAlert from '@/components/ui/alerts/ErrorAlert.vue'
-import SuccessAlert from '@/components/ui/alerts/SuccessAlert.vue'
 import Loader from '@/components/ui/Loader.vue'
 
 const symbols = {
@@ -686,7 +693,6 @@ const isDeleteModalOpen = ref(false)
 const isSalesModalOpen = ref(false)
 const reservationError = ref('')
 const errorAlert = ref(false)
-const successAlert = ref(false)
 const isSubscribed = ref(props.entity.isSubscribed)
 const props = defineProps({
   entity: {
@@ -704,11 +710,6 @@ const showErrorAlert = () => {
   setTimeout(() => (errorAlert.value = false), 5000)
 }
 
-const showSuccessAlert = () => {
-  setTimeout(() => (successAlert.value = true), 100)
-  setTimeout(() => (successAlert.value = false), 5000)
-}
-
 const route = useRoute()
 const router = useRouter()
 
@@ -722,7 +723,6 @@ const makeQuickReservation = async sale => {
     reservationError.value = error
     showErrorAlert()
   } else {
-    showSuccessAlert()
     router.push({ name: 'reservations' })
   }
 }
@@ -741,7 +741,6 @@ const makeReservation = async () => {
     reservationError.value = error
     showErrorAlert()
   } else {
-    showSuccessAlert()
     router.push({ name: 'reservations' })
   }
 }
@@ -828,20 +827,36 @@ const createNewSale = () => {
   isSalesModalOpen.value = true
 }
 
-const subscribe = () => {
+const subError = ref('')
+
+const subscribe = async () => {
   isLoading.value = true
-  setTimeout(() => {
+  const [data, error] = await api.business.subscribe(
+    props.entity.id,
+    props.entityType
+  )
+
+  if (error) {
+    subError.value = error
+  } else {
     isLoading.value = false
     isSubscribed.value = true
-  }, 400)
+  }
 }
 
-const unsubscribe = () => {
+const unsubscribe = async () => {
   isLoading.value = true
-  setTimeout(() => {
+  const [data, error] = await api.business.unsubscribe(
+    props.entity.id,
+    props.entityType
+  )
+
+  if (error) {
+    subError.value = error
+  } else {
     isLoading.value = false
     isSubscribed.value = false
-  }, 400)
+  }
 }
 
 const oldPrice = (newPrice, discPer) => {

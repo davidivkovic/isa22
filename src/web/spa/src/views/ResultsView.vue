@@ -49,6 +49,7 @@
             $route.params.type !== 'cabins' && $route.params.type !== 'home'
           "
           placeholder="End of the journey"
+          :lowerLimit="start"
           clearable
           class="h-12 w-full pl-8 text-sm"
         >
@@ -70,17 +71,19 @@
           />
         </template>
       </NumberInput>
-      <div class="w-10"></div>
-      <Button type="submit" class="bg-emerald-600 !px-10 text-white"
+      <Button
+        type="submit"
+        class="!ml-5 !rounded-md bg-emerald-600 !px-10 text-white"
         >Search</Button
       >
     </form>
     <div class="flex w-full flex-1 space-x-10 px-5">
-      <FilterPanel :type="$route.params.type" />
+      <FilterPanel
+        @filter="f => filter(f)"
+        :businessType="$route.params.type"
+      />
       <div class="inline-block">
         <div class="justify mb-6 flex items-end justify-between">
-          <!-- <div v-if="isLoading">Loading.. Please wait</div> -->
-
           <h2 class="text-xl font-medium">
             {{ results.length }}
             {{ results.length === 1 ? 'Result' : 'Results' }}
@@ -99,7 +102,7 @@
             :values="sortingOptions"
           />
         </div>
-        <div class="grid auto-rows-fr grid-cols-3 gap-8">
+        <div class="grid h-3/4 basis-52 auto-rows-fr grid-cols-3 gap-8">
           <div
             v-for="result in results"
             :key="result.id"
@@ -115,6 +118,38 @@
             >
               <component :is="component" :result="result" />
             </RouterLink>
+          </div>
+        </div>
+        <div
+          v-if="results.length"
+          class="mt-10 flex justify-between space-x-10 text-sm"
+        >
+          <p>
+            Showing <span class="font-medium"> 1</span> to
+            <span class="font-medium"> {{ results.length }} </span> of
+            <span class="font-medium"> {{ totalResults }} </span> results
+          </p>
+          <div class="flex space-x-5">
+            <button
+              @click="previousPage()"
+              v-if="hasPrevious"
+              class="flex items-center space-x-2 hover:underline"
+            >
+              <ArrowLeftIcon class="h-4 w-4" />
+              <p>Previous</p>
+            </button>
+            <p>
+              Page <span class="font-medium">{{ currentPage }}</span> of
+              <span class="font-medium">{{ totalPages }} </span>
+            </p>
+            <button
+              @click="nextPage()"
+              v-if="hasNext"
+              class="flex items-center space-x-2 hover:underline"
+            >
+              <p>Next</p>
+              <ArrowRightIcon class="h-4 w-4" />
+            </button>
           </div>
         </div>
       </div>
@@ -136,7 +171,12 @@ import DateInput from '../components/ui/DateInput.vue'
 import NumberInput from '../components/ui/NumberInput.vue'
 import Button from '../components/ui/Button.vue'
 import FilterPanel from '../components/search/FilterPanel.vue'
-import { MapPinIcon, UsersIcon } from 'vue-tabler-icons'
+import {
+  MapPinIcon,
+  UsersIcon,
+  ArrowLeftIcon,
+  ArrowRightIcon
+} from 'vue-tabler-icons'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { googleMapsFlatStyle } from '@/components/utility/maps.js'
 import CabinPreviewItem from '../components/search/CabinPreviewItem.vue'
@@ -180,6 +220,14 @@ const sortingOptions = [
   }
 ]
 
+const currentPage = ref(1)
+const totalPages = ref(1)
+const totalResults = ref(0)
+const hasNext = computed(() => currentPage.value < totalPages.value)
+const hasPrevious = computed(
+  () => currentPage.value >= totalPages.value && totalPages.value > 1
+)
+const filters = ref({})
 const currentLocation = ref(`${city.value}, ${country.value}`)
 const newLocation = ref(currentLocation.value)
 const start = ref(route.query.start)
@@ -199,14 +247,18 @@ const fetchResults = async () => {
     queryData.start = formatISO(parseISO(start.value).setHours(14))
     queryData.end = formatISO(parseISO(end.value).setHours(12))
   }
-  console.log(queryData)
   const [data] = await api.business.search(
     {
       ...queryData
     },
-    route.params.type
+    route.params.type,
+    route.query.page - 1 || 0
   )
-  data && (results.value = data.results)
+  if (data) {
+    results.value = data.results
+    totalResults.value = data.totalResults
+    totalPages.value = Math.ceil(totalResults.value / 6)
+  }
 }
 
 const changeSelectedOption = value => {
@@ -214,7 +266,9 @@ const changeSelectedOption = value => {
   search()
 }
 
-const search = () => {
+const filter = filtered => (filters.value = filtered)
+
+const search = (filtered = {}) => {
   router.push({
     name: 'search',
     query: {
@@ -223,7 +277,9 @@ const search = () => {
       start: start.value,
       end: end.value,
       people: people.value,
-      direction: direction.value.value
+      direction: direction.value.value,
+      page: currentPage.value,
+      ...filtered
     }
   })
   setTimeout(() => {
@@ -232,6 +288,16 @@ const search = () => {
 }
 
 fetchResults()
+
+const nextPage = () => {
+  currentPage.value++
+  search()
+}
+
+const previousPage = () => {
+  currentPage.value--
+  search()
+}
 
 const showMarker = result => {
   const latlng = new google.maps.LatLng(

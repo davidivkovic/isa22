@@ -15,7 +15,7 @@
         class="mt-auto w-fit"
       />
     </div>
-    <div class="mt-4 space-y-6">
+    <div v-if="reservations?.length != 0" class="mt-4 space-y-6">
       <div
         v-for="reservation in reservations"
         :key="reservation.id"
@@ -47,26 +47,40 @@
                 }}
               </span>
             </div>
-            <button
-              @click="writeReview(reservation)"
-              v-if="reservationStatus(reservation) == 'Completed'"
-              class="mt-2 flex items-center space-x-1 text-sm font-medium text-emerald-700 hover:underline"
+            <div
+              v-if="allowReview(reservation)"
+              class="flex items-center space-x-2 text-sm"
             >
-              <div>Write a review</div>
-              <PencilIcon class="h-4 w-4 stroke-2 text-emerald-700" />
-            </button>
-            <button
-              @click="cancelReservation(reservation)"
-              v-if="reservation.isCancellable"
-              class="mt-2 flex items-center space-x-1 text-sm font-medium text-red-500 hover:underline"
-            >
-              <div>Cancel reservation</div>
-              <CircleXIcon class="h-4 w-4 stroke-2 text-red-500" />
-            </button>
-            <div v-else class="mt-2 w-2/3 text-sm text-gray-400">
-              Reservation is not cancellable anymore. If you don't show up, you
-              must pay the cancellation fee of
-              {{ reservation.business.cancellationFee }}%.
+              <button
+                @click="writeReview(reservation)"
+                class="mt-2 flex items-center space-x-1 text-sm font-medium text-emerald-700 hover:underline"
+              >
+                <div>Write a review</div>
+                <PencilIcon class="h-4 w-4 stroke-2 text-emerald-700" />
+              </button>
+              <span class="mt-1.5 text-gray-500">or</span>
+              <button
+                @click="writeComplaint(reservation)"
+                class="mt-2 flex items-center space-x-1 text-sm font-medium hover:underline"
+              >
+                <div>Write a complaint</div>
+                <MessageReportIcon class="h-4 w-4 stroke-2" />
+              </button>
+            </div>
+
+            <div v-if="reservation.isCancellable">
+              <p class="mt-2 text-sm text-gray-600">
+                If you cancel your reservation, you must pay the cancellation
+                fee of
+                {{ reservation.business.cancellationFee }}%.
+              </p>
+              <button
+                @click="cancelReservation(reservation)"
+                class="mt-1 flex items-center space-x-1 text-sm font-medium hover:underline"
+              >
+                <div>Cancel reservation</div>
+                <XIcon class="h-3 w-3 stroke-2" />
+              </button>
             </div>
           </div>
           <div class="ml-auto text-right text-sm">
@@ -197,6 +211,9 @@
         </div>
       </div>
     </div>
+    <div v-else class="mt-3">
+      There are currently no reservations for defined parameters.
+    </div>
   </div>
   <CreateReview
     @modalClosed="isReviewModalOpen = false"
@@ -216,17 +233,29 @@
     :reservationId="reservationId"
     :businessType="currentBusinessType"
   />
+  <CreateComplaint
+    @modalClosed="isComplaintModalOpen = false"
+    :isOpen="isComplaintModalOpen"
+    :name="name"
+    :start="start"
+    :end="end"
+    :address="address"
+    :duration="duration"
+    :unit="unit"
+    :businessType="currentBusinessType"
+    :id="id"
+  />
 </template>
 <script setup>
 import { ref, watchEffect } from 'vue'
+import { RouterLink } from 'vue-router'
 import {
   ChevronDownIcon,
   ChevronUpIcon,
   PencilIcon,
-  CircleXIcon
+  XIcon,
+  MessageReportIcon
 } from 'vue-tabler-icons'
-import { RouterLink } from 'vue-router'
-import Dropdown from '@/components/ui/Dropdown.vue'
 import {
   format,
   parseJSON,
@@ -235,8 +264,10 @@ import {
   parseISO
 } from 'date-fns'
 import api from '@/api/api'
+import Dropdown from '@/components/ui/Dropdown.vue'
 import CreateReview from '@/components/reservations/CreateReview.vue'
 import CancelReservation from '@/components/reservations/CancelReservation.vue'
+import CreateComplaint from '@/components/reservations/CreateComplaint.vue'
 import { formatAddress } from '@/components/utility/address'
 
 const businessTypes = [
@@ -288,6 +319,7 @@ const reservationStatuses = [
 const reservations = ref()
 const isReviewModalOpen = ref(false)
 const isCancelModalOpen = ref(false)
+const isComplaintModalOpen = ref(false)
 const id = ref()
 const name = ref()
 const address = ref()
@@ -303,6 +335,13 @@ const reservationStatus = reservation => {
   if (isPast(parseJSON(reservation.end))) return 'Completed'
   if (isPast(parseJSON(reservation.start))) return 'Ongoing'
   return 'Pending'
+}
+
+const allowReview = reservation => {
+  return (
+    reservationStatus(reservation) == 'Completed' &&
+    reservation.status != 'Cancelled'
+  )
 }
 
 const costs = reservation => {
@@ -373,7 +412,7 @@ watchEffect(async () => {
   }
 })
 
-const writeReview = reservation => {
+const saveData = reservation => {
   name.value = reservation.business.name
   start.value = format(parseISO(reservation.start), 'MMM d, yyyy')
   end.value = format(parseISO(reservation.end), 'MMM d, yyyy')
@@ -391,8 +430,16 @@ const writeReview = reservation => {
       : duration.value == 1
       ? 'hour'
       : 'hours'
-  console.log(name.value, start.value, end.value, address.value, duration.value)
+}
+
+const writeReview = reservation => {
+  saveData(reservation)
   isReviewModalOpen.value = true
+}
+
+const writeComplaint = reservation => {
+  saveData(reservation)
+  isComplaintModalOpen.value = true
 }
 
 const cancelReservation = reservation => {
