@@ -1,20 +1,10 @@
 <template>
-  <div class="mx-auto mb-10 flex max-w-4.5xl space-x-10">
+  <div class="mx-auto mb-10 max-w-4.5xl space-y-16">
     <div class="flex-1">
       <h1 class="text-2xl font-medium">Profile</h1>
 
-      <div v-if="!editMode" class="mt-2 flex">
-        <div class="mt-5 mr-7 flex space-x-4">
-          <div
-            class="flex h-12 w-12 items-center justify-center space-x-px rounded-full bg-neutral-100 text-xl font-semibold"
-          >
-            <p>
-              {{ user.firstName[0].toUpperCase() }}
-            </p>
-            <p>
-              {{ user.lastName[0].toUpperCase() }}
-            </p>
-          </div>
+      <div v-if="!editMode" class="mt-2 flex space-x-5">
+        <div class="flex space-x-4 rounded-lg border border-neutral-300 p-5">
           <div>
             <div class="flex items-center space-x-3">
               <h1 class="whitespace-nowrap text-lg font-medium leading-5">
@@ -79,44 +69,59 @@
               'text-white': loyaltyLevel.current?.color == '#000000',
               border: loyaltyLevel.current == null
             },
-            `relative w-[300px] overflow-clip rounded-lg  border-neutral-300 py-4 px-5 bg-[${
+            `relative  flex flex-1  items-center justify-between space-x-5 overflow-clip rounded-lg border-neutral-300 py-4 px-5 bg-[${
               loyaltyLevel.current?.color ?? '#ebebeb'
             }]`
           ]"
         >
-          <div class="flex items-center space-x-1">
-            <h2 class="text-lg font-semibold">
-              {{ loyaltyLevel.current?.name ?? 'Regular' }} Member
-            </h2>
-            <DiamondIcon class="h-5 w-5 text-black" />
+          <div class="w-3/4">
+            <div class="flex items-center space-x-1">
+              <span class="text-lg">Hi there! You are a</span>
+              <h3 class="text-lg font-semibold">
+                {{ loyaltyLevel.current?.name ?? 'Regular' }} Member
+              </h3>
+              <DiamondIcon class="h-5 w-5 text-black" />
+            </div>
+            <p
+              v-if="loyaltyLevel.current"
+              class="whitespace-nowrap text-sm font-medium leading-5"
+            >
+              Enjoy your {{ loyaltyLevel.current.discountPercentage }}%
+              reservation discount
+            </p>
+            <p v-else class="text-sm font-medium leading-5">
+              You currently have no discount
+            </p>
+            <h2 class="mt-3 font-semibold">{{ loyaltyLevel.points }} Points</h2>
+            <div class="relative mt-2">
+              <div
+                class="absolute h-2 w-full rounded-lg bg-black opacity-[15%]"
+              ></div>
+              <div
+                :style="{
+                  width:
+                    (loyaltyLevel.points / loyaltyLevel.next?.threshold) * 100 +
+                    '%'
+                }"
+                class="absolute h-2 rounded-lg bg-black"
+              ></div>
+            </div>
+            <p class="mt-6 text-[13px] font-medium text-neutral-600">
+              Earn {{ loyaltyLevel.next?.threshold - loyaltyLevel.points }} more
+              points to reach {{ loyaltyLevel.next?.name }} level and enjoy a
+              {{ loyaltyLevel.next?.discountPercentage }}% discount
+            </p>
           </div>
-          <p
-            v-if="loyaltyLevel.current"
-            class="whitespace-nowrap text-sm font-medium leading-5"
+          <div
+            class="flex h-28 w-28 items-center justify-center space-x-px rounded-full bg-neutral-100 text-2xl font-semibold"
           >
-            Enjoy your {{ loyaltyLevel.current.discountPercentage }}%
-            reservation discount
-            <!-- or tax relief -->
-          </p>
-          <h2 class="mt-3 font-semibold">{{ loyaltyLevel.points }} Points</h2>
-          <div class="relative mt-2">
-            <div
-              class="absolute h-2 w-full rounded-lg bg-black opacity-[15%]"
-            ></div>
-            <div
-              :style="{
-                width:
-                  (loyaltyLevel.points / loyaltyLevel.next?.threshold) * 100 +
-                  '%'
-              }"
-              class="absolute h-2 rounded-lg bg-black"
-            ></div>
+            <p>
+              {{ user.firstName[0].toUpperCase() }}
+            </p>
+            <p>
+              {{ user.lastName[0].toUpperCase() }}
+            </p>
           </div>
-          <p class="mt-6 text-[13px] font-medium text-neutral-600">
-            Earn {{ loyaltyLevel.next?.threshold - loyaltyLevel.points }} more
-            points to reach {{ loyaltyLevel.next?.name }} level and enjoy a
-            {{ loyaltyLevel.next?.discountPercentage }}% discount
-          </p>
         </div>
       </div>
 
@@ -273,22 +278,82 @@
         </form>
       </Modal>
     </div>
+
+    <div class="mx-auto max-w-4.5xl space-y-2">
+      <h1 class="text-2xl font-medium">Subscriptions</h1>
+      <h2 class="text-gray-600">
+        These are businesses you are subscribed to. You will get notified by
+        email when a new sale is created.
+      </h2>
+      <Dropdown
+        @change="e => (currentBusinessType = e.value)"
+        label="Type"
+        :values="businessTypes"
+        class="w-fit"
+      />
+
+      <div
+        v-for="subscription in subscriptions"
+        :key="subscription.id"
+        class="!mt-5 flex items-center justify-between rounded-xl border border-neutral-300 px-4 py-3.5"
+      >
+        <div class="flex space-x-4">
+          <img
+            :src="subscription.images[0]"
+            alt=""
+            class="h-24 w-24 rounded-lg object-cover"
+          />
+          <div class="font-medium">
+            <RouterLink
+              :to="`/${businessProfiles[currentBusinessType]}/${subscription.id}`"
+            >
+              {{ subscription.name }}
+            </RouterLink>
+            <h3 class="mt-1 text-sm font-normal text-neutral-500">
+              {{ subscription.address.street }}
+              {{ subscription.address.apartment }}
+            </h3>
+            <h3 class="text-sm font-normal text-neutral-500">
+              {{ subscription.address.city }},
+              {{ subscription.address.country }}
+            </h3>
+            <div
+              class="mt-1 flex w-min items-center space-x-2 bg-emerald-50 p-1 text-sm font-bold text-emerald-700"
+            >
+              <StarIcon class="h-4 w-4" />
+              <h3>
+                {{ subscription.rating.toFixed(2) }}
+              </h3>
+            </div>
+          </div>
+        </div>
+        <Button
+          @click="unsubscribe(subscription)"
+          class="flex !h-12 items-center space-x-2 border border-gray-300"
+        >
+          <p>Unsubscribe</p>
+          <BellOffIcon class="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watchEffect } from 'vue'
 import { format, parseJSON } from 'date-fns'
 import {
   DiamondIcon,
   EditIcon,
   ArrowNarrowLeftIcon,
-  UserIcon
+  StarIcon,
+  BellOffIcon
 } from 'vue-tabler-icons'
 import Button from '@/components/ui/Button.vue'
 import Input from '@/components/ui/Input.vue'
 import Loader from '@/components/ui/Loader.vue'
 import Modal from '@/components/ui/Modal.vue'
+import Dropdown from '@/components/ui/Dropdown.vue'
 import api from '@/api/api'
 
 const editMode = ref(false)
@@ -299,6 +364,37 @@ const user = ref()
 const loyaltyLevel = ref()
 const deletionRequest = ref()
 const deletionReason = ref('')
+
+const businessTypes = [
+  {
+    name: 'Adventures',
+    value: 'adventures'
+  },
+  {
+    name: 'Boats',
+    value: 'boats'
+  },
+  {
+    name: 'Cabins',
+    value: 'cabins'
+  }
+]
+
+const businessProfiles = {
+  adventures: 'adventure-profile',
+  cabins: 'cabin-profile',
+  boats: 'boat-profile'
+}
+
+const currentBusinessType = ref(businessTypes[0].value)
+const subscriptions = ref()
+
+watchEffect(async () => {
+  const [data, error] = await api.business.getSubscriptions(
+    currentBusinessType.value
+  )
+  data && (subscriptions.value = data)
+})
 
 const updateUser = async () => {
   loading.value = true
@@ -323,5 +419,18 @@ if (!profileError) {
   user.value = profileData.user
   loyaltyLevel.value = profileData.loyaltyLevel
   deletionRequest.value = profileData.deletionRequest
+}
+
+const unsubscribe = async subscription => {
+  const [data, error] = await api.business.unsubscribe(
+    subscription.id,
+    currentBusinessType.value
+  )
+  console.log(subscription.id)
+  if (!error) {
+    subscriptions.value = subscriptions.value.filter(
+      s => s.id != subscription.id
+    )
+  }
 }
 </script>

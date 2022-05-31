@@ -30,28 +30,22 @@
   </div>
 
   <Logo />
-  <div v-if="isNonSearchRoute" class="flex space-x-8 pl-8">
+  <div v-if="isNonSearchRoute" class="flex space-x-12 pl-8">
     <RouterLink
       :to="{ name: 'profile' }"
       v-slot="{ isActive }"
-      class="cursor-pointer space-y-1"
+      class="w-24 cursor-pointer space-y-1 text-center"
     >
-      <div>My profile</div>
-      <div
-        v-if="isActive"
-        class="h-0.5 w-full rounded-full bg-emerald-600"
-      ></div>
+      <div class="font-medium">Profile</div>
+      <div v-if="isActive" class="h-1 w-full rounded-full bg-emerald-600"></div>
     </RouterLink>
     <RouterLink
       :to="{ name: 'reservations' }"
       v-slot="{ isActive }"
-      class="cursor-pointer space-y-1"
+      class="w-24 cursor-pointer space-y-1 text-center"
     >
-      <div>My reservations</div>
-      <div
-        v-if="isActive"
-        class="h-0.5 w-full rounded-full bg-emerald-600"
-      ></div>
+      <div class="font-medium">Reservations</div>
+      <div v-if="isActive" class="h-1 w-full rounded-full bg-emerald-600"></div>
     </RouterLink>
   </div>
   <div class="flex items-center space-x-5">

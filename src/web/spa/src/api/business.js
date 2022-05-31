@@ -32,8 +32,8 @@ const update = async (data, type) => createOrUpdate(data, type, 'update')
 const getName = async (id, type) =>
   fetch(instance.get(`${endpoints[type]}/${id}/name`))
 
-const search = (query, type) =>
-  fetch(instance.get(`${type}/search`, { params: { ...query } }))
+const search = (query, type, page) =>
+  fetch(instance.get(`${type}/search`, { params: { ...query, page } }))
 
 const searchCabins = (query, id) =>
   fetch(instance.get(`cabin-owner/${id}/cabins`, { params: { ...query } }))
@@ -134,6 +134,15 @@ const review = async (id, type, content, rating) =>
     })
   )
 
+const subscribe = async (id, type) =>
+  fetch(instance.post(`${endpoints[type]}/${id}/subscribe`))
+
+const unsubscribe = async (id, type) =>
+  fetch(instance.post(`${endpoints[type]}/${id}/unsubscribe`))
+
+const getSubscriptions = type =>
+  fetch(instance.get(`${endpoints[type]}/subscriptions`))
+
 export default {
   get,
   create,
@@ -155,5 +164,8 @@ export default {
   review,
   upcomingReservations,
   allReservations,
-  searchBussines
+  searchBussines,
+  subscribe,
+  unsubscribe,
+  getSubscriptions
 }
