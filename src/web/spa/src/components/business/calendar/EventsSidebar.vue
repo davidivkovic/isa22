@@ -81,10 +81,16 @@
             </p>
           </div>
           <button
-            title="Write a report"
+            @click="report()"
+            :title="!selectedEvent.reported ? 'Write a report' : 'Reported'"
+            :disabled="selectedEvent.reported"
             class="-mr-1 rounded-lg p-1.5 hover:bg-neutral-100"
           >
-            <ReportSearchIcon stroke-width="1.75" class="pointer-events-none" />
+            <ReportSearchIcon
+              :class="{ 'text-gray-500 ': selectedEvent.reported }"
+              stroke-width="1.75"
+              class="pointer-events-none"
+            />
           </button>
         </div>
       </div>
@@ -155,15 +161,29 @@
       </div>
     </div>
   </div>
+  <CreateComplaint
+    @modalClosed="isReportModalOpen = false"
+    :isOpen="isReportModalOpen"
+    type="report"
+    :reservationId="selectedEvent?.id"
+    :user="selectedEvent?.name"
+    :businessType="businessType"
+  />
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import { sub, format, isPast } from 'date-fns'
 import { ReportSearchIcon } from 'vue-tabler-icons'
 import Button from '@/components/ui/Button.vue'
+import CreateComplaint from '@/components/reservations/CreateComplaint.vue'
+import { businessType } from '@/stores/userStore'
 
 const props = defineProps(['selectedEvent', 'selectedDayEvents', 'selectedDay'])
 const emit = defineEmits(['eventSelected', 'deleteEvent'])
+
+const isReportModalOpen = ref(false)
+const report = () => !selectEvent.reported && (isReportModalOpen.value = true)
 
 const selectEvent = event => {
   emit('eventSelected', props.selectedEvent?.id == event.id ? null : event)

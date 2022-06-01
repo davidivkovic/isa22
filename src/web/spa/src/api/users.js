@@ -43,6 +43,13 @@ const requestDeletion = reason =>
     })
   )
 
+const getPendingReviews = () => fetch(instance.get('users/reviews/pending'))
+
+const approveReview = (id, approve) =>
+  fetch(
+    instance.post(`users/reviews/${id}/update`, {}, { params: { approve } })
+  )
+
 export default {
   updateRegistrationRequest,
   getRegistrationRequests,
@@ -51,5 +58,7 @@ export default {
   update,
   requestDeletion,
   getProfile,
-  getUser
+  getUser,
+  getPendingReviews,
+  approveReview
 }

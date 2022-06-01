@@ -590,6 +590,7 @@ public class BusinessController<
             .Include(r => r.User)
             .Include(r => r.Business)
             .Where(r => r.User.Id == user.Id)
+            .Where(r => r.Approved || r.Rejected)
             .Where(r => r.Business.Id == id)
             .ToListAsync();
 
@@ -605,13 +606,6 @@ public class BusinessController<
 
         Review review = business.Review(user, request.Rating, request.Content);
         await Context.SaveChangesAsync();
-
-        //_mailer.Send(business.Owner, new NewReview(
-        //    review,
-        //    reservations[0],
-        //    ImageUrl(business.Id, business.Images.FirstOrDefault()),
-        //    "#contactUrl"
-        //));
 
         return Ok();
     }
@@ -651,6 +645,33 @@ public class BusinessController<
 
     }
 
+    [HttpPost("reservations/{reservationId}/report")]
+    public virtual async Task<ActionResult> Report([FromRoute] Guid reservationId, CreateReportDTO request)
+    {
+        var user = await Context.Users.FindAsync(User.Id());
+
+        var reservation = await Context.Reservations
+            .Where(r => r.Business.Owner.Id == user.Id)
+            .Where(r => r.Id == reservationId)
+            .FirstOrDefaultAsync();
+
+        var isPast = reservation.End < DateTimeOffset.UtcNow;
+
+        if (reservation is null)
+        {
+            return BadRequest("There must be a completed reservation in order to leave a report.");
+        }
+
+        if (reservation.Report is not null)
+        {
+            return BadRequest("You have already submitted a report.");
+        }
+
+        reservation.ReportUser(request.Reason, request.Penalize);
+        await Context.SaveChangesAsync();
+
+        return Ok(reservation.Report);
+    }
 
     [Authorize(Roles = Role.Customer)]
     [HttpPost("{id}/make-reservation")]
@@ -836,7 +857,8 @@ public class BusinessController<
                 r.Start,
                 r.End,
                 Type = r.GetType().Name.ToLowerInvariant(),
-                Name = r.User == null ? "" : r.User.FirstName + " " + r.User.LastName
+                Name = r.User == null ? "" : r.User.FirstName + " " + r.User.LastName,
+                Reported = r.Report != null
             })
             .ToListAsync();
 
@@ -855,7 +877,8 @@ public class BusinessController<
                     r.Start,
                     r.End,
                     Type = "unavailable",
-                    Name = "Unavailable"
+                    Name = "Unavailable",
+                    Reported = false
                 })
                 .ToListAsync();
 
@@ -982,4 +1005,5 @@ public class BusinessController<
             totalResults,
         });
     }
+
 }

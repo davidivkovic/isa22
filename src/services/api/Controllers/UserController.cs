@@ -261,10 +261,12 @@ public class UserController : ControllerBase
 
     [Authorize(Roles = Role.Admin)]
     [HttpPost("reviews/{id}/update")]
-    public async Task<ActionResult> ApproveReview([FromRoute] Guid id, [FromRoute] bool approve)
+    public async Task<ActionResult> ApproveReview([FromRoute] Guid id, [FromQuery] bool approve)
     {
         var review = await _context.Reviews
             .Include(r => r.Business)
+            .Include(r => r.Business.Owner)
+            .Include(r => r.User)
             .FirstOrDefaultAsync(r => r.Id == id);
 
         if (review is null)
@@ -282,6 +284,12 @@ public class UserController : ControllerBase
         }
 
         await _context.SaveChangesAsync();
+        //_mailer.Send(review.Business.Owner, new NewReview(
+        //    review,
+        //    reservations[0],
+        //    ImageUrl(business.Id, business.Images.FirstOrDefault()),
+        //    "#contactUrl"
+        //));
 
         return Ok();
     }
