@@ -302,7 +302,7 @@ public class UserController : ControllerBase
             .AsNoTracking()
             .Where(r => !r.Approved)
             .Where(r => !r.Rejected)
-            .Where(r => r.Timestamp <= before)
+            //.Where(r => r.Timestamp <= before)
             .OrderByDescending(r => r.Timestamp)
             .Take(10)
             .ProjectToType<PendingReviewDTO>()

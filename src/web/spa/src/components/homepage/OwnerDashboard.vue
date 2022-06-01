@@ -84,7 +84,12 @@
       <div class="h-[35rem] w-1/3 rounded-2xl border border-gray-300 px-5 py-6">
         <div class="-mt-1.5 flex items-center justify-between">
           <h3 class="text-lg font-medium">Earnings Trend</h3>
-          <Dropdown :slim="false" class="!px-2 !py-1" :values="incomeOptions" />
+          <Dropdown
+            @change="selectIncomeOption"
+            :slim="false"
+            class="!px-2 !py-1"
+            :values="incomeOptions"
+          />
         </div>
         <Transition
           enter-active-class="duration-500 ease-in-out"
@@ -95,7 +100,9 @@
             <div class="text-3xl font-bold">
               {{ earnings.total }}
             </div>
-            <div class="text-sm text-neutral-500">In the past 6 months</div>
+            <div class="text-sm text-neutral-500">
+              In the past {{ periodName }}
+            </div>
           </div>
         </Transition>
         <BarChart :points="earnings.values" :is-money="true" class="mt-5" />
@@ -113,7 +120,7 @@
                 <span class="ml-2 text-lg">Reservations</span>
               </div>
               <div class="text-sm leading-3 text-neutral-500">
-                In the past 6 months
+                In the past {{ periodName }}
               </div>
             </div>
           </Transition>
@@ -182,7 +189,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import api from '@/api/api.js'
 import { PlusIcon } from 'vue-tabler-icons'
@@ -206,6 +213,7 @@ const incomeOptions = [
     value: 'yearly'
   }
 ]
+const currentIncomeOption = ref('monthly')
 
 const timeFormats = {
   cabins: 'MMM d, yyyy',
@@ -238,6 +246,24 @@ const businessProfiles = {
   boats: 'boat-profile'
 }
 
+const selectIncomeOption = e => {
+  currentIncomeOption.value = e.value
+  fetchEarnings()
+  fetchAttendance()
+}
+
+const monthsFromIncome = computed(() => {
+  if (currentIncomeOption.value == 'yearly') return 24
+  else if (currentIncomeOption.value == 'monthly') return 6
+  else return 1
+})
+
+const periodName = computed(() => {
+  if (currentIncomeOption.value == 'yearly') return '2 years'
+  else if (currentIncomeOption.value == 'monthly') return '6 months'
+  else return '4 weeks'
+})
+
 const cost = reservation => {
   return (
     reservation.payment.price.symbol +
@@ -269,7 +295,7 @@ const fetchReservations = async () => {
 
 const fetchEarnings = async () => {
   const [data, error] = await api.finances.getReport(
-    sub(new Date(), { months: 6 }),
+    sub(new Date(), { months: monthsFromIncome.value }),
     add(new Date(), { months: 0 })
   )
   if (!error) {
@@ -289,7 +315,7 @@ const fetchEarnings = async () => {
 
 const fetchAttendance = async () => {
   const [data, error] = await api.finances.getReport(
-    sub(new Date(), { months: 6 }),
+    sub(new Date(), { months: monthsFromIncome.value }),
     add(new Date(), { months: 0 }),
     'attendance'
   )

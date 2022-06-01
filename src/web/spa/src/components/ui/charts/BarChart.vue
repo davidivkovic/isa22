@@ -5,6 +5,7 @@
         enter-active-class="duration-500 ease-in-out"
         enter-from-class="opacity-0"
         enter-to-class="opacity-100"
+        leave-active-class="hidden"
       >
         <div
           v-for="(step, index) in data.steps"
@@ -36,6 +37,7 @@
           enter-active-class="duration-500 ease-in-out"
           enter-from-class="opacity-0"
           enter-to-class="opacity-100"
+          leave-active-class="hidden"
         >
           <div
             v-for="(point, index) in data.values"
@@ -43,16 +45,22 @@
             class="w-7 text-center text-xs font-medium"
             :style="{ transitionDelay: 50 * index + 'ms' }"
           >
-            {{
-              format(
-                parseISO(
-                  `${point.year}-${point.month < 10 ? '0' : ''}${
-                    point.month
-                  }-01`
-                ),
-                'MMM'
-              )
-            }}
+            <div v-if="point?.week">W{{ point.week }}</div>
+            <div v-else-if="point?.month">
+              {{
+                format(
+                  parseISO(
+                    `${point.year}-${point.month < 10 ? '0' : ''}${
+                      point.month
+                    }-01`
+                  ),
+                  'MMM'
+                )
+              }}
+            </div>
+            <div v-else>
+              {{ point.year }}
+            </div>
           </div>
         </TransitionGroup>
       </div>
@@ -83,26 +91,41 @@ watch(
     const max = Math.max(...props.points.map(r => r.total))
     const min = Math.min(...props.points.map(r => r.total))
 
-    const range = max - min
+    let range = max - min
+    if (range == 0) range = max
     const exponent = Math.round(Math.log10(range))
     const magnitude = Math.pow(10, exponent)
-    const step = (magnitude / 5) * Math.round(max / magnitude)
+    const step = (magnitude / 5) * Math.ceil(max / magnitude)
     data.value = {
-      max,
-      steps: [...Array(5).keys()]
-        .reverse()
-        .map(s => (s + 1) * step)
-        .map(s =>
-          props.isMoney
-            ? s.toLocaleString('en-US', {
-                style: 'currency',
-                currency: 'USD',
-                maximumFractionDigits: 0
-              })
-            : Math.round(s)
-        ),
-      values: props.points
+      max: 0,
+      steps: [],
+      values: []
     }
+    setTimeout(
+      () => {
+        data.value = {
+          max,
+          steps: [
+            ...new Set(
+              [...Array(5).keys()]
+                .reverse()
+                .map(s => (s + 1) * step)
+                .map(s =>
+                  props.isMoney
+                    ? s.toLocaleString('en-US', {
+                        style: 'currency',
+                        currency: 'USD',
+                        maximumFractionDigits: 0
+                      })
+                    : Math.round(s)
+                )
+            )
+          ],
+          values: props.points
+        }
+      },
+      data.value.values.length > 0 ? data.value.values.length * 65 : 0
+    )
   }
 )
 </script>
@@ -125,8 +148,10 @@ watch(
   background: linear-gradient(to top, #10b981, #86efac);
 }
 
-.bars-enter-active,
 .bars-leave-active {
+  display: none;
+}
+.bars-enter-active {
   transition: all 0.55s cubic-bezier(0.9, 0.12, 0.42, 0.82);
   transform: scaleY(1);
   transform-origin: bottom;

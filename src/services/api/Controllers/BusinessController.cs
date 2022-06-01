@@ -179,6 +179,7 @@ public class BusinessController<
 
         var sales = await Context.Sales
             .Include(s => s.Business)
+            .Where(s => s.Payment == null)
             .Where(s => s.Business.Id == business.Id)
             .OrderBy(s => s.Start)
             .Take(3)

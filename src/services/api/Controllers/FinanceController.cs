@@ -79,6 +79,7 @@ public class FinanceController : ControllerBase
 
         var query = _context.Reservations
             .AsNoTracking()
+            .Where(r => r.Payment != null)
             .Where(r => r.Status != Reservation.ReservationStatus.Cancelled)
             .Where(r => r.Payment != null)
             .Select(r => r.Payment)
@@ -97,7 +98,7 @@ public class FinanceController : ControllerBase
             })
         );
 
-        else if (delta > 30) return Ok(query
+        else if (delta > 31) return Ok(query
             .GroupBy(p => new
             {
                 p.Timestamp.Year,
