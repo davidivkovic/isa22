@@ -34,7 +34,7 @@ public class Sale : Reservation
         Status = ReservationStatus.Created;
         User = user;
         Timestamp = DateTimeOffset.Now;
-        DiscountPercentage = userDiscountPercentage;
+        DiscountPercentage += userDiscountPercentage;
         Payment = new (Price(DiscountPercentage), taxPercentage);
     }
 }

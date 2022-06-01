@@ -3,25 +3,26 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
 
 using API.DTO;
 using API.Core.Model;
-using API.Infrastructure.Data;
-using API.Infrastructure.Data.Queries;
-using API.Infrastructure.Extensions;
 using API.DTO.Search;
-using API.DTO.Report;
 using API.Services.Email;
-using Mapster;
+using API.Infrastructure.Data;
 
 [ApiController]
 [Route("cabins")]
-public class CabinController : BusinessController<Cabin, CabinDTO, CreateCabinDTO, UpdateCabinDTO>
+public class CabinController : BusinessController<Cabin, CabinDTO, CreateCabinDTO, UpdateCabinDTO, CabinSearchResponse>
 {
     protected override string BusinessType => "cabin";
 
     public CabinController(AppDbContext dbContext, Mailer mailer) : base(dbContext, mailer) { }
+
+    [Authorize(Roles = Role.CabinOwner)]
+    public override Task<IActionResult> Create(CreateCabinDTO dto)
+    {
+        return base.Create(dto);
+    }
 
     [Authorize(Roles = Role.CabinOwner)]
     public override Task<ActionResult> Update(UpdateCabinDTO dto)
@@ -30,9 +31,9 @@ public class CabinController : BusinessController<Cabin, CabinDTO, CreateCabinDT
     }
 
     [Authorize(Roles = Role.CabinOwner)]
-    public override Task<IActionResult> Create(CreateCabinDTO dto)
+    public override Task<ActionResult> Delete(Guid id)
     {
-        return base.Create(dto);
+        return base.Delete(id);
     }
 
     [Authorize(Roles = Role.CabinOwner)]
@@ -47,176 +48,62 @@ public class CabinController : BusinessController<Cabin, CabinDTO, CreateCabinDT
         return base.PreviewCreateSale(id, request);
     }
 
-    [HttpGet]
-    [Authorize(Roles = Role.CabinOwner)]
-    public async Task<ActionResult> Get()
-    {
-        var query = Context.Cabins
-            .Where(a => a.Owner.Id == User.Id())
-            .AsNoTrackingWithIdentityResolution();
-        var results = await query
-            .Take(6)
-            .ProjectToType<CabinDTO>()
-            .ToListAsync();
-
-        results.ForEach(a => a.WithImages(ImageUrl));
-        return Ok(results);
-    }
-
-    [Authorize]
-    [HttpGet("subscriptions")]
-    public Task<ActionResult> GetSubcriptions()
-    {
-        return GetSubcriptions("cabins");
-    }
-
-    [Authorize]
-    [AllowAnonymous]
-    [HttpGet("search")]
-    public async Task<ActionResult> Search([FromQuery] CabinSearchRequest request)
-    {
-        int totalUnits = new Cabin().GetTotalUnits(request.Start, request.End);
-        decimal discountMultiplier = await Context.GetDiscountMultiplier(User.Id());
-
-        var query = Context.Cabins
-            .AsNoTrackingWithIdentityResolution()
-            .Available(request.Start.UtcDateTime, request.End.UtcDateTime)
-            .Where(c => c.Address.City == request.City)
-            .Where(c => c.Address.Country == request.Country)
-            .Where(c => c.People == request.People);
-            
-        if (request.RatingHigher != default)
-        {
-            query = query.Where(c => c.Rating >= request.RatingHigher);
-        }
-        if (request.PriceLow != default)
-        {
-            query = query.Where(c => c.PricePerUnit.Amount >= request.PriceLow);
-        }
-        if (request.PriceHigh != default)
-        {
-            query = query.Where(c => c.PricePerUnit.Amount <= request.PriceHigh);
-        }
-        if (request.Rooms != default)
-        {
-            if (request.Rooms >= 4)
-            {
-                query = query.Where(c => c.Rooms.Count >= 4);
-            }
-            else
-            {
-                query = query.Where(c => c.Rooms.Count == request.Rooms);
-            }
-        }
-
-        int totalResults = await query.CountAsync();
-        var results = await query
-            .OrderBy(request.Direction)
-            .Skip(request.Page * 6)
-            .Take(6)
-            .Select(c => new CabinSearchResponse
-            {
-                Id = c.Id,
-                Name = c.Name,
-                Description = c.Description,
-                Address = c.Address,
-                Beds = c.Rooms.Sum(r => r.Beds),
-                Image = c.Images.FirstOrDefault(),
-                People = c.People,
-                Rooms = c.Rooms.Count,
-                Rating = c.Rating,
-                Price = new Money
-                {
-                    Amount = c.PricePerUnit.Amount * request.People,
-                    Currency = c.PricePerUnit.Currency
-                }
-            }) 
-            .ToListAsync();
-
-        results.ForEach(r => r.Image = ImageUrl(r.Id, r.Image));
-
-        return Ok(new 
-        {
-            results,
-            totalResults,
-        });
-    }
-
-    [HttpGet("my-cabins")]
-    [Authorize(Roles = Role.CabinOwner)]
-    public async Task<ActionResult> SearchOwnersCabins([FromQuery] CabinSearchRequest request)
-    {
-        var query = Context.Cabins
-            .Where(c => c.Owner.Id == User.Id())
-            .AsNoTrackingWithIdentityResolution();
-
-        if (!string.IsNullOrWhiteSpace(request.Name))
-        {
-            query = query.Where(a => EF.Functions.ILike(a.Name, $"%{request.Name}%"));
-        }
-        if (!string.IsNullOrWhiteSpace(request.City))
-        {
-            query = query.Where(a => EF.Functions.ILike(a.Address.City, $"%{request.City}%"));
-        }
-        if (!string.IsNullOrWhiteSpace(request.Country))
-        {
-            query = query.Where(c => EF.Functions.ILike(c.Address.Country, $"%{request.Country}%"));
-        }
-        if (request.People != 0)
-        {
-            query = query.Where(c => c.People == request.People);
-        }
-        int page = request.Page;
-        if (page == 0) page = 1;
-
-        int totalResults = await query.CountAsync();
-
-        var results = await query
-            .OrderBy(request.Direction)
-            .Skip((page-1) * 6)
-            .Take(6)
-            .Select(c => new CabinSearchResponse
-            {
-                Id = c.Id,
-                Name = c.Name,
-                Description = c.Description,
-                Address = c.Address,
-                Beds = c.Rooms.Sum(r => r.Beds),
-                Image = c.Images.FirstOrDefault(),
-                People = c.People,
-                Rooms = c.Rooms.Count,
-                Rating = c.Rating,
-                CancellationFee = c.CancellationFee,
-                Price = new Money
-                {
-                    Amount = c.PricePerUnit.Amount,
-                    Currency = c.PricePerUnit.Currency
-                }
-            })
-            .ToListAsync();
-
-        results.ForEach(r => r.Image = ImageUrl(r.Id, r.Image));
-
-        return Ok(new { results, totalResults });
-    }
-
     [Authorize(Roles = Role.CabinOwner)]
     public override Task<ActionResult> CreateSale([FromRoute] Guid id, [FromBody] CreateSaleDTO request)
     {
         return base.CreateSale(id, request);
     }
 
-    [HttpGet("upcoming-reservations")]
     [Authorize(Roles = Role.CabinOwner)]
-    public override Task<ActionResult> GetUpcomingReservations()
+    public override Task<ActionResult> DeleteSale([FromRoute] Guid id, [FromRoute] Guid saleId)
     {
-        return base.GetUpcomingReservations();
+        return base.DeleteSale(id, saleId);
     }
 
-    [HttpGet("owners-reservations")]
     [Authorize(Roles = Role.CabinOwner)]
-    public override Task<ActionResult> GetAllOwnersReservations(int pageNumber)
+    public override Task<ActionResult> CreateUnavailability(Guid id, DateTimeOffset start, DateTimeOffset end)
     {
-        return base.GetAllOwnersReservations(pageNumber);
+        return base.CreateUnavailability(id, start, end);
+    }
+
+    [Authorize(Roles = Role.CabinOwner)]
+    public override Task<ActionResult> DeleteUnavailability(Guid id, Guid eventId)
+    {
+        return base.DeleteUnavailability(id, eventId);
+    }
+
+    [HttpGet]
+    [Authorize(Roles = Role.CabinOwner)]
+    public Task<ActionResult> GetBusinesses([FromQuery] CabinSearchRequest request)
+    {
+        return base.GetBusinesses(request);
+    }
+
+    [Authorize(Roles = Role.CabinOwner)]
+    public override Task<ActionResult> GetCalendar(Guid id, DateTimeOffset start, DateTimeOffset end)
+    {
+        return base.GetCalendar(id, start, end);
+    }
+
+    [Authorize]
+    [AllowAnonymous]
+    [HttpGet("search")]
+    public Task<ActionResult> Search([FromQuery] CabinSearchRequest request)
+    {
+        return Search(request, query =>
+        {
+            if (request.Rooms != default)
+            {
+                if (request.Rooms >= 4)
+                {
+                    query = query.Where(c => c.Rooms.Count >= 4);
+                }
+                else
+                {
+                    query = query.Where(c => c.Rooms.Count == request.Rooms);
+                }
+            }
+            return query;
+        });
     }
 }

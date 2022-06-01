@@ -3,8 +3,8 @@
     <h1 class="text-4xl font-bold">👋 Welcome {{ user.firstName }}</h1>
     <h2 class="mt-2 text-lg text-gray-800">
       You currently have
-      <span :class="reservations.length > 0 && 'underline underline-offset-2'">
-        {{ reservations.length > 0 ? reservations.length : 'no' }} active
+      <span :class="reservationsCount > 0 && 'underline underline-offset-2'">
+        {{ reservationsCount > 0 ? reservationsCount : 'no' }} active
         reservations.</span
       >
     </h2>
@@ -13,7 +13,7 @@
         class="relative h-[35rem] w-1/3 rounded-2xl border border-gray-300 py-5 px-6"
       >
         <div class="flex items-center justify-between">
-          <h3 class="font-medium capitalize">
+          <h3 class="text-lg font-medium capitalize">
             My {{ businessType[user.roles[0]] }}
           </h3>
           <Button
@@ -29,35 +29,45 @@
           </Button>
         </div>
         <div class="mt-5 h-[80%] space-y-5 overflow-y-auto">
-          <div v-for="business in businesses" :key="business?.id">
-            <RouterLink
-              :to="`/${businessProfiles[currentBusinessType]}/${business.id}`"
-              class="flex items-center space-x-3"
+          <TransitionGroup
+            enter-active-class="duration-500 ease-in-out"
+            enter-from-class="opacity-0"
+            enter-to-class="opacity-100"
+          >
+            <div
+              v-for="(business, index) in businesses"
+              :key="business?.id"
+              :style="{ transitionDelay: 120 * index + 'ms' }"
             >
-              <div>
-                <img
-                  :src="business.images[0]"
-                  alt="Business image"
-                  class="h-14 w-[4.5rem] rounded-t-md object-cover"
-                />
-                <div
-                  class="w-full rounded-b-md bg-emerald-600 px-3 py-0.5 text-center text-[13px] font-medium text-white"
-                >
-                  Booked
+              <RouterLink
+                :to="`/${businessProfiles[currentBusinessType]}/${business.id}`"
+                class="flex items-center space-x-3"
+              >
+                <div>
+                  <img
+                    :src="business.image"
+                    alt="Business image"
+                    class="h-14 w-[4.5rem] rounded-t-md object-cover"
+                  />
+                  <div
+                    class="w-full rounded-b-md bg-emerald-600 px-3 py-0.5 text-center text-[13px] font-medium text-white"
+                  >
+                    Booked
+                  </div>
                 </div>
-              </div>
-              <div>
-                <span class="font-medium"> {{ business.name }} </span>
-                <div class="text-sm leading-5 text-gray-600">
-                  {{ business.address.city }}, {{ business.address.country }}
+                <div>
+                  <span class="font-medium"> {{ business.name }} </span>
+                  <div class="text-sm leading-5 text-gray-600">
+                    {{ business.address.city }}, {{ business.address.country }}
+                  </div>
+                  <div class="text-sm text-gray-600">
+                    {{ business.address.street }},
+                    {{ business.address.apartment }}
+                  </div>
                 </div>
-                <div class="text-sm text-gray-600">
-                  {{ business.address.street }},
-                  {{ business.address.apartment }}
-                </div>
-              </div>
-            </RouterLink>
-          </div>
+              </RouterLink>
+            </div>
+          </TransitionGroup>
         </div>
         <a
           href=""
@@ -73,104 +83,113 @@
       </div>
       <div class="h-[35rem] w-1/3 rounded-2xl border border-gray-300 px-5 py-6">
         <div class="-mt-1.5 flex items-center justify-between">
-          <h3 class="font-medium">Earnings Trend</h3>
+          <h3 class="text-lg font-medium">Earnings Trend</h3>
           <Dropdown :slim="false" class="!px-2 !py-1" :values="incomeOptions" />
         </div>
-        <div class="mt-2 text-3xl font-bold">$4,565</div>
-        <div class="mt-5 flex items-end space-x-3">
-          <TransitionGroup name="list">
-            <div
-              v-for="(point, index) in earnings.values"
-              :key="point.year"
-              :style="{ transitionDelay: 40 * (index + 1) + 'ms' }"
-            >
-              <div
-                :style="{
-                  height: (point.total / earnings.max) * 120 + 'px'
-                }"
-                class="w-4 rounded bg-gradient-to-b from-teal-200 via-indigo-400 to-purple-500"
-              ></div>
+        <Transition
+          enter-active-class="duration-500 ease-in-out"
+          enter-from-class="opacity-0"
+          enter-to-class="opacity-100"
+        >
+          <div v-if="earnings.total !== 0">
+            <div class="text-3xl font-bold">
+              {{ earnings.total }}
             </div>
-          </TransitionGroup>
+            <div class="text-sm text-neutral-500">In the past 6 months</div>
+          </div>
+        </Transition>
+        <BarChart :points="earnings.values" :is-money="true" class="mt-5" />
+        <div class="mt-2">
+          <Transition
+            enter-active-class="duration-500 ease-in-out"
+            enter-from-class="opacity-0"
+            enter-to-class="opacity-100"
+          >
+            <div v-if="attendance.total !== 0">
+              <div>
+                <span class="text-3xl font-bold">
+                  {{ attendance.total }}
+                </span>
+                <span class="ml-2 text-lg">Reservations</span>
+              </div>
+              <div class="text-sm leading-3 text-neutral-500">
+                In the past 6 months
+              </div>
+            </div>
+          </Transition>
         </div>
+        <BarChart :points="attendance.values" :is-money="false" class="mt-5" />
       </div>
       <div
         class="h-[35rem] w-1/3 space-y-4 rounded-2xl border border-gray-300 px-5 py-6"
       >
-        <h3 class="font-medium">Upcoming reservations</h3>
+        <h3 class="text-lg font-medium">Upcoming reservations</h3>
         <div class="space-y-5 overflow-y-auto">
-          <div
-            class="relative"
-            v-for="reservation in reservations"
-            :key="reservation.id"
+          <TransitionGroup
+            enter-active-class="duration-500 ease-in-out"
+            enter-from-class="opacity-0"
+            enter-to-class="opacity-100"
           >
-            <div class="flex items-center space-x-3">
-              <div>
-                <img
-                  :src="reservation.business.images[0]"
-                  alt="Business image"
-                  class="h-14 w-[4.5rem] rounded-t-md object-cover"
-                />
-                <div
-                  class="w-full rounded-b bg-emerald-600 py-0.5 px-2 text-center text-[13px] font-medium text-white 2xl:right-0"
-                >
-                  {{ cost(reservation) }}
+            <div
+              v-for="(reservation, index) in reservations"
+              :style="{ transitionDelay: 120 * index + 'ms' }"
+              :key="reservation.id"
+            >
+              <div class="flex items-center space-x-3">
+                <div>
+                  <img
+                    :src="reservation.business.images[0]"
+                    alt="Business image"
+                    class="h-14 w-[4.5rem] rounded-t-md object-cover"
+                  />
+                  <div
+                    class="w-full rounded-b bg-emerald-600 py-0.5 px-2 text-center text-[13px] font-medium text-white 2xl:right-0"
+                  >
+                    {{ cost(reservation) }}
+                  </div>
                 </div>
-              </div>
-              <div>
-                <RouterLink
-                  :to="`/${businessProfiles[currentBusinessType]}/${reservation.business.id}`"
-                  class="cursor-pointer font-medium hover:text-emerald-400"
-                  >{{ reservation.business.name }}</RouterLink
-                >
-                <div class="text-sm leading-4 text-gray-600">
-                  {{ reservation.business.address.city }},
-                  {{ reservation.business.address.country }}
-                </div>
-                <div class="mt-1 text-sm font-medium">
-                  {{
-                    format(
-                      parseJSON(reservation.start),
-                      timeFormats[currentBusinessType]
-                    )
-                  }}
-                </div>
-                <div class="text-sm">
-                  <span class="text-sm text-neutral-500">Client</span>
-                  {{ reservation.user.firstName }}
-                  {{ reservation.user.lastName }}
+                <div>
+                  <RouterLink
+                    :to="`/${businessProfiles[currentBusinessType]}/${reservation.business.id}`"
+                    class="cursor-pointer font-medium hover:text-emerald-400"
+                    >{{ reservation.business.name }}</RouterLink
+                  >
+                  <div class="text-sm leading-4 text-gray-600">
+                    {{ reservation.business.address.city }},
+                    {{ reservation.business.address.country }}
+                  </div>
+                  <div class="mt-1 text-sm font-medium">
+                    {{
+                      format(
+                        parseJSON(reservation.start),
+                        timeFormats[currentBusinessType]
+                      )
+                    }}
+                  </div>
+                  <div class="text-sm">
+                    <span class="text-sm text-neutral-500">Client</span>
+                    {{ reservation.user.firstName }}
+                    {{ reservation.user.lastName }}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          </TransitionGroup>
         </div>
       </div>
     </div>
   </div>
 </template>
 
-<style>
-.list-enter-active,
-.list-leave-active {
-  transition: all 0.4s cubic-bezier(1, 0.18, 0.38, 0.98);
-  transform: scaleY(1);
-  transform-origin: bottom;
-}
-.list-enter-from,
-.list-leave-to {
-  transform: scaleY(0);
-  transform-origin: bottom;
-}
-</style>
-
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import api from '@/api/api.js'
 import { PlusIcon } from 'vue-tabler-icons'
 import Button from '../ui/Button.vue'
 import Dropdown from '../ui/Dropdown.vue'
 import { user } from '@/stores/userStore'
+import BarChart from '@/components/ui/charts/BarChart.vue'
 import { add, format, parseJSON, sub } from 'date-fns'
 
 const incomeOptions = [
@@ -201,9 +220,15 @@ const businessType = {
   Fisher: 'adventures'
 }
 const reservations = ref([])
+const reservationsCount = ref(0)
 const currentBusinessType = ref(businessType[user.roles[0]])
 const earnings = ref({
-  max: 0,
+  total: 0,
+  values: []
+})
+
+const attendance = ref({
+  total: 0,
   values: []
 })
 
@@ -224,37 +249,63 @@ const cost = reservation => {
 }
 
 const fetchBusinesses = async () => {
-  const [data] = await api.business.ownersBusinesses(
-    businessType[user.roles[0]]
-  )
-  data && (businesses.value = data)
+  const [data] = await api.business.getBusinesses(businessType[user.roles[0]])
+  data && (businesses.value = data.results)
 }
 
 const fetchReservations = async () => {
   const [data, error] = await api.business.getReservations(
-    'pending',
     businessType[user.roles[0]],
-    3
+    'pending',
+    0,
+    3,
+    true
   )
   if (!error) {
-    reservations.value = data
+    reservations.value = data.results
+    reservationsCount.value = data.totalResults
   }
 }
 
-const fetchReport = async () => {
+const fetchEarnings = async () => {
   const [data, error] = await api.finances.getReport(
-    sub(new Date(), { months: 1 }),
-    add(new Date(), { months: 3 })
+    sub(new Date(), { months: 6 }),
+    add(new Date(), { months: 0 })
   )
   if (!error) {
+    data.forEach(p => (p.total = Number(p.total)))
     earnings.value = {
-      max: Math.max(...data.map(r => Number(r.total))),
-      values: data
+      values: data,
+      total: data
+        .reduce((sum, point) => sum + point.total, 0)
+        .toLocaleString('en-US', {
+          style: 'currency',
+          currency: 'USD',
+          maximumFractionDigits: 0
+        })
     }
   }
 }
 
-fetchReservations()
-fetchBusinesses()
-fetchReport()
+const fetchAttendance = async () => {
+  const [data, error] = await api.finances.getReport(
+    sub(new Date(), { months: 6 }),
+    add(new Date(), { months: 0 }),
+    'attendance'
+  )
+  if (!error) {
+    data.forEach(p => (p.total = Number(p.total)))
+    attendance.value = {
+      values: data,
+      total: data.reduce((sum, point) => sum + point.total, 0)
+    }
+  }
+}
+
+onMounted(async () => {
+  fetchReservations()
+  await fetchBusinesses()
+  await fetchEarnings()
+  await fetchAttendance()
+})
 </script>

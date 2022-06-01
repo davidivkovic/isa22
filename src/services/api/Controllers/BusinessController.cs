@@ -17,6 +17,7 @@ using API.Services;
 using API.Infrastructure.Data.Queries;
 using API.Services.Email;
 using API.Services.Email.Messages;
+using API.DTO.Search;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -24,12 +25,14 @@ public class BusinessController<
     TBusiness,
     TReadDTO,
     TCreateDTO,
-    TUpdateDTO
+    TUpdateDTO,
+    TSearchDTO
 > : ControllerBase 
     where TBusiness : Business
     where TReadDTO : BusinessDTO
     where TUpdateDTO : UpdateBusinessDTO
     where TCreateDTO : CreateBusinessDTO
+    where TSearchDTO : SearchResponse
 {
     private readonly Mailer _mailer;
 
@@ -50,6 +53,51 @@ public class BusinessController<
             new { id, image },
             Request.Scheme
         );
+    }
+
+    protected async Task<ActionResult> GetBusinesses([FromQuery] SearchRequest request)
+    {
+        var query = Context.Set<TBusiness>()
+            .Where(b => b.Owner.Id == User.Id())
+            .AsNoTrackingWithIdentityResolution();
+
+        if (!string.IsNullOrWhiteSpace(request.Name))
+        {
+            query = query.Where(b => EF.Functions.ILike(b.Name, $"%{request.Name}%"));
+        };
+        if (!string.IsNullOrWhiteSpace(request.City))
+        {
+            query = query.Where(b => EF.Functions.ILike(b.Address.City, $"%{request.City}%"));
+        };
+        if (!string.IsNullOrWhiteSpace(request.Country))
+        {
+            query = query.Where(b => EF.Functions.ILike(b.Address.Country, $"%{request.Country}%"));
+        }
+        if (request.People != 0)
+        {
+            query = query.Where(c => c.People == request.People);
+        }
+
+        int totalResults = await query.CountAsync();
+
+        var results = await query
+            .OrderBy(request.Direction)
+            .Skip(request.Page * 6)
+            .Take(6)
+            .ProjectToType<SearchResponse>()
+            .ToListAsync();
+
+            results.ForEach(r =>
+            {
+                r.Image = ImageUrl(r.Id, r.Images.FirstOrDefault());
+                r.Price = new Money
+                {
+                    Amount = r.PricePerUnit.Amount,
+                    Currency = r.PricePerUnit.Currency
+                };
+            });
+
+        return Ok(new { results, totalResults });
     }
 
     [HttpGet("{id}/images/{image}")]
@@ -132,6 +180,7 @@ public class BusinessController<
         var sales = await Context.Sales
             .Include(s => s.Business)
             .Where(s => s.Business.Id == business.Id)
+            .OrderBy(s => s.Start)
             .Take(3)
             .ToListAsync();
 
@@ -338,6 +387,7 @@ public class BusinessController<
         var business = await Context.Set<TBusiness>()
                     .Include(b => b.Owner)
                     .Include(b => b.Services)
+                    .Include(b => b.Subscribers)
                     .FirstOrDefaultAsync(b => b.Id == id);
 
         if (business is null)
@@ -372,6 +422,13 @@ public class BusinessController<
         );
         Context.Add(sale);
         await Context.SaveChangesAsync();
+
+        sale.Business.Subscribers.ForEach(u => _mailer.Send(u, new NewSale(
+            u.FullName,
+            sale,
+            ImageUrl(sale.Business.Id, sale.Business.Images.FirstOrDefault()),
+            "#contactUrl"
+        )));
 
         return Ok(sale.Adapt<SaleDTO>());
     }
@@ -496,6 +553,7 @@ public class BusinessController<
         var loyalty = await Context.GetLoyaltyLevel(User.Id());
 
         sale.Sell(user, loyalty?.DiscountPercentage ?? 0, finance.TaxPercentage);
+        user.LoyaltyPoints += finance.CustomerPoints;
         await Context.SaveChangesAsync();
 
         _mailer.Send(user, new ReservationCreated(
@@ -631,6 +689,7 @@ public class BusinessController<
         );
 
         Context.Add(reservation);
+        user.LoyaltyPoints += finance.CustomerPoints;
         await Context.SaveChangesAsync();
 
         _mailer.Send(user, new ReservationCreated(
@@ -644,7 +703,7 @@ public class BusinessController<
 
     [Authorize]
     [HttpGet("reservations")]
-    public async Task<ActionResult> GetReservations(string status, int size = 10)
+    public async Task<ActionResult> GetReservations(string status, int page, int size = 10, bool isDashboard = false)
     {
         size = Math.Clamp(size, 0, 20);
         var currentTime = DateTimeOffset.Now;
@@ -653,7 +712,7 @@ public class BusinessController<
         var reservationsQuery = Context.Reservations
             .Include(r => r.Payment)
             .AsNoTrackingWithIdentityResolution()
-            .Where(r => !(r is Sale))
+            .Where(r => r.User != null)
             .Where(r => r.Business is TBusiness)
             .Where(r => r.Status != Reservation.ReservationStatus.Cancelled);
 
@@ -674,36 +733,46 @@ public class BusinessController<
             "all" or _ => reservationsQuery
         };
 
-        var reservations = await reservationsQuery
+        int totalResults = await reservationsQuery.CountAsync();
+        reservationsQuery = reservationsQuery
             .OrderBy(r => r.Start)
-            .Take(size)
-            .ProjectToType<ReservationDTO>()
-            .ToListAsync();
+            .Skip(page * size)
+            .Take(size);
 
-        reservations.ForEach(r => r.Business.WithImages(ImageUrl));
-        reservations.ForEach(r => r.IsCancellable = r.Start - currentTime >= TimeSpan.FromDays(3));
+        if (isDashboard)
+        {
+            var reservations = await reservationsQuery
+                .ProjectToType<DashboardReservationDTO>()
+                .ToListAsync();
+            reservations.ForEach(r => r.Business.WithImages(ImageUrl));
 
-        return Ok(reservations);
+            return Ok(new { Results = reservations, totalResults });
+        }
+        else
+        {
+            var reservations = await reservationsQuery
+                .ProjectToType<ReservationDTO>()
+                .ToListAsync();
+            reservations.ForEach(r => r.Business.WithImages(ImageUrl));
+            reservations.ForEach(r => r.IsCancellable = r.Start - currentTime >= TimeSpan.FromDays(3));
+
+            return Ok(new { Results = reservations, totalResults });
+        }
     }
 
+    // TODO: Ultra slow, probably a bug
     [HttpGet("subscriptions")]
-    protected async Task<ActionResult> GetSubcriptions(string businessType)
+    public async Task<ActionResult> GetSubscriptions()
     {
-        var user = await Context.Users
-                    .Include(u => u.Subscriptions)
+        var subscriptions = await Context.Users
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(u => u.Id == User.Id());
-
-        var query = businessType switch
-        {
-            "boats" => user.Subscriptions.Where(s => s is Boat),
-            "adventures" => user.Subscriptions.Where(s => s is Adventure),
-            "cabins" => user.Subscriptions.Where(s => s is Cabin),
-            "all" or _ => user.Subscriptions
-        };
-
-        var subscriptions = query.Select(s => s.Adapt<BusinessDTO>()).ToList();
+                    .Where(u => u.Id == User.Id())
+                    .SelectMany(u => u.Subscriptions)
+                    .Where(b => b is TBusiness)
+                    .ProjectToType<BusinessDTO>()
+                    .ToListAsync();
         subscriptions.ForEach(s => s.WithImages(ImageUrl));
+
         return Ok(subscriptions);
     }
 
@@ -711,18 +780,23 @@ public class BusinessController<
     [HttpPost("reservations/{reservationId}/cancel")]
     public async Task<ActionResult> CancelReservation([FromRoute] Guid reservationId)
     {
-        var reservation = await Context.Set<Reservation>().FirstOrDefaultAsync(r => r.Id == reservationId);
+        var reservation = await Context.Set<Reservation>()
+            .Include(r => r.User)
+            .FirstOrDefaultAsync(r => r.Id == reservationId);
 
         if (reservation == null)
         {
             return BadRequest($"The specified reservation does not exist.");
         }
 
-        bool canceled = reservation.Cancel();
-        if(!canceled)
+        bool cancelled = reservation.Cancel();
+        if(!cancelled)
         {
-            return BadRequest($"The specified reservation cannot be canceled.");
+            return BadRequest($"The specified reservation cannot be cancelled.");
         }
+
+        var finance = await Context.Finances.FirstOrDefaultAsync();
+        reservation.User.LoyaltyPoints -= finance.CustomerPoints;
 
         await Context.SaveChangesAsync();
         return Ok();
@@ -858,45 +932,54 @@ public class BusinessController<
         return Ok();
     }
 
-    [HttpGet("upcoming-reservations")]
-    public virtual async Task<ActionResult> GetUpcomingReservations()
+    protected async Task<ActionResult> Search(SearchRequest request, Func<IQueryable<TBusiness>, IQueryable<TBusiness>> filter = null)
     {
-        var results = await Context.Reservations
-            .AsNoTrackingWithIdentityResolution()
-            .Where(a => a.Business.Owner.Id == User.Id())
-            .Where(a => a.Status != "Canceled")
-            .Where(b => b.Business is TBusiness)
-            .Where(a => a.End >= DateTime.Now)
-            .OrderBy(a => a.Start)
-            .Take(6)
-            .ProjectToType<ReservationDTO>()
-            .ToListAsync();
+        decimal discountMultiplier = await Context.GetDiscountMultiplier(User.Id());
 
-        results.ForEach(a => a.Business.WithImages(ImageUrl));
-        return Ok(results);
-    }
-
-    [HttpGet("owners-reservations")]
-    public virtual async Task<ActionResult> GetAllOwnersReservations(int pageNumber)
-    {
-        var query = Context.Reservations
+        var query = Context.Set<TBusiness>()
             .AsNoTrackingWithIdentityResolution()
-            .Include(r => r.User)
-            .Where(a => a.Business.Owner.Id == User.Id())
-            .Where(b => b.Business is TBusiness);
+            .Available(request.Start.UtcDateTime, request.End.UtcDateTime)
+            .Where(c => c.Address.City == request.City)
+            .Where(c => c.Address.Country == request.Country)
+            .Where(c => c.People == request.People);
+
+        if (request.RatingHigher != default)
+        {
+            query = query.Where(b => b.Rating >= request.RatingHigher);
+        }
+        if (request.PriceLow != default)
+        {
+            query = query.Where(b => b.PricePerUnit.Amount >= request.PriceLow);
+        }
+        if (request.PriceHigh != default)
+        {
+            query = query.Where(b => b.PricePerUnit.Amount <= request.PriceHigh);
+        }
+
+        if (filter is not null) query = filter.Invoke(query);
 
         int totalResults = await query.CountAsync();
-        int page = pageNumber;
-        if (page == 0) page = 1;
-
         var results = await query
-            .Skip((page-1) * 6)
+            .OrderBy(request.Direction)
+            .Skip(request.Page * 6)
             .Take(6)
-            .OrderByDescending(a => a.Start)
-            .ProjectToType<ReservationDTO>()
+            .ProjectToType<SearchResponse>()
             .ToListAsync();
 
-        results.ForEach(a => a.Business.WithImages(ImageUrl));
-        return Ok( new { results, totalResults });
+        results.ForEach(r =>
+        {
+            r.Image = ImageUrl(r.Id, r.Images.FirstOrDefault());
+            r.Price = new Money
+            {
+                Amount = r.PricePerUnit.Amount * request.People,
+                Currency = r.PricePerUnit.Currency
+            };
+        });
+
+        return Ok(new
+        {
+            results,
+            totalResults,
+        });
     }
 }

@@ -32,30 +32,30 @@ const update = async (data, type) => createOrUpdate(data, type, 'update')
 const getName = async (id, type) =>
   fetch(instance.get(`${endpoints[type]}/${id}/name`))
 
-const search = (query, type, page) =>
+const search = async (query, type, page) =>
   fetch(instance.get(`${type}/search`, { params: { ...query, page } }))
 
-const searchBussines = (query, business) =>
+const getBusinesses = async (type, query = {}) =>
   fetch(
-    instance.get(`${endpoints[business]}/my-${business}`, {
+    instance.get(`${endpoints[type]}/`, {
       params: { ...query }
     })
   )
 
-const ownersBusinesses = async type => fetch(instance.get(`${type}`))
-const upcomingReservations = async type =>
-  fetch(instance.get(`/${type}/upcoming-reservations`))
-const allReservations = async (type, pageNumber) =>
-  fetch(
-    instance.get(`/${type}/owners-reservations`, { params: { pageNumber } })
-  )
-
-const getReservations = async (status, type, size = 10) =>
+const getReservations = async (
+  type,
+  status,
+  page = 0,
+  size = 10,
+  isDashboard = false
+) =>
   fetch(
     instance.get(`${endpoints[type]}/reservations`, {
       params: {
         status,
-        size
+        page,
+        size,
+        isDashboard
       }
     })
   )
@@ -147,7 +147,7 @@ const subscribe = async (id, type) =>
 const unsubscribe = async (id, type) =>
   fetch(instance.post(`${endpoints[type]}/${id}/unsubscribe`))
 
-const getSubscriptions = type =>
+const getSubscriptions = async type =>
   fetch(instance.get(`${endpoints[type]}/subscriptions`))
 
 export default {
@@ -164,15 +164,12 @@ export default {
   previewCreateSale,
   createSale,
   deleteSale,
-  ownersBusinesses,
   makeQuickReservation,
   makeResrvation,
   cancelReservation,
   review,
   complain,
-  upcomingReservations,
-  allReservations,
-  searchBussines,
+  getBusinesses,
   subscribe,
   unsubscribe,
   getSubscriptions

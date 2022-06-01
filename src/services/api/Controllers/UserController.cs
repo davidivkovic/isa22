@@ -29,16 +29,13 @@ public class UserController : ControllerBase
 
     [Authorize]
     [HttpGet("{id}")]
-    public async Task<ActionResult> Get(Guid id)
+    public ActionResult Get(Guid id)
     {
-        var user = await _context.Users.FindAsync(id);
-
-        if (User.Id() != id && user.IsCustomer)
-        {
-            return StatusCode(403);
-        }
-
-        return Ok(user.Adapt<UserDTO>());
+        return Ok(_context.Users
+            .Where(u => u.Id == id)
+            .ProjectToType<UserDTO>()
+            .FirstOrDefault()
+        );
     }
 
     [Authorize]
@@ -302,33 +299,5 @@ public class UserController : ControllerBase
             .Take(10)
             .ProjectToType<PendingReviewDTO>()
             .ToListAsync();
-    }
-
-
-    [Authorize]
-    [HttpGet("get-profile/{id}")]
-    public async Task<ActionResult> GetProfile([FromRoute] Guid id)
-    {
-        var user = await _context.Users
-            .AsNoTracking()
-            .Where(u => u.Id == id)
-            .FirstOrDefaultAsync();
-
-        var loyaltyQuery = _context.LoyaltyLevels
-            .AsNoTracking();
-
-        var loyaltyLevel = await loyaltyQuery
-            .OrderByDescending(l => l.Threshold)
-            .FirstOrDefaultAsync(l => l.Threshold <= user.LoyaltyPoints);
-
-        return Ok(new UserProfileDTO
-        {
-            User = user.Adapt<UserDTO>(),
-            LoyaltyLevel = new()
-            {
-                Points = user.LoyaltyPoints,
-                Current = loyaltyLevel
-            }
-        });
     }
 }

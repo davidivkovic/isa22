@@ -26,7 +26,9 @@
     </div>
     <SearchBar class="relative -mt-20" />
   </div>
-  <OwnerDashboard v-else />
+  <Suspense v-else>
+    <OwnerDashboard />
+  </Suspense>
 </template>
 
 <script setup>

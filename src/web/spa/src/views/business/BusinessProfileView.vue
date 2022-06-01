@@ -286,7 +286,8 @@
               {{ ratingDesc }}
             </div>
             <div class="text-sm">
-              {{ props.entity.numberOfReviews }} reviews
+              {{ props.entity.numberOfReviews }}
+              {{ props.entity.numberOfReviews == 1 ? 'review' : 'reviews' }}
             </div>
           </div>
         </div>
@@ -366,23 +367,37 @@
           <div class="flex justify-between">
             <div>
               <p>Discount:</p>
-              <p v-if="!user?.loyaltyLevel" class="text-sm text-gray-500">
+              <p v-if="!loyaltyLevel" class="text-sm text-gray-500">
                 No loyalty level
               </p>
               <div
                 v-else
-                class="flex items-center justify-center space-x-1 rounded-lg bg-amber-300 py-0.5 text-xs"
+                class="flex items-center justify-center space-x-1 rounded-lg bg-amber-300 px-2 py-0.5 text-xs"
               >
                 <GiftIcon class="h-3 w-3 text-amber-800" />
-                <p class="text-amber-800">user.loyaltyLevel.name</p>
+                <p class="text-amber-800">{{ loyaltyLevel.name }} Loyalty</p>
               </div>
             </div>
-            <p>{{ props.entity.pricePerUnit.symbol }}0.00</p>
+            <p>
+              {{ props.entity.pricePerUnit.symbol
+              }}{{
+                (
+                  (totalPrice * (loyaltyLevel?.discountPercentage ?? 0)) /
+                  100
+                ).toFixed(2)
+              }}
+            </p>
           </div>
           <div class="!mt-5 flex justify-between border-t pt-2">
             <p class="text-lg font-bold">Total amount:</p>
             <p class="text-lg font-medium text-emerald-600">
-              {{ props.entity.pricePerUnit.symbol }}{{ totalPrice.toFixed(2) }}
+              {{ props.entity.pricePerUnit.symbol
+              }}{{
+                (
+                  totalPrice *
+                  (1 - (loyaltyLevel?.discountPercentage ?? 0) / 100)
+                ).toFixed(2)
+              }}
             </p>
           </div>
           <div class="text-gray-600">
@@ -586,7 +601,7 @@
       <h2 class="text-lg font-medium">
         See what guests said about this {{ entityType.slice(0, -1) }}:
       </h2>
-      <div v-if="entity.review" class="flex h-full space-x-5">
+      <div v-if="entity.reviews" class="flex h-full space-x-5">
         <div
           v-for="review in entity.reviews"
           :key="review.user.id"
@@ -601,6 +616,11 @@
             <p class="text-sm font-medium">
               {{ review.user.firstName }} {{ review.user.lastName }}
             </p>
+          </div>
+          <div>
+            <span>{{ review.rating }}</span>
+            <span class="text-sm text-neutral-500">/5</span>
+            <span>⭐</span>
           </div>
           <p class="h-32 text-sm text-gray-600">
             {{ review.content }}
@@ -748,6 +768,7 @@ const makeReservation = async () => {
 const isCustomer = isAuthenticated.value && user.roles.includes('Customer')
 const isOwnersBusiness = user.id == props.entity.owner?.id
 const services = ref(props.entity.services)
+const loyaltyLevel = ref(props.entity?.loyaltyLevel)
 services.value.forEach(s => (s.selected = false))
 
 const people = ref(route.query.people)
@@ -790,10 +811,10 @@ const totalPrice = computed(
 
 const ratingDesc = computed(() => {
   const rating = props.entity.rating
-  if (rating >= 9) return 'Excellent'
-  else if (rating >= 8) return 'Very good'
-  else if (rating >= 7) return 'Good'
-  else if (rating >= 6) return 'Not bad'
+  if (rating >= 4.5) return 'Excellent'
+  else if (rating >= 3.5) return 'Very good'
+  else if (rating >= 2.5) return 'Good'
+  else if (rating >= 1.5) return 'Not bad'
   else return 'Bad'
 })
 

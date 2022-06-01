@@ -399,12 +399,12 @@ const calculateSubtotal = reservation => {
 watchEffect(async () => {
   const [reservationsData, reservationsError] =
     await api.business.getReservations(
-      currentReservationStatus.value,
-      currentBusinessType.value
+      currentBusinessType.value,
+      currentReservationStatus.value
     )
 
   if (!reservationsError) {
-    reservations.value = reservationsData
+    reservations.value = reservationsData.results
     reservations.value.forEach(r => {
       r.cost = costs(r)
       r.detailsVisible = false

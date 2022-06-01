@@ -139,7 +139,7 @@
                       v-if="userType[0] == 'cabins'"
                       class="justify-left ml-[8px] flex space-x-1 text-neutral-500"
                     >
-                      <h4 class="font- font-mono text-[13px]">
+                      <h4 class="text-[13px]">
                         Rooms: &nbsp;{{ result.rooms }}
                       </h4>
                       <HotelServiceIcon
@@ -151,7 +151,7 @@
                       v-if="userType[0] == 'cabins'"
                       class="justify-left flex space-x-1 text-neutral-500"
                     >
-                      <h4 class="font- font-mono text-[13px]">
+                      <h4 class="text-[13px]">
                         Beds: &nbsp;&nbsp;{{ result.beds }}
                       </h4>
                       <BedIcon
@@ -160,9 +160,7 @@
                       />
                     </div>
                     <div class="justify-left flex space-x-1 text-neutral-500">
-                      <h4 class="font- font-mono text-[13px]">
-                        People: {{ result.people }}
-                      </h4>
+                      <h4 class="text-[13px]">People: {{ result.people }}</h4>
                       <UserIcon
                         stroke-width="2"
                         class="h-4 w-4 pb-px text-emerald-500"
@@ -332,12 +330,9 @@ const direction = ref(
 const results = ref([])
 
 const fetchResults = async () => {
-  const [data, error] = await api.business.searchBussines(
-    {
-      ...route.query
-    },
-    userType[0]
-  )
+  const [data, error] = await api.business.getBusinesses(userType[0], {
+    ...route.query
+  })
   if (!error) {
     totalResults.value = data.totalResults
     totalPages.value = Math.ceil(totalResults.value / 6)

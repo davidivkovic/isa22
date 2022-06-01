@@ -1,23 +1,18 @@
 ﻿namespace API.Controllers;
 
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 
 using API.DTO;
-using API.Infrastructure.Data;
-using API.Infrastructure.Extensions;
-using API.Infrastructure.Data.Queries;
 using API.Core.Model;
 using API.DTO.Search;
 using API.Services.Email;
-
-using Mapster;
+using API.Infrastructure.Data;
 
 [ApiController]
 [Route("adventures")]
-public class AdventureController : BusinessController<Adventure, AdventureDT0, CreateAdventureDTO, UpdateAdventureDTO>
+public class AdventureController : BusinessController<Adventure, AdventureDT0, CreateAdventureDTO, UpdateAdventureDTO, AdventureSearchResponse>
 {
     protected override string BusinessType => "adventure";
 
@@ -33,6 +28,12 @@ public class AdventureController : BusinessController<Adventure, AdventureDT0, C
     public override Task<ActionResult> Update(UpdateAdventureDTO dto)
     {
         return base.Update(dto);
+    }
+
+    [Authorize(Roles = Role.Fisher)]
+    public override Task<ActionResult> Delete(Guid id)
+    {
+        return base.Delete(id);
     }
 
     [Authorize(Roles = Role.Fisher)]
@@ -52,174 +53,11 @@ public class AdventureController : BusinessController<Adventure, AdventureDT0, C
     {
         return base.CreateSale(id, request);
     }
-        
-    [HttpGet]
-    [Authorize(Roles = Role.Fisher)]
-    public async Task<ActionResult> Get()
-    {
-        var query = Context.Adventures
-            .Where(a => a.Owner.Id == User.Id())
-            .AsNoTrackingWithIdentityResolution();
-        var results = await query
-            .Take(6)
-            .ProjectToType<AdventureDT0>()
-            .ToListAsync();
-
-        results.ForEach(a => a.WithImages(ImageUrl));
-        return Ok(results);
-    }
 
     [Authorize(Roles = Role.Fisher)]
     public override Task<ActionResult> DeleteSale([FromRoute] Guid id, [FromRoute] Guid saleId)
     {
         return base.DeleteSale(id, saleId);
-    }
-
-    [Authorize]
-    [HttpGet("subscriptions")]
-    public Task<ActionResult> GetSubcriptions()
-    {
-        return GetSubcriptions("adventures");
-    }
-
-    [Authorize]
-    [AllowAnonymous]
-    [HttpGet("search")]
-    public async Task<ActionResult> Search([FromQuery] AdventureSearchRequest request)
-    {
-        int totalUnits = new Adventure().GetTotalUnits(request.Start, request.End);
-        decimal discountMultiplier = await Context.GetDiscountMultiplier(User.Id());
-
-        var query = Context.Adventures
-            .AsNoTrackingWithIdentityResolution()
-            .Available(request.Start.UtcDateTime, request.End.UtcDateTime)
-            .Where(c => c.Address.City == request.City)
-            .Where(c => c.Address.Country == request.Country)
-            .Where(c => c.People == request.People);
-
-        if (request.RatingHigher != default)
-        {
-            query = query.Where(c => c.Rating >= request.RatingHigher);
-        }
-        if (request.PriceLow != default)
-        {
-            query = query.Where(c => c.PricePerUnit.Amount >= request.PriceLow);
-        }
-        if (request.PriceHigh != default)
-        {
-            query = query.Where(c => c.PricePerUnit.Amount <= request.PriceHigh);
-        }
-
-        int totalResults = await query.CountAsync();
-        var results = await query
-            .OrderBy(request.Direction)
-            .Skip(request.Page * 6)
-            .Take(6)
-            .Select(a => new AdventureSearchResponse
-            {
-                Id = a.Id,
-                Name = a.Name,
-                Address = a.Address,
-                Image = a.Images.FirstOrDefault(),
-                People = a.People,
-                Rating = a.Rating,
-                Price = new Money
-                {
-                    Amount = a.PricePerUnit.Amount * request.People,
-                    Currency = a.PricePerUnit.Currency
-                },
-                FishingEquipment = a.FishingEquipment
-            })
-            .ToListAsync();
-
-        results.ForEach(r => r.Image = ImageUrl(r.Id, r.Image));
-
-        return Ok(new
-        {
-            results,
-            totalResults,
-        });
-    }
-
-    [HttpGet("my-adventures")]
-    [Authorize(Roles = Role.Fisher)]
-    public async Task<ActionResult> SearchOwnersAdventures([FromQuery] AdventureSearchRequest request)
-    {
-        var query = Context.Adventures
-            .Where(c => c.Owner.Id == User.Id())
-            .AsNoTrackingWithIdentityResolution();
-
-        if (!string.IsNullOrWhiteSpace(request.Name))
-        {
-            query = query.Where(a => EF.Functions.ILike(a.Name, $"%{request.Name}%"));
-        }
-        if (!string.IsNullOrWhiteSpace(request.City))
-        {
-            query = query.Where(a => EF.Functions.ILike(a.Address.City, $"%{request.City}%"));
-        }
-        if (!string.IsNullOrWhiteSpace(request.Country))
-        {
-            query = query.Where(c => EF.Functions.ILike(c.Address.Country, $"%{request.Country}%"));
-        }
-        if (request.People != 0)
-        {
-            query = query.Where(c => c.People == request.People);
-        }
-        int page = request.Page;
-        if (page == 0) page = 1;
-
-        int totalResults = await query.CountAsync();
-
-        var results = await query
-            .OrderBy(request.Direction)
-            .Skip((page - 1) * 6)
-            .Take(6)
-            .Select(c => new AdventureSearchResponse
-            {
-                Id = c.Id,
-                Name = c.Name,
-                Description = c.Description,
-                Address = c.Address,
-                Image = c.Images.FirstOrDefault(),
-                People = c.People,
-                Rating = c.Rating,
-                CancellationFee = c.CancellationFee,
-                Price = new Money
-                {
-                    Amount = c.PricePerUnit.Amount,
-                    Currency = c.PricePerUnit.Currency
-                }
-            })
-            .ToListAsync();
-
-        results.ForEach(r => r.Image = ImageUrl(r.Id, r.Image));
-
-        return Ok(new
-        {
-            results,
-            totalResults,
-        });
-        return Ok(results);
-    }
-
-    [HttpGet("upcoming-reservations")]
-    [Authorize(Roles = Role.Fisher)]
-    public override Task<ActionResult> GetUpcomingReservations()
-    {
-        return base.GetUpcomingReservations();
-    }
-
-    [HttpGet("owners-reservations")]
-    [Authorize(Roles = Role.Fisher)]
-    public override Task<ActionResult> GetAllOwnersReservations(int pageNumber)
-    {
-        return base.GetAllOwnersReservations(pageNumber);
-    }
-
-    [Authorize(Roles = Role.Fisher)]
-    public override Task<ActionResult> GetCalendar(Guid id, DateTimeOffset start, DateTimeOffset end)
-    {
-        return base.GetCalendar(id, start, end);
     }
 
     [Authorize(Roles = Role.Fisher)]
@@ -232,5 +70,26 @@ public class AdventureController : BusinessController<Adventure, AdventureDT0, C
     public override Task<ActionResult> DeleteUnavailability(Guid id, Guid eventId)
     {
         return base.DeleteUnavailability(id, eventId);
+    }
+
+    [HttpGet]
+    [Authorize(Roles = Role.Fisher)]
+    public Task<ActionResult> GetBusinesses([FromQuery] AdventureSearchRequest request)
+    {
+        return base.GetBusinesses(request);
+    }
+
+    [Authorize(Roles = Role.Fisher)]
+    public override Task<ActionResult> GetCalendar(Guid id, DateTimeOffset start, DateTimeOffset end)
+    {
+        return base.GetCalendar(id, start, end);
+    }
+
+    [Authorize]
+    [AllowAnonymous]
+    [HttpGet("search")]
+    public Task<ActionResult> Search([FromQuery] AdventureSearchRequest request)
+    {
+        return Search(request);
     }
 }

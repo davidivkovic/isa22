@@ -29,11 +29,9 @@ const props = defineProps(['isOpen', 'businessId', 'type', 'back'])
 
 const router = useRouter()
 const deleteBusiness = async self => {
-  const [data, error] = await api.business.remove(props.businessId, props.type)
-  // TODO notifikacija o brisanju
-
+  const [, error] = await api.business.remove(props.businessId, props.type)
   if (!error) {
-    if (props.back == true) {
+    if (props.back) {
       router.back()
     }
     self.$emit('elementDeleted', props.businessId)

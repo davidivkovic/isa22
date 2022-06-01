@@ -176,9 +176,9 @@ const businessTypes = [
   }
 ]
 const businessType = {
-  'Cabin Owner': ['Cabins', 0],
-  'Boat Owner': ['Boats', 1],
-  'Fishing Instructor': ['Adventures', 2]
+  'Cabin Owner': 'cabins',
+  'Boat Owner': 'boats',
+  Fisher: 'adventures'
 }
 
 const businessProfiles = {
@@ -204,9 +204,7 @@ const end = ref()
 const duration = ref()
 const unit = ref()
 const reservationId = ref()
-const currentBusinessType = ref(
-  businessTypes[businessType[user.roles[0]][1]].value
-)
+const currentBusinessType = ref(businessType[user.roles[0]])
 
 const currentPage = ref(1)
 const totalPages = ref(1)
@@ -257,17 +255,18 @@ const calculateSubtotal = reservation => {
 
 const search = async () => {
   const [reservationsData, reservationsError] =
-    await api.business.allReservations(
-      businessType[user.roles[0]][0].toLowerCase(),
-      currentPage.value
+    await api.business.getReservations(
+      businessType[user.roles[0]],
+      'all',
+      currentPage.value - 1
     )
   if (!reservationsError) {
-    totalResults.value = reservationsData.totalResults
-    reservations.value = reservationsData.results
     reservationsData.results.forEach(r => {
       r.cost = costs(r)
       r.detailsVisible = false
     })
+    totalResults.value = reservationsData.totalResults
+    reservations.value = reservationsData.results
   }
 }
 

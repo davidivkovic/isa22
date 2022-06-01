@@ -69,7 +69,7 @@
               'text-white': loyaltyLevel.current?.color == '#000000',
               border: loyaltyLevel.current == null
             },
-            `relative  flex flex-1  items-center justify-between space-x-5 overflow-clip rounded-lg border-neutral-300 py-4 px-5 bg-[${
+            `relative flex w-[480px] items-center justify-between space-x-5 overflow-clip rounded-lg border-neutral-300 py-4 px-5 bg-[${
               loyaltyLevel.current?.color ?? '#ebebeb'
             }]`
           ]"
