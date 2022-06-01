@@ -61,6 +61,12 @@ public class AdventureController : BusinessController<Adventure, AdventureDT0, C
     }
 
     [Authorize(Roles = Role.Fisher)]
+    public override Task<ActionResult> Report([FromRoute] Guid reservationId, CreateReportDTO request)
+    {
+        return base.Report(reservationId, request);
+    }
+
+    [Authorize(Roles = Role.Fisher)]
     public override Task<ActionResult> CreateUnavailability(Guid id, DateTimeOffset start, DateTimeOffset end)
     {
         return base.CreateUnavailability(id, start, end);

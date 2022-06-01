@@ -98,4 +98,14 @@ public class Reservation : Entity
             Timestamp = DateTimeOffset.UtcNow
         };
     }
+
+    public void ReportUser(string reason, bool penalize)
+    {
+        Report = new()
+        {
+            Reason = reason,
+            Penalize = penalize
+        };
+    }
+
 }

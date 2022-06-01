@@ -85,6 +85,12 @@ public class CabinController : BusinessController<Cabin, CabinDTO, CreateCabinDT
         return base.GetCalendar(id, start, end);
     }
 
+    [Authorize(Roles = Role.CabinOwner)]
+    public override Task<ActionResult> Report([FromRoute] Guid reservationId, CreateReportDTO request)
+    {
+        return base.Report(reservationId, request);
+    }
+
     [Authorize]
     [AllowAnonymous]
     [HttpGet("search")]

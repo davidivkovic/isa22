@@ -80,6 +80,7 @@ public class FinanceController : ControllerBase
         var query = _context.Reservations
             .AsNoTracking()
             .Where(r => r.Status != Reservation.ReservationStatus.Cancelled)
+            .Where(r => r.Payment != null)
             .Select(r => r.Payment)
             .Where(p => p.Timestamp >= startDate)
             .Where(p => p.Timestamp <= endDate);

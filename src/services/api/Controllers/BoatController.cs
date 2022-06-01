@@ -74,6 +74,12 @@ public class BoatController : BusinessController<Boat, BoatDTO, CreateBoatDTO, U
 
     [HttpGet]
     [Authorize(Roles = Role.BoatOwner)]
+    public override Task<ActionResult> Report([FromRoute] Guid reservationId, CreateReportDTO request)
+    {
+        return base.Report(reservationId, request);
+    }
+
+    [Authorize(Roles = Role.BoatOwner)]
     public Task<ActionResult> GetBusinesses([FromQuery] BoatSearchRequest request)
     {
         return base.GetBusinesses(request);

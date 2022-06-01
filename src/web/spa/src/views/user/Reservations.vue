@@ -244,6 +244,7 @@
     :unit="unit"
     :businessType="currentBusinessType"
     :reservationId="reservationId"
+    type="complaint"
   />
 </template>
 <script setup>

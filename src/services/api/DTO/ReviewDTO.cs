@@ -19,8 +19,16 @@
         public string Content { get; set; }
     }
 
+    public class CreateReportDTO
+    {
+        public string Reason { get; set; }
+        public bool Penalize { get; set; }
+
+    }
+
     public class PendingReviewDTO
     {
+        public Guid Id { get; set; }
         public UserDTO User { get; set; }
         public BusinessDTO Business { get; set; }
         public double Rating { get; set; }
