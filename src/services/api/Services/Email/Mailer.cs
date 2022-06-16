@@ -54,7 +54,7 @@ public class Mailer
                 client.Connect("smtp.gmail.com", 465, true);
                 client.Authenticate(
                     "isamrsadventure@gmail.com",
-                    "da438bd680f84f90a66a61eb2bee482b"
+                    "mihnbnibbhukszrp"
                 );
                 client.Send(email);
                 client.Disconnect(true);
