@@ -30,7 +30,7 @@ public class BoatController : BusinessController<Boat, BoatDTO, CreateBoatDTO, U
         return base.Update(dto);
     }
 
-    [Authorize(Roles = Role.BoatOwner)]
+    [Authorize(Roles = Role.BoatOwner + "," + Role.Admin)]
     public override Task<ActionResult> Delete(Guid id)
     {
         return base.Delete(id);
@@ -78,8 +78,7 @@ public class BoatController : BusinessController<Boat, BoatDTO, CreateBoatDTO, U
         return base.Report(reservationId, request);
     }
 
-    [HttpGet]
-    [Authorize(Roles = Role.BoatOwner)]
+    [Authorize(Roles = Role.BoatOwner + "," + Role.Admin)]
     public Task<ActionResult> GetBusinesses([FromQuery] BoatSearchRequest request)
     {
         return base.GetBusinesses(request);

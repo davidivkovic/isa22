@@ -27,6 +27,32 @@ public class UserController : ControllerBase
         _mailer = mailer;
     }
 
+    [Authorize(Roles = Role.Admin)]
+    [HttpGet]
+    public async Task<ActionResult> Search(string query, int page = 0)
+    {
+        var dbQuery = _context.Users
+        .AsNoTracking()
+        .Where(u =>
+            EF.Functions.ILike(u.FirstName, $"%{query}%") ||
+            EF.Functions.ILike(u.LastName, $"%{query}%") ||
+            EF.Functions.ILike(u.Email, $"%{query}%")
+        );
+
+        var totalUsers = await dbQuery.CountAsync();
+        var users = dbQuery
+            .OrderBy(u => u.Id)
+            .Skip(page * 9)
+            .Take(9)
+            .ProjectToType<UserDTO>();
+
+        return Ok(new
+        {
+            results = users,
+            totalResults = totalUsers
+        });
+    }
+
     [Authorize]
     [HttpGet("{id}")]
     public ActionResult Get(Guid id)
@@ -58,6 +84,19 @@ public class UserController : ControllerBase
         {
             return BadRequest("Could not update your information at this time. Please try again later");
         }
+
+        return Ok();
+    }
+
+    [Authorize(Roles = Role.Admin)]
+    [HttpPost("{id}/delete")]
+    public async Task<ActionResult> Delete(Guid id)
+    {
+        var user = _context.Users.Find(id);
+        if (user is null) return BadRequest("User does not exist");
+
+        user.Delete();
+        await _context.SaveChangesAsync();
 
         return Ok();
     }

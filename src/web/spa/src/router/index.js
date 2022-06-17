@@ -177,6 +177,16 @@ const router = createRouter({
       path: '/reviews',
       name: 'reviews',
       component: () => import('../views/admin/ReviewsView.vue')
+    },
+    {
+      path: '/users',
+      name: 'users',
+      component: () => import('../views/admin/UsersView.vue')
+    },
+    {
+      path: '/businesses',
+      name: 'businesses',
+      component: () => import('../views/OwnersBusinesses.vue')
     }
   ]
 })

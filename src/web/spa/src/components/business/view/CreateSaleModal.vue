@@ -147,6 +147,7 @@ import Checkbox from '@/components/ui/Checkbox.vue'
 import Button from '@/components/ui/Button.vue'
 import DateInput from '@/components/ui/DateInput.vue'
 import api from '@/api/api.js'
+import { debounce } from '@/components/utility/forms.js'
 
 const props = defineProps([
   'businessId',
@@ -171,18 +172,6 @@ const symbols = {
   USD: '$',
   EUR: '€',
   RSD: 'din '
-}
-
-const debounce = (fn, delay) => {
-  var timeoutID = null
-  return function () {
-    clearTimeout(timeoutID)
-    var args = arguments
-    var that = this
-    timeoutID = setTimeout(() => {
-      fn.apply(that, args)
-    }, delay)
-  }
 }
 
 const previewSale = async () => {

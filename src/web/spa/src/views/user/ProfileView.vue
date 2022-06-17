@@ -36,7 +36,10 @@
                 <EditIcon class="-mt-px h-[18px] w-[18px]" />
               </Button>
               <Button
-                v-if="!deletionRequest || deletionRequest.rejected"
+                v-if="
+                  (!deletionRequest || deletionRequest.rejected) &&
+                  !user.roles.includes('Admin')
+                "
                 @click="deletionModalOpen = true"
                 class="space-x-1.5 border border-red-800 border-opacity-10 bg-red-600 !px-5 !py-1.5 text-white transition hover:bg-red-700"
               >
@@ -64,17 +67,17 @@
         </div>
 
         <div
+          v-if="!user.roles.includes('Admin')"
           :class="[
             {
-              'text-white': loyaltyLevel.current?.color == '#000000',
-              border: loyaltyLevel.current == null
+              'text-white': loyaltyLevel.current?.color == '#000000'
             },
-            `relative flex w-[480px] items-center justify-between space-x-5 overflow-clip rounded-lg border-neutral-300 py-4 px-5 bg-[${
+            `relative flex max-w-[360px] items-center justify-between space-x-5 overflow-clip rounded-lg border border-neutral-300 py-4 px-5 bg-[${
               loyaltyLevel.current?.color ?? '#ebebeb'
             }]`
           ]"
         >
-          <div class="w-3/4">
+          <div class="">
             <div class="flex items-center space-x-1">
               <span class="text-lg">Hi there! You are a</span>
               <h3 class="text-lg font-semibold">
@@ -112,7 +115,7 @@
               {{ loyaltyLevel.next?.discountPercentage }}% discount
             </p>
           </div>
-          <div
+          <!-- <div
             class="flex h-28 w-28 items-center justify-center space-x-px rounded-full bg-neutral-100 text-2xl font-semibold"
           >
             <p>
@@ -121,7 +124,7 @@
             <p>
               {{ user.lastName[0].toUpperCase() }}
             </p>
-          </div>
+          </div> -->
         </div>
       </div>
 
@@ -279,7 +282,10 @@
       </Modal>
     </div>
 
-    <div class="mx-auto max-w-4.5xl space-y-2">
+    <div
+      v-if="!user.roles.includes('Admin')"
+      class="mx-auto max-w-4.5xl space-y-2"
+    >
       <h1 class="text-2xl font-medium">Subscriptions</h1>
       <h2 class="text-gray-600">
         These are businesses you are subscribed to. You will get notified by

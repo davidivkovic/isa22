@@ -1,16 +1,13 @@
 <template>
   <div class="justify-between">
-    <div class="space-y-2">
-      <div class="mx-auto flex max-w-5xl items-center justify-between py-6">
-        <form
-          @submit.prevent="search()"
-          class="max-auto ml-20 flex max-w-6xl justify-center space-x-3"
-        >
-          <div class="flex w-64 space-x-10">
+    <div class="mx-auto max-w-4.5xl space-y-2">
+      <div class="flex items-center justify-between py-6">
+        <form @submit.prevent="search()" class="flex space-x-3">
+          <div class="flex w-64 space-x-4">
             <Input
               id="name-input"
               v-model="cabinsName"
-              placeholder="Enter name"
+              placeholder="Business name"
               clearable
               class="h-12 w-64"
             />
@@ -18,7 +15,6 @@
               id="location-input"
               v-model="newLocation"
               placeholder="Enter a location"
-              clearable
               class="h-12 w-64 !pl-7"
             >
               <template #prepend="{ focused, hovered }">
@@ -51,7 +47,7 @@
           </div>
         </form>
       </div>
-      <div class="ml-[50%] flex justify-center">
+      <div class="flex justify-end">
         <Dropdown
           @change="changeSelectedOption"
           :slim="true"
@@ -63,7 +59,7 @@
     </div>
     <br />
 
-    <div class="mx-auto max-w-5xl bg-white sm:rounded-md">
+    <div class="mx-auto max-w-4.5xl bg-white sm:rounded-md">
       <h2 class="text-xl font-medium">
         {{ totalResults }}
         {{ totalResults === 1 ? 'Result' : 'Results' }}
@@ -72,7 +68,7 @@
           <strong>{{ averageRating?.toPrecision(2) }}</strong>
         </span>
         <div v-if="results.length === 0" class="mt-3 text-base font-normal">
-          Unfortunatelly, there are no available
+          Unfortunately, there are no results available
           {{ $route.params.type }}. Please change the search parameters.
         </div>
       </h2>
@@ -201,7 +197,7 @@
     type="cabins"
     :back="false"
     @modalClosed="isDeleteModalOpen = false"
-    @elementDeleted="e => reloadList(e)"
+    @elementDeleted="reloadList()"
   />
 </template>
 
@@ -210,13 +206,10 @@ import { shallowRef, ref, onMounted, computed, watchEffect } from 'vue'
 import Button from '../components/ui/Button.vue'
 import Dropdown from '../components/ui/Dropdown.vue'
 import NumberInput from '../components/ui/NumberInput.vue'
-import CabinPreviewItem from '../components/search/CabinPreviewItem.vue'
 import DeleteBusinessModal from '@/components/business/delete/DeleteBusinessModal.vue'
 import Menu from '@/components/ui/Menu.vue'
 import {
   UserIcon,
-  BedIcon,
-  HotelServiceIcon,
   MapPinIcon,
   UsersIcon,
   TrashIcon,
@@ -225,7 +218,7 @@ import {
   ArrowLeftIcon,
   ArrowRightIcon
 } from 'vue-tabler-icons'
-import { useRoute, useRouter, RouterLink } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import api from '../api/api'
 import Input from '../components/ui/Input.vue'
 import { user } from '@/stores/userStore'
@@ -240,7 +233,7 @@ const country = ref(route.query.country != undefined ? route.query.country : '')
 const cabinsName = ref(route.query.name)
 const people = ref(Number(route.query.people ?? 0))
 
-const reloadList = id => {
+const reloadList = () => {
   isDeleteModalOpen.value = false
   search()
 }
@@ -257,12 +250,9 @@ const userTypes = {
 }
 
 const userType = userTypes[user.roles[0]]
-
-const userTypeRef = ref(userType)
-
 const sortingOption = [
   {
-    name: 'Price - Highes first',
+    name: 'Price - Highest first',
     value: 'price_desc'
   },
   {

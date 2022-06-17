@@ -45,3 +45,16 @@ public class BusinessDTO : BaseBusinessDTO
         Images = Images.Select(image => imageUrl(Id, image)).ToList();
     }
 }
+
+public class SubscriptionDTO
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; }
+    public Address Address { get; set; }
+    public double Rating { get; set; }
+    public List<string> Images { get; set; }
+    public void WithImages(Func<Guid, string, string> imageUrl)
+    {
+        Images = Images.Select(image => imageUrl(Id, image)).ToList();
+    }
+}

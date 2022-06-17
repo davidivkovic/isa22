@@ -84,7 +84,7 @@ public class BusinessController<
             .OrderBy(request.Direction)
             .Skip(request.Page * 6)
             .Take(6)
-            .ProjectToType<SearchResponse>()
+            .ProjectToType<TSearchDTO>()
             .ToListAsync();
 
             results.ForEach(r =>
@@ -96,8 +96,7 @@ public class BusinessController<
                     Currency = r.PricePerUnit.Currency
                 };
             });
-        double averageRating = await query.AverageAsync(c => c.Rating);
-        return Ok(new { results, totalResults, averageRating });
+        return Ok(new { results, totalResults, averageRating = results.Average(c => c.Rating) });
     }
 
     [HttpGet("{id}/images/{image}")]
@@ -787,11 +786,11 @@ public class BusinessController<
     public async Task<ActionResult> GetSubscriptions()
     {
         var subscriptions = await Context.Users
-                    .AsNoTracking()
+                    .AsNoTrackingWithIdentityResolution()
                     .Where(u => u.Id == User.Id())
                     .SelectMany(u => u.Subscriptions)
                     .Where(b => b is TBusiness)
-                    .ProjectToType<BusinessDTO>()
+                    .ProjectToType<SubscriptionDTO>()
                     .ToListAsync();
         subscriptions.ForEach(s => s.WithImages(ImageUrl));
 
@@ -987,7 +986,7 @@ public class BusinessController<
             .OrderBy(request.Direction)
             .Skip(request.Page * 6)
             .Take(6)
-            .ProjectToType<SearchResponse>()
+            .ProjectToType<TSearchDTO>()
             .ToListAsync();
 
         results.ForEach(r =>

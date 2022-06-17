@@ -95,7 +95,13 @@ watch(
     if (range == 0) range = max
     const exponent = Math.round(Math.log10(range))
     const magnitude = Math.pow(10, exponent)
-    const step = (magnitude / 5) * Math.ceil(max / magnitude)
+    const step = ((magnitude / 5) * Math.round((max / magnitude) * 10)) / 10
+    console.log({
+      step,
+      max,
+      magnitude,
+      div: Math.round((max / magnitude) * 10) / 10
+    })
     data.value = {
       max: 0,
       steps: [],

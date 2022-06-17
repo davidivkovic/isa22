@@ -35,6 +35,15 @@ const getDeletionRequests = (before = new Date().toISOString()) =>
 const getProfile = () => fetch(instance.get('users/profile'))
 const getUser = id => fetch(instance.get(`users/get-profile/${id}`))
 const update = data => fetch(instance.post('users/update', data))
+const searchUsers = (query, page) =>
+  fetch(
+    instance.get('users', {
+      params: {
+        query,
+        page
+      }
+    })
+  )
 
 const requestDeletion = reason =>
   fetch(
@@ -42,6 +51,8 @@ const requestDeletion = reason =>
       headers: { 'Content-Type': 'application/json' }
     })
   )
+
+const deleteUser = id => fetch(instance.post(`users/${id}/delete`))
 
 const getPendingReviews = () => fetch(instance.get('users/reviews/pending'))
 
@@ -56,9 +67,11 @@ export default {
   updateDeletionRequest,
   getDeletionRequests,
   update,
+  deleteUser,
   requestDeletion,
   getProfile,
   getUser,
+  searchUsers,
   getPendingReviews,
   approveReview
 }

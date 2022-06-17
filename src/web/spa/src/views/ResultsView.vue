@@ -231,9 +231,7 @@ const resultsTo = computed(
   () => 6 * (currentPage.value - 1) + results.value.length
 )
 const hasNext = computed(() => currentPage.value < totalPages.value)
-const hasPrevious = computed(
-  () => currentPage.value >= totalPages.value && totalPages.value > 1
-)
+const hasPrevious = computed(() => currentPage.value > 1)
 const filters = ref({})
 const currentLocation = ref(`${city.value}, ${country.value}`)
 const newLocation = ref(currentLocation.value)

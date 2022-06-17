@@ -30,7 +30,7 @@ public class AdventureController : BusinessController<Adventure, AdventureDT0, C
         return base.Update(dto);
     }
 
-    [Authorize(Roles = Role.Fisher)]
+    [Authorize(Roles = Role.Fisher + "," + Role.Admin)]
     public override Task<ActionResult> Delete(Guid id)
     {
         return base.Delete(id);
@@ -79,7 +79,7 @@ public class AdventureController : BusinessController<Adventure, AdventureDT0, C
     }
 
     [HttpGet]
-    [Authorize(Roles = Role.Fisher)]
+    [Authorize(Roles = Role.Fisher + "," + Role.Admin)]
     public Task<ActionResult> GetBusinesses([FromQuery] AdventureSearchRequest request)
     {
         return base.GetBusinesses(request);

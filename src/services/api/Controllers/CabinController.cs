@@ -30,7 +30,7 @@ public class CabinController : BusinessController<Cabin, CabinDTO, CreateCabinDT
         return base.Update(dto);
     }
 
-    [Authorize(Roles = Role.CabinOwner)]
+    [Authorize(Roles = Role.CabinOwner + "," + Role.Admin)]
     public override Task<ActionResult> Delete(Guid id)
     {
         return base.Delete(id);
@@ -73,7 +73,7 @@ public class CabinController : BusinessController<Cabin, CabinDTO, CreateCabinDT
     }
 
     [HttpGet]
-    [Authorize(Roles = Role.CabinOwner)]
+    [Authorize(Roles = Role.CabinOwner + "," + Role.Admin)]
     public Task<ActionResult> GetBusinesses([FromQuery] CabinSearchRequest request)
     {
         return base.GetBusinesses(request);
