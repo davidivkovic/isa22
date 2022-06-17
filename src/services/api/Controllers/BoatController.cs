@@ -72,13 +72,13 @@ public class BoatController : BusinessController<Boat, BoatDTO, CreateBoatDTO, U
         return base.DeleteUnavailability(id, eventId);
     }
 
-    [HttpGet]
     [Authorize(Roles = Role.BoatOwner)]
     public override Task<ActionResult> Report([FromRoute] Guid reservationId, CreateReportDTO request)
     {
         return base.Report(reservationId, request);
     }
 
+    [HttpGet]
     [Authorize(Roles = Role.BoatOwner)]
     public Task<ActionResult> GetBusinesses([FromQuery] BoatSearchRequest request)
     {

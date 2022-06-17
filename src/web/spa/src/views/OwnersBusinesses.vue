@@ -67,18 +67,10 @@
       <h2 class="text-xl font-medium">
         {{ totalResults }}
         {{ totalResults === 1 ? 'Result' : 'Results' }}
-        <span
-          v-if="
-            (currentLocation != 'undefined, undefined') |
-              (route.query.name != '')
-          "
-          class="font-normal"
-        >
-          for {{ route.query.name }}
-          {{
-            currentLocation != 'undefined, undefined' ? currentLocation : ''
-          }}</span
-        >
+        <span v-if="results.length != 0" class="font-normal">
+          with average rating of
+          <strong>{{ averageRating?.toPrecision(2) }}</strong>
+        </span>
         <div v-if="results.length === 0" class="mt-3 text-base font-normal">
           Unfortunatelly, there are no available
           {{ $route.params.type }}. Please change the search parameters.
@@ -117,48 +109,24 @@
                       >
                         {{ result.name }}
                       </h1>
-                      <h2 class="text-[17px] text-gray-500">
-                        {{ result.address?.city }}
+                      <h2 class="text-[16px] text-gray-500">
+                        {{ result.address?.city }},
                         {{ result.address?.country }}
                       </h2>
-                      <h2 class="text-[17px] text-gray-500">
+                      <h2 class="text-[16px] text-gray-500">
                         {{ result.address?.street }}
                         {{ result.address?.apartment }}
                       </h2>
                     </div>
                     <div class="max-w-md p-1">
                       <p
-                        class="max-h-[5.6rem] overflow-clip text-ellipsis text-[15px]"
+                        class="max-h-[3.7rem] overflow-hidden text-ellipsis text-[14px]"
                       >
                         {{ result.description }}
                       </p>
                     </div>
                   </div>
                   <div class="mt-4 w-[7rem] items-end space-x-2">
-                    <div
-                      v-if="userType[0] == 'cabins'"
-                      class="justify-left ml-[8px] flex space-x-1 text-neutral-500"
-                    >
-                      <h4 class="text-[13px]">
-                        Rooms: &nbsp;{{ result.rooms }}
-                      </h4>
-                      <HotelServiceIcon
-                        stroke-width="2"
-                        class="h-4 w-4 pb-px text-emerald-500"
-                      />
-                    </div>
-                    <div
-                      v-if="userType[0] == 'cabins'"
-                      class="justify-left flex space-x-1 text-neutral-500"
-                    >
-                      <h4 class="text-[13px]">
-                        Beds: &nbsp;&nbsp;{{ result.beds }}
-                      </h4>
-                      <BedIcon
-                        stroke-width="2"
-                        class="h-4 w-4 pb-px text-emerald-500"
-                      />
-                    </div>
                     <div class="justify-left flex space-x-1 text-neutral-500">
                       <h4 class="text-[13px]">People: {{ result.people }}</h4>
                       <UserIcon
@@ -267,8 +235,8 @@ const router = useRouter()
 const isDeleteModalOpen = ref(false)
 const entityId = ref()
 
-const city = ref(route.query.city)
-const country = ref(route.query.country)
+const city = ref(route.query.city != undefined ? route.query.city : '')
+const country = ref(route.query.country != undefined ? route.query.country : '')
 const cabinsName = ref(route.query.name)
 const people = ref(Number(route.query.people ?? 0))
 
@@ -310,6 +278,7 @@ const sortingOption = [
 const currentPage = ref(1)
 const totalPages = ref(1)
 const totalResults = ref(0)
+const averageRating = ref(0)
 const hasNext = computed(() => currentPage.value < totalPages.value)
 const hasPrevious = computed(
   () => currentPage.value >= totalPages.value && totalPages.value > 1
@@ -319,7 +288,7 @@ const deleteBusiness = () => {
   isDeleteModalOpen.value = true
 }
 
-const currentLocation = ref(`${city.value}, ${country.value}`)
+const currentLocation = ref(`${city.value} ${country.value}`)
 const newLocation = ref(currentLocation.value)
 
 const direction = ref(
@@ -334,6 +303,7 @@ const fetchResults = async () => {
     ...route.query
   })
   if (!error) {
+    averageRating.value = data.averageRating
     totalResults.value = data.totalResults
     totalPages.value = Math.ceil(totalResults.value / 6)
     data?.results.forEach(b => {
@@ -358,6 +328,11 @@ const showElement = id => {
 }
 
 const search = () => {
+  if (newLocation.value == '') {
+    country.value = ''
+    city.value = ''
+  }
+  console.log(newLocation)
   router.push({
     name: `${userType[2]}`,
     query: {
@@ -400,8 +375,21 @@ const previousPage = () => {
   currentPage.value--
   search()
 }
-/*
-onMounted(() => createAutocompleteInput())
+
+if (!document.getElementById('google-maps-script')) {
+  const mapsScript = document.createElement('script')
+  mapsScript.setAttribute('id', 'google-maps-script')
+  mapsScript.setAttribute(
+    'src',
+    `https://maps.googleapis.com/maps/api/js?key=${
+      import.meta.env.VITE_GOOGLE_MAPS_KEY
+    }&libraries=places`
+  )
+  mapsScript.onload = () => createAutocompleteInput()
+  document.head.appendChild(mapsScript)
+} else {
+  onMounted(() => createAutocompleteInput())
+}
 
 const createAutocompleteInput = () => {
   const geocoder = new window.google.maps.Geocoder()
@@ -419,9 +407,9 @@ const createAutocompleteInput = () => {
       {
         latLng: place.geometry.location
       },
-      (results, status) => {
+      (searchRes, status) => {
         if (status != window.google.maps.GeocoderStatus.OK) return
-        const address = getAddress(results)
+        const address = getAddress(searchRes)
         city.value = address.city
         country.value = address.country
         newLocation.value = `${city.value}, ${country.value}`
@@ -429,23 +417,23 @@ const createAutocompleteInput = () => {
     )
   })
 }
-const getAddress = results => {
-  const address = results.find(r =>
+const getAddress = searchRes => {
+  const address = searchRes.find(r =>
     r.address_components.find(c => c.types.includes('postal_code'))
   )
   return {
     postalCode: extractFromAddress(address, 'postal_code'),
-    country: extractFromAddress(results[0], 'country'),
-    city: extractFromAddress(results[0], 'locality'),
-    street: extractFromAddress(results[0], 'route'),
-    apartment: extractFromAddress(results[0], 'street_number'),
-    region: extractFromAddress(results[0], 'administrative_area_level_1'),
-    latitude: results[0].geometry.location.lat(),
-    longitude: results[0].geometry.location.lng()
+    country: extractFromAddress(searchRes[0], 'country'),
+    city: extractFromAddress(searchRes[0], 'locality'),
+    street: extractFromAddress(searchRes[0], 'route'),
+    apartment: extractFromAddress(searchRes[0], 'street_number'),
+    region: extractFromAddress(searchRes[0], 'administrative_area_level_1'),
+    latitude: searchRes[0].geometry.location.lat(),
+    longitude: searchRes[0].geometry.location.lng()
   }
 }
 const extractFromAddress = (address, key) => {
   return address?.address_components?.find(a => a.types.includes(key))
     ?.long_name
-}*/
+}
 </script>
