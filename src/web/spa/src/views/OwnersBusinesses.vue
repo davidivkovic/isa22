@@ -7,7 +7,7 @@
             <Input
               id="name-input"
               v-model="cabinsName"
-              placeholder="Business name"
+              placeholder="Enter a business name"
               clearable
               class="h-12 w-64"
             />
@@ -15,7 +15,7 @@
               id="location-input"
               v-model="newLocation"
               placeholder="Enter a location"
-              class="h-12 w-64 !pl-7"
+              class="h-12 w-64 !pl-8"
             >
               <template #prepend="{ focused, hovered }">
                 <MapPinIcon
@@ -282,7 +282,9 @@ const deleteBusiness = () => {
   isDeleteModalOpen.value = true
 }
 
-const currentLocation = ref(`${city.value} ${country.value}`)
+const currentLocation = ref(
+  city.value == '' ? '' : `${city.value} ${country.value}`
+)
 const newLocation = ref(currentLocation.value)
 
 const direction = ref(

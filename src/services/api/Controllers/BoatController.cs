@@ -78,6 +78,7 @@ public class BoatController : BusinessController<Boat, BoatDTO, CreateBoatDTO, U
         return base.Report(reservationId, request);
     }
 
+    [HttpGet]
     [Authorize(Roles = Role.BoatOwner + "," + Role.Admin)]
     public Task<ActionResult> GetBusinesses([FromQuery] BoatSearchRequest request)
     {
