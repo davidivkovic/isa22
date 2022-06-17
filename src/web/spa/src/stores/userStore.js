@@ -25,8 +25,8 @@ const isCustomer = computed(
 const isAdmin = computed(() => user?.roles.includes('Admin'))
 
 const businessType = computed(() => {
-  if (user?.roles.includes('CabinOwner')) return 'cabins'
-  else if (user?.roles.includes('BoatOwner')) return 'boats'
+  if (user?.roles.includes('Cabin Owner')) return 'cabins'
+  else if (user?.roles.includes('Boat Owner')) return 'boats'
   else if (user?.roles.includes('Fisher')) return 'adventures'
   else return 'none'
 })

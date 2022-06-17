@@ -3,11 +3,17 @@
     <slot>
       <div class="flex items-center space-x-1 text-neutral-500">
         <HotelServiceIcon stroke-width="2" class="h-4 w-4 pb-px" />
-        <h4 class="font- text-[13px]">{{ props.result.rooms }}</h4>
+        <h4 class="font- text-[13px]">{{ props.result.rooms.length }}</h4>
       </div>
       <div class="flex items-center space-x-1 text-neutral-500">
         <BedIcon stroke-width="2" class="h-4 w-4 pb-px" />
-        <h4 class="font- text-[13px]">{{ props.result.beds }}</h4>
+        <h4 class="font- text-[13px]">
+          {{
+            props.result.rooms.reduce((acc, obj) => {
+              return acc + obj.beds
+            }, 0)
+          }}
+        </h4>
       </div>
       <div class="flex items-center space-x-1 text-neutral-500">
         <UserIcon stroke-width="2" class="h-4 w-4 pb-px" />

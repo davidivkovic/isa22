@@ -273,7 +273,7 @@ const changeSelectedOption = value => {
 
 const filter = filtered => (filters.value = filtered)
 
-const search = (filtered = {}) => {
+const search = () => {
   router.push({
     name: 'search',
     query: {
@@ -284,7 +284,7 @@ const search = (filtered = {}) => {
       people: people.value,
       direction: direction.value.value,
       page: currentPage.value,
-      ...filtered
+      ...filters.value
     }
   })
   setTimeout(() => {

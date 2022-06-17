@@ -166,7 +166,7 @@ watch([ratingHigher, rooms, priceLow, priceHigh], () => {
     },
     params: { type: props.businessType }
   })
-  setTimeout(() => emit('filter', filtered), 100)
+  setTimeout(() => emit('filter', filtered), 0)
 })
 
 const resetFilters = () => {
