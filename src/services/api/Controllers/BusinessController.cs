@@ -58,8 +58,12 @@ public class BusinessController<
     protected async Task<ActionResult> GetBusinesses([FromQuery] SearchRequest request)
     {
         var query = Context.Set<TBusiness>()
-            .Where(b => b.Owner.Id == User.Id())
             .AsNoTrackingWithIdentityResolution();
+
+        if (User.IsInRole(Role.BusinessOwner))
+        {
+            query = query.Where(b => b.Owner.Id == User.Id());
+        }
 
         if (!string.IsNullOrWhiteSpace(request.Name))
         {
@@ -96,7 +100,7 @@ public class BusinessController<
                     Currency = r.PricePerUnit.Currency
                 };
             });
-        return Ok(new { results, totalResults, averageRating = results.Average(c => c.Rating) });
+        return Ok(new { results, totalResults, averageRating = results.Select(c => c.Rating).DefaultIfEmpty().Average() });
     }
 
     [HttpGet("{id}/images/{image}")]
@@ -326,7 +330,7 @@ public class BusinessController<
             return BadRequest($"The specified {BusinessType} does not exist.");
         }
 
-        if (business.Owner.Id != User.Id())
+        if (business?.Owner?.Id != User.Id() && !User.IsInRole(Role.Admin))
         {
             return StatusCode(403);
         }

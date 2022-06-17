@@ -16,6 +16,7 @@ public class SearchResponse
     public int People { get; set; }
     public double Rating { get; set; }
     public double CancellationFee { get; set; }
+    public string UnitName { get; set; }
 }
 
 public class CabinSearchResponse : SearchResponse
@@ -25,7 +26,7 @@ public class CabinSearchResponse : SearchResponse
 
 public class BoatSearchResponse : SearchResponse
 {
-    public BoatCharacteristics BoatCharacteristics { get; set; }
+    public BoatCharacteristics Characteristics { get; set; }
 }
 
 public class AdventureSearchResponse : SearchResponse 

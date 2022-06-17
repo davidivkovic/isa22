@@ -80,7 +80,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { DiamondIcon, UserIcon } from 'vue-tabler-icons'
+import { DiamondIcon } from 'vue-tabler-icons'
 import api from '@/api/api'
 
 const route = useRoute()

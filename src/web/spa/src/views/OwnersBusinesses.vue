@@ -47,7 +47,14 @@
           </div>
         </form>
       </div>
-      <div class="flex justify-end">
+      <div class="flex justify-between">
+        <Dropdown
+          @change="e => (currentBusinessType = e.value)"
+          label="Business Type"
+          :values="businessTypes"
+          class="w-fit"
+          v-if="isAdmin"
+        />
         <Dropdown
           @change="changeSelectedOption"
           :slim="true"
@@ -123,8 +130,12 @@
                     </div>
                   </div>
                   <div class="mt-4 w-[7rem] items-end space-x-2">
-                    <div class="justify-left flex space-x-1 text-neutral-500">
-                      <h4 class="text-[13px]">People: {{ result.people }}</h4>
+                    <div
+                      class="justify-left items flex space-x-1 text-neutral-500"
+                    >
+                      <h4 class="text-[13px] font-medium">
+                        People: {{ result.people }}
+                      </h4>
                       <UserIcon
                         stroke-width="2"
                         class="h-4 w-4 pb-px text-emerald-500"
@@ -140,12 +151,16 @@
                   >
                     {{ result.price.symbol }} {{ result.price.amount }}
                   </h3>
-                  <span class="font text-sm text-gray-600">/night</span>
+                  <span class="font text-sm text-gray-600"
+                    >/{{ result.unitName.slice(0, -1) }}</span
+                  >
                 </div>
-                <div class="flex items-center justify-center space-x-1">
-                  <h2 class="text-[11px]">Cancellation fee</h2>
-                  <h2 class="text-[10px] font-bold">
-                    {{ result.price.symbol }} {{ result.cancellationFee }}
+                <div
+                  class="flex items-center justify-center space-x-1 whitespace-nowrap"
+                >
+                  <h2 class="text-sm">Cancellation fee</h2>
+                  <h2 class="text-sm font-bold">
+                    {{ result.cancellationFee }} %
                   </h2>
                 </div>
                 <Menu
@@ -194,7 +209,7 @@
   <DeleteBusinessModal
     :isOpen="isDeleteModalOpen"
     :businessId="entityId"
-    type="cabins"
+    :type="isAdmin ? currentBusinessType : userType[0]"
     :back="false"
     @modalClosed="isDeleteModalOpen = false"
     @elementDeleted="reloadList()"
@@ -221,7 +236,7 @@ import {
 import { useRoute, useRouter } from 'vue-router'
 import api from '../api/api'
 import Input from '../components/ui/Input.vue'
-import { user } from '@/stores/userStore'
+import { user, isAdmin } from '@/stores/userStore'
 
 const route = useRoute()
 const router = useRouter()
@@ -246,8 +261,28 @@ const userTypes = {
     'adventure-owner',
     'owners adventures',
     'adventure-profile'
-  ]
+  ],
+  Admin: ['cabins', 'cabin-owner', 'owners cabins', 'cabin-profile']
 }
+
+const businessTypes = [
+  {
+    name: 'Cabins',
+    value: 'cabins'
+  },
+  {
+    name: 'Boats',
+    value: 'boats'
+  },
+  {
+    name: 'Adventures',
+    value: 'adventures'
+  }
+]
+
+const currentBusinessType = ref(businessTypes[0].value)
+
+// watch(currentBusinessType, () => fetchResults())
 
 const userType = userTypes[user.roles[0]]
 const sortingOption = [
@@ -270,9 +305,7 @@ const totalPages = ref(1)
 const totalResults = ref(0)
 const averageRating = ref(0)
 const hasNext = computed(() => currentPage.value < totalPages.value)
-const hasPrevious = computed(
-  () => currentPage.value >= totalPages.value && totalPages.value > 1
-)
+const hasPrevious = computed(() => currentPage.value > 1)
 const resultsFrom = computed(() => 1 + 6 * (currentPage.value - 1))
 const resultsTo = computed(
   () => 6 * (currentPage.value - 1) + results.value.length
@@ -296,11 +329,11 @@ const results = ref([])
 
 const fetchResults = async () => {
   const [data, error] = await api.business.getBusinesses(
-    userType[0],
+    isAdmin.value ? currentBusinessType.value : userType[0],
     {
-      ...route.query
-    },
-    route.query.page - 1 || 0
+      ...route.query,
+      page: Number(route.query.page) - 1 || 0
+    }
   )
   if (!error) {
     averageRating.value = data.averageRating
@@ -308,12 +341,18 @@ const fetchResults = async () => {
     totalPages.value = Math.ceil(totalResults.value / 6)
     data?.results.forEach(b => {
       b.values = [
-        {
+        ...((!isAdmin.value && {
           name: 'Calendar',
           value: `/${userType[3]}/${b.id}/calendar`,
           icon: shallowRef(CalendarIcon)
-        },
-        { name: 'Edit', value: ['edit', b.id], icon: shallowRef(PencilIcon) },
+        }) ||
+          []),
+        ...((!isAdmin.value && {
+          name: 'Edit',
+          value: ['edit', b.id],
+          icon: shallowRef(PencilIcon)
+        }) ||
+          []),
         { name: 'Delete', value: ['delete', b], icon: shallowRef(TrashIcon) }
       ]
     })
@@ -332,16 +371,15 @@ const search = () => {
     country.value = ''
     city.value = ''
   }
-  console.log(newLocation)
   router.push({
-    name: `${userType[2]}`,
+    name: isAdmin.value ? 'businesses' : `${userType[2]}`,
     query: {
       country: country.value,
       city: city.value,
       name: cabinsName.value,
       people: people.value,
       direction: direction.value.value,
-      page: currentPage.value - 1
+      page: currentPage.value
     }
   })
   setTimeout(() => {

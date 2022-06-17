@@ -293,7 +293,7 @@
       </h2>
       <Dropdown
         @change="e => (currentBusinessType = e.value)"
-        label="Type"
+        label="Business Type"
         :values="businessTypes"
         class="w-fit"
       />
@@ -399,7 +399,7 @@ watchEffect(async () => {
   const [data, error] = await api.business.getSubscriptions(
     currentBusinessType.value
   )
-  data && (subscriptions.value = data)
+  !error && (subscriptions.value = data)
 })
 
 const updateUser = async () => {
@@ -428,7 +428,7 @@ if (!profileError) {
 }
 
 const unsubscribe = async subscription => {
-  const [data, error] = await api.business.unsubscribe(
+  const [, error] = await api.business.unsubscribe(
     subscription.id,
     currentBusinessType.value
   )
