@@ -77,14 +77,12 @@ public class BusinessController<
         {
             query = query.Where(c => c.People == request.People);
         }
-        int page = request.Page;
-        if (page == 0) page = 1;
 
         int totalResults = await query.CountAsync();
 
         var results = await query
             .OrderBy(request.Direction)
-            .Skip((page-1) * 6)
+            .Skip(request.Page * 6)
             .Take(6)
             .ProjectToType<SearchResponse>()
             .ToListAsync();
@@ -98,12 +96,7 @@ public class BusinessController<
                     Currency = r.PricePerUnit.Currency
                 };
             });
-        double averageRating = 0;
-        foreach(var r in results)
-        {
-            averageRating += r.Rating;
-        }
-        averageRating /= results.Count;
+        double averageRating = await query.AverageAsync(c => c.Rating);
         return Ok(new { results, totalResults, averageRating });
     }
 

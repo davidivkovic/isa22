@@ -166,8 +166,8 @@
         class="mt-10 flex justify-between space-x-10 text-sm"
       >
         <p>
-          Showing <span class="font-medium"> 1</span> to
-          <span class="font-medium"> {{ results.length }} </span> of
+          Showing <span class="font-medium"> {{ resultsFrom }}</span> to
+          <span class="font-medium"> {{ resultsTo }} </span> of
           <span class="font-medium"> {{ totalResults }} </span> results
         </p>
         <div class="flex space-x-5">
@@ -275,13 +275,17 @@ const sortingOption = [
   }
 ]
 
-const currentPage = ref(1)
+const currentPage = ref(route.query?.page ?? 1)
 const totalPages = ref(1)
 const totalResults = ref(0)
 const averageRating = ref(0)
 const hasNext = computed(() => currentPage.value < totalPages.value)
 const hasPrevious = computed(
   () => currentPage.value >= totalPages.value && totalPages.value > 1
+)
+const resultsFrom = computed(() => 1 + 6 * (currentPage.value - 1))
+const resultsTo = computed(
+  () => 6 * (currentPage.value - 1) + results.value.length
 )
 
 const deleteBusiness = () => {
@@ -299,9 +303,13 @@ const direction = ref(
 const results = ref([])
 
 const fetchResults = async () => {
-  const [data, error] = await api.business.getBusinesses(userType[0], {
-    ...route.query
-  })
+  const [data, error] = await api.business.getBusinesses(
+    userType[0],
+    {
+      ...route.query
+    },
+    route.query.page - 1 || 0
+  )
   if (!error) {
     averageRating.value = data.averageRating
     totalResults.value = data.totalResults
@@ -341,9 +349,12 @@ const search = () => {
       name: cabinsName.value,
       people: people.value,
       direction: direction.value.value,
-      page: currentPage.value
+      page: currentPage.value - 1
     }
   })
+  setTimeout(() => {
+    fetchResults()
+  }, 100)
 }
 
 const optionSelected = value => {
