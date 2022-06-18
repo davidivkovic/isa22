@@ -13,6 +13,7 @@ using API.Infrastructure.Data;
 using API.Services.Email.Messages;
 using API.Infrastructure.Extensions;
 using API.Core.Model;
+using API.Services;
 
 [Route("users")]
 [ApiController]
@@ -52,6 +53,28 @@ public class UserController : ControllerBase
             totalResults = totalUsers
         });
     }
+
+    protected ActionResult GetImage([FromRoute] Guid id, [FromRoute] string image)
+    {
+        string imagePath = ImageService.GetPath(id, image);
+        if (imagePath is null)
+        {
+            return BadRequest();
+        }
+
+        return PhysicalFile(imagePath, "image/*");
+    }
+
+    protected string ImageUrl(Guid id, string image)
+    {
+        return Url.Action(
+            nameof(GetImage),
+            ControllerContext.ActionDescriptor.ControllerName,
+            new { id, image },
+            Request.Scheme
+        );
+    }
+
 
     [Authorize]
     [HttpGet("{id}")]
@@ -331,6 +354,73 @@ public class UserController : ControllerBase
         //));
 
         return Ok();
+    }
+
+    [Authorize(Roles = Role.Admin)]
+    [HttpPost("reservations/{reservationId}/report/update")]
+    public async Task<ActionResult> ApproveReport([FromRoute] Guid reservationId, [FromQuery] bool penalize)
+    {
+        var reservation = await _context.Reservations
+            .Where(r => r.Id == reservationId)
+            .Include(r => r.Report)
+            .Include(r => r.User)
+            .Include(r => r.Business)
+                .ThenInclude(b => b.Owner)
+            .FirstOrDefaultAsync();
+
+        if (reservation is null)
+        {
+            return BadRequest("The reservation doesn't exist.");
+        }
+
+        if (reservation.Report is null)
+        {
+            return BadRequest("There are no reports for this reservation.");
+        }
+
+        reservation.Report.Approve();
+
+        if (penalize)
+        {
+            // penalize points
+            reservation.User.LoyaltyPoints -= 1;
+
+            // notify client and advertiser
+            _mailer.Send(reservation.User, new ComplaintApproved(
+                reservation,
+                ImageUrl(reservation.Business.Id, reservation.Business.Images.FirstOrDefault()),
+                "#contactUrl"
+            ));
+
+            _mailer.Send(reservation.Business.Owner, new ComplaintApproved(
+              reservation,
+              ImageUrl(reservation.Business.Id, reservation.Business.Images.FirstOrDefault()),
+              "#contactUrl"
+          ));
+        }
+
+        await _context.SaveChangesAsync();
+        return Ok();
+    }
+
+    [Authorize(Roles = Role.Admin)]
+    [HttpGet("reports/pending")]
+    public async Task<List<PendingReportDTO>> GetPendingReports([FromQuery] DateTimeOffset before)
+    {
+        return await _context.Reservations
+            .AsNoTracking()
+            .Where(r => !r.Report.IsApproved)
+            .Take(10)
+            .Select(r => new PendingReportDTO()
+            {
+                Business = r.Business.Adapt<BusinessDTO>(),
+                Id = r.Id,
+                Penalize = r.Report.Penalize,
+                Reason = r.Report.Reason,
+                Timestamp = r.Timestamp,
+                User = r.User.Adapt<UserDTO>()
+            })
+            .ToListAsync();
     }
 
     [Authorize(Roles = Role.Admin)]

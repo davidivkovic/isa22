@@ -197,6 +197,11 @@ const router = createRouter({
           from,
           '../components/registration/AdminSignUpModal.vue'
         )
+    },
+    {
+      path: '/reports',
+      name: 'reports',
+      component: () => import('../views/admin/ReportsView.vue')
     }
   ]
 })

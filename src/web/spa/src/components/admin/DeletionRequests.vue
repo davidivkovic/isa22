@@ -5,7 +5,7 @@
       Users will be notified via email upon accepting or rejecting their
       requests
     </h4>
-    <div class="grid grid-cols-4 items-center">
+    <div v-if="requests.length > 0" class="grid grid-cols-4 items-center">
       <p class="ml-1 text-sm text-neutral-500">Name</p>
       <p class="col-span-2 ml-10 text-sm text-neutral-500">Comment</p>
       <p class="ml-12 text-sm text-neutral-500">Date</p>
@@ -89,6 +89,9 @@
         </div>
         <div class="col-span-4 my-3 h-px bg-neutral-100"></div>
       </template>
+    </div>
+    <div class="text-gray-700" v-else>
+      There are currently no pending account deletion requests.
     </div>
   </div>
   <Modal

@@ -26,9 +26,10 @@
     </div>
     <SearchBar class="relative -mt-20" />
   </div>
-  <Suspense v-else>
+  <Suspense v-else-if="!isAdmin">
     <OwnerDashboard />
   </Suspense>
+  <Suspense v-else> <RequestsView /> </Suspense>
 </template>
 
 <script setup>
@@ -38,7 +39,8 @@ import Button from '@/components/ui/Button.vue'
 import SearchBar from '@/components/homepage/SearchBar.vue'
 import { ArrowRightIcon } from 'vue-tabler-icons'
 import OwnerDashboard from '@/components/homepage/OwnerDashboard.vue'
-import { isCustomer } from '@/stores/userStore'
+import RequestsView from './admin/RequestsView.vue'
+import { isCustomer, isAdmin } from '@/stores/userStore'
 
 import cabinsURL from '@/assets/images/cabins.png'
 import boatsURL from '@/assets/images/boats.png'

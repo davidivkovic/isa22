@@ -1,6 +1,7 @@
 <template>
   <div class="relative h-36 w-48">
     <h4
+      v-if="props.result.rating > 0"
       class="absolute top-2 right-1.5 rounded-xl bg-emerald-50 px-2.5 py-0.5 text-[13px] font-semibold tracking-tight text-[#05a876]"
     >
       {{ props.result.rating.toPrecision(2) }}

@@ -61,6 +61,17 @@ const approveReview = (id, approve) =>
     instance.post(`users/reviews/${id}/update`, {}, { params: { approve } })
   )
 
+const getPendingReports = () => fetch(instance.get('users/reports/pending'))
+
+const approveReport = (id, penalize) =>
+  fetch(
+    instance.post(
+      `users/reservations/${id}/report/update`,
+      {},
+      { params: { penalize } }
+    )
+  )
+
 export default {
   updateRegistrationRequest,
   getRegistrationRequests,
@@ -73,5 +84,7 @@ export default {
   getUser,
   searchUsers,
   getPendingReviews,
-  approveReview
+  approveReview,
+  getPendingReports,
+  approveReport
 }

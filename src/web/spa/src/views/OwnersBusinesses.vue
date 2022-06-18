@@ -90,6 +90,7 @@
             <div class="min-2-0 flex flex-1">
               <div class="relative h-36 w-48">
                 <h4
+                  v-if="result.rating > 0"
                   class="absolute top-2 right-1.5 rounded-xl bg-emerald-50 px-2.5 text-[13px] font-semibold tracking-tight text-emerald-300"
                 >
                   {{ result.rating?.toPrecision(2) ?? 0 }}
@@ -332,30 +333,36 @@ const fetchResults = async () => {
     isAdmin.value ? currentBusinessType.value : userType[0],
     {
       ...route.query,
-      page: Number(route.query.page) - 1 || 0
+      page: currentPage.value - 1 || 0
     }
   )
   if (!error) {
     averageRating.value = data.averageRating
     totalResults.value = data.totalResults
     totalPages.value = Math.ceil(totalResults.value / 6)
+    console.log(data.results)
     data?.results.forEach(b => {
       b.values = [
-        ...((!isAdmin.value && {
+        {
+          name: 'Delete',
+          value: ['delete', b],
+          icon: shallowRef(TrashIcon)
+        }
+      ]
+      if (!isAdmin.value) {
+        b.values.unshift({
           name: 'Calendar',
           value: `/${userType[3]}/${b.id}/calendar`,
           icon: shallowRef(CalendarIcon)
-        }) ||
-          []),
-        ...((!isAdmin.value && {
+        })
+        b.values.unshift({
           name: 'Edit',
           value: ['edit', b.id],
           icon: shallowRef(PencilIcon)
-        }) ||
-          []),
-        { name: 'Delete', value: ['delete', b], icon: shallowRef(TrashIcon) }
-      ]
+        })
+      }
     })
+    console.log(data.results)
     results.value = data.results
   }
 }

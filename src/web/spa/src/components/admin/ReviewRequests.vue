@@ -4,7 +4,7 @@
     <h4 class="pb-8">
       Advertisers will be notified via email upon accepting a customer's review
     </h4>
-    <div class="grid grid-cols-8 items-center">
+    <div v-if="requests.length > 0" class="grid grid-cols-8 items-center">
       <p class="col-span-2 ml-1 text-sm text-neutral-500">User</p>
       <p class="col-span-2 ml-1 text-sm text-neutral-500">Business</p>
       <p class="col-span-2 ml-10 text-sm text-neutral-500">Content</p>
@@ -95,6 +95,9 @@
         </div>
         <div class="col-span-8 my-3 h-px bg-neutral-100"></div>
       </template>
+    </div>
+    <div class="text-gray-700" v-else>
+      There are currently no pending review requests.
     </div>
   </div>
 </template>

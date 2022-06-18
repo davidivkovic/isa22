@@ -9,14 +9,6 @@
               <h1 class="whitespace-nowrap text-lg font-medium leading-5">
                 {{ user.firstName }} {{ user.lastName }}
               </h1>
-
-              <div
-                v-for="role in user.roles.filter(r => r != 'Customer')"
-                :key="role"
-                class="-my-1.5 whitespace-nowrap rounded-full border border-neutral-300 px-2.5 py-1 text-sm font-medium"
-              >
-                {{ role }}
-              </div>
             </div>
             <h2 class="text-sm text-neutral-500">{{ user.email }}</h2>
             <h3 class="text-sm text-neutral-500">{{ user.phoneNumber }}</h3>
