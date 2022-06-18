@@ -294,7 +294,7 @@ public class AuthenticationController : ControllerBase
 
         if (user.LockedOut)
         {
-            return Unauthorized("Please set your password before proceeding.");
+            return BadRequest("admin-set-password");
         }
 
         string accessToken = JWTProvider.GetAccessToken(user);

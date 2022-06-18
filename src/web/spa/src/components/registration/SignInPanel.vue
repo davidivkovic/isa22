@@ -69,6 +69,13 @@ const signIn = async () => {
     password: password.value
   }
   const [, error] = await api.auth.signIn(formData)
-  formError.value = error
+  if (error == 'admin-set-password') {
+    emit('switchAuth', {
+      email: email.value,
+      role: 'Admin'
+    })
+  } else {
+    formError.value = error
+  }
 }
 </script>

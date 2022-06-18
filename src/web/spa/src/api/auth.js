@@ -1,12 +1,16 @@
 import { setUser, removeUser } from '../stores/userStore.js'
 import { instance, fetch, setAccesToken, removeAccesToken } from './http.js'
 
-const signIn = data => {
-  return fetch(instance.post('auth/email/sign-in', data), data => {
-    window.location.href = '/'
-    setAccesToken(data.accessToken)
-    setUser(data.user)
-  })
+const setAuthData = data => {
+  window.location.href = '/'
+  setAccesToken(data.accessToken)
+  setUser(data.user)
+}
+
+const signIn = body => {
+  return fetch(instance.post('auth/email/sign-in', body), data =>
+    setAuthData(data)
+  )
 }
 
 const signOut = async () => {
@@ -32,10 +36,21 @@ const sendConfirmation = email => {
   )
 }
 
+const setAdminPassword = (email, password, newPassword) =>
+  fetch(
+    instance.post('auth/password/set', {
+      email,
+      password,
+      newPassword
+    }),
+    data => setAuthData(data)
+  )
+
 export default {
   signIn,
   signOut,
   register,
   confirmEmail,
-  sendConfirmation
+  sendConfirmation,
+  setAdminPassword
 }

@@ -521,7 +521,7 @@
                   </Button>
                 </div>
               </div>
-              <details class="space-y-2">
+              <details :id="'sale-details-' + ind" class="space-y-2">
                 <summary
                   class="-mt-2.5 flex cursor-pointer items-center space-x-1"
                 >
@@ -625,7 +625,7 @@
           <p class="h-32 text-sm text-gray-600">
             {{ review.content }}
           </p>
-          <p class="!mt-5 text-sm text-emerald-700">Read more</p>
+          <p class="!-mt-2 text-sm text-emerald-700">Read more</p>
         </div>
       </div>
       <div v-else>There are no reviews for this business.</div>
@@ -852,7 +852,7 @@ const subError = ref('')
 
 const subscribe = async () => {
   isLoading.value = true
-  const [data, error] = await api.business.subscribe(
+  const [, error] = await api.business.subscribe(
     props.entity.id,
     props.entityType
   )
@@ -867,7 +867,7 @@ const subscribe = async () => {
 
 const unsubscribe = async () => {
   isLoading.value = true
-  const [data, error] = await api.business.unsubscribe(
+  const [, error] = await api.business.unsubscribe(
     props.entity.id,
     props.entityType
   )
@@ -925,6 +925,12 @@ if (!document.getElementById('google-maps-script')) {
 } else {
   onMounted(() => createMap())
 }
+
+onMounted(() => {
+  const featuredSale = document.getElementById('sale-details-0')
+  console.log(featuredSale)
+  if (featuredSale) featuredSale.open = true
+})
 </script>
 
 <style scoped>

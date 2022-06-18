@@ -176,6 +176,14 @@
               type="tel"
               label="Phone number"
             />
+            <div>
+              <Button
+                class="mt-3.5 border border-neutral-300 !py-2.5 hover:bg-neutral-50"
+                type="button"
+              >
+                Change password
+              </Button>
+            </div>
           </div>
 
           <div class="space-y-3">
@@ -323,14 +331,19 @@
               {{ subscription.address.city }},
               {{ subscription.address.country }}
             </h3>
-            <div
+            <div>
+              <span>{{ subscription.rating.toFixed(1) }}</span>
+              <span class="text-sm text-neutral-500">/5</span>
+              <span>⭐</span>
+            </div>
+            <!-- <div
               class="mt-1 flex w-min items-center space-x-2 bg-emerald-50 p-1 text-sm font-bold text-emerald-700"
             >
               <StarIcon class="h-4 w-4" />
               <h3>
-                {{ subscription.rating.toFixed(2) }}
+                {{ subscription.rating.toFixed(1) }}
               </h3>
-            </div>
+            </div> -->
           </div>
         </div>
         <Button
@@ -352,7 +365,6 @@ import {
   DiamondIcon,
   EditIcon,
   ArrowNarrowLeftIcon,
-  StarIcon,
   BellOffIcon
 } from 'vue-tabler-icons'
 import Button from '@/components/ui/Button.vue'

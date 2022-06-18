@@ -187,11 +187,26 @@ const router = createRouter({
       path: '/businesses',
       name: 'businesses',
       component: () => import('../views/OwnersBusinesses.vue')
+    },
+    {
+      path: '/admin-signup',
+      name: 'admin-signup',
+      beforeEnter: (to, from) =>
+        modalRouteFunc(
+          to,
+          from,
+          '../components/registration/AdminSignUpModal.vue'
+        )
     }
   ]
 })
 
-const modalNames = ['signin', 'verification', 'admin-verification']
+const modalNames = [
+  'signin',
+  'admin-signup',
+  'verification',
+  'admin-verification'
+]
 const nonSearchRoutes = ['profile', 'reservations']
 
 export { modalNames, nonSearchRoutes }

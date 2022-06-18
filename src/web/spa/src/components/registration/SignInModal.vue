@@ -14,7 +14,11 @@
       leave-to-class="opacity-0"
       mode="out-in"
     >
-      <Component @switchAuth="switchAuth()" :is="authPanel" />
+      <Component
+        @switchAuth="e => switchAuth(e)"
+        :data="data"
+        :is="authPanel"
+      />
     </Transition>
   </Modal>
 </template>
@@ -24,14 +28,21 @@ import { ref, shallowRef, watch, onBeforeMount } from 'vue'
 import Modal from '../ui/Modal.vue'
 import SignInForm from './SignInPanel.vue'
 import RegistrationForm from './RegistrationPanel.vue'
+import ChangePasswordPanel from './ChangePasswordPanel.vue'
 
 const isModalOpen = ref(false)
 const closeModal = ref()
+const data = ref('')
 
 const authPanel = shallowRef(SignInForm)
-const switchAuth = () => {
-  authPanel.value =
-    authPanel.value === SignInForm ? RegistrationForm : SignInForm
+const switchAuth = (d = null) => {
+  if (d) {
+    data.value = d
+    authPanel.value = ChangePasswordPanel
+  } else {
+    authPanel.value =
+      authPanel.value === SignInForm ? RegistrationForm : SignInForm
+  }
 }
 
 onBeforeMount(async () => {
