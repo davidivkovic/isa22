@@ -424,6 +424,19 @@ public class BusinessController<
             request.People,
             business.Services.Where(s => request.Services.Contains(s)).ToList()
         );
+
+        User customer = null;
+
+        if (request.CustomerId != default) 
+        {
+            customer = await Context.Users.FindAsync(request.CustomerId);
+            var finance = await Context.Finances.FirstOrDefaultAsync();
+            var loyalty = await Context.GetLoyaltyLevel(User.Id());
+
+            sale.Sell(customer, loyalty?.DiscountPercentage ?? 0, finance.TaxPercentage);
+            customer.LoyaltyPoints += finance.CustomerPoints;
+        }
+
         Context.Add(sale);
         await Context.SaveChangesAsync();
 
@@ -846,6 +859,7 @@ public class BusinessController<
             return StatusCode(403);
         }
 
+        string ownerId = User.Id().ToString(); 
         var reservations = await Context.Reservations
             .AsNoTracking()
             .Include(r => r.User)
@@ -858,10 +872,12 @@ public class BusinessController<
             .Select(r => new
             {
                 r.Id,
+                BusinessId = r.Business.Id.ToString(),
                 r.Start,
                 r.End,
                 Type = r.GetType().Name.ToLowerInvariant(),
                 Name = r.User == null ? "" : r.User.FirstName + " " + r.User.LastName,
+                UserId = r.User == null ? "" : r.User.Id.ToString(),
                 Reported = r.Report != null
             })
             .ToListAsync();
@@ -878,10 +894,12 @@ public class BusinessController<
                 .Select(r => new
                 {
                     r.Id,
+                    BusinessId = string.Empty,
                     r.Start,
                     r.End,
                     Type = "unavailable",
                     Name = "Unavailable",
+                    UserId = ownerId,
                     Reported = false
                 })
                 .ToListAsync();

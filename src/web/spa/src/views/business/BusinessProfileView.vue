@@ -78,6 +78,17 @@
               v-if="isOwnersBusiness || user.role == 'Admin'"
               class="mt-3 flex space-x-3"
             >
+              <RouterLink
+                v-if="isOwnersBusiness"
+                :to="`${$route.path}/calendar`"
+              >
+                <Button
+                  class="flex space-x-1 border !py-1 !text-sm hover:bg-neutral-50"
+                >
+                  <span class="font-medium">View Calendar</span>
+                  <CalendarIcon class="-mt-px h-5 w-5" />
+                </Button>
+              </RouterLink>
               <Button
                 @click="editBusiness()"
                 class="flex space-x-1 border !py-1 !text-sm hover:bg-neutral-50"
@@ -93,17 +104,6 @@
                 <span class="font-medium">Delete</span>
                 <TrashIcon class="-mt-px h-5 w-5" />
               </Button>
-              <RouterLink
-                v-if="isOwnersBusiness"
-                :to="`${$route.path}/calendar`"
-              >
-                <Button
-                  class="mr-2 flex space-x-1 border !py-1 !text-sm hover:bg-neutral-50"
-                >
-                  <span class="font-medium">View Calendar</span>
-                  <CalendarIcon class="-mt-px h-5 w-5" />
-                </Button>
-              </RouterLink>
             </div>
           </div>
           <div v-if="props.entityType == 'cabins'" class="mt-5 flex space-x-14">

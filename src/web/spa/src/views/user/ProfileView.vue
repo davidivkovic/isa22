@@ -180,6 +180,7 @@
               <Button
                 class="mt-3.5 border border-neutral-300 !py-2.5 hover:bg-neutral-50"
                 type="button"
+                @click="passwordModalOpen = true"
               >
                 Change password
               </Button>
@@ -355,6 +356,10 @@
         </Button>
       </div>
     </div>
+    <ChangePasswordModal
+      :is-open="passwordModalOpen"
+      @closed="passwordModalOpen = false"
+    />
   </div>
 </template>
 
@@ -372,11 +377,13 @@ import Input from '@/components/ui/Input.vue'
 import Loader from '@/components/ui/Loader.vue'
 import Modal from '@/components/ui/Modal.vue'
 import Dropdown from '@/components/ui/Dropdown.vue'
+import ChangePasswordModal from '@/components/registration/ChangePasswordModal.vue'
 import api from '@/api/api'
 
 const editMode = ref(false)
 const loading = ref(false)
 const deletionModalOpen = ref(false)
+const passwordModalOpen = ref(false)
 
 const user = ref()
 const loyaltyLevel = ref()

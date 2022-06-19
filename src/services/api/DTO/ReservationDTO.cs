@@ -60,6 +60,7 @@ public class CreateSaleDTO
     public int People { get; set; }
     public List<Service> Services { get; set; }
     public double DiscountPercentage { get; set; }
+    public Guid CustomerId { get; set; }
 }
 
 public class SaleDTO : CreateSaleDTO

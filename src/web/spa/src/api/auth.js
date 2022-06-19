@@ -46,11 +46,24 @@ const setAdminPassword = (email, password, newPassword) =>
     data => setAuthData(data)
   )
 
+const changePassword = (password, newPassword) =>
+  fetch(
+    instance.post('auth/password/reset', {
+      password,
+      newPassword
+    }),
+    () => {
+      removeAccesToken()
+      setUser({})
+    }
+  )
+
 export default {
   signIn,
   signOut,
   register,
   confirmEmail,
   sendConfirmation,
-  setAdminPassword
+  setAdminPassword,
+  changePassword
 }

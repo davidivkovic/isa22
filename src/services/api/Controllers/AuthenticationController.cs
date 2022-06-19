@@ -121,7 +121,7 @@ public class AuthenticationController : ControllerBase
         var refreshTokens = await _context.UserTokens.Where(t => t.UserId == user.Id).ToListAsync();
         refreshTokens.ForEach(t => t.Delete());
 
-        IdentityResult result = await _userManager.ResetPasswordAsync(user, token, request.Password);
+        IdentityResult result = await _userManager.ResetPasswordAsync(user, token, request.NewPassword);
 
         if (!result.Succeeded)
         {

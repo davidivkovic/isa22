@@ -1,9 +1,10 @@
 <template>
   <div>
-    <div v-if="selectedEvent" class="mb-6">
-      <div class="mb-3 flex items-center space-x-2">
+    <div class="mb-6">
+      <div class="flex items-center space-x-2">
         <h2 class="text-lg font-medium">Selected event</h2>
         <div
+          v-if="selectedEvent"
           class="h-2.5 w-2.5 rounded-full"
           :class="{
             'bg-emerald-600': ['reservation', 'sale'].includes(
@@ -18,7 +19,13 @@
           }"
         ></div>
       </div>
-      <div class="rounded-lg border px-4 py-3 text-[15px]">
+      <h4 v-if="!selectedEvent" class="text-neutral-600">
+        Please select an event to show its' details
+      </h4>
+      <div
+        v-if="selectedEvent"
+        class="mt-3 rounded-lg border px-4 py-3 text-[15px]"
+      >
         <div class="flex items-center justify-between">
           <div>
             <div v-if="selectedEvent.type == 'unavailable'" class="font-medium">
@@ -83,15 +90,21 @@
           <button
             @click="report()"
             :title="!selectedEvent.reported ? 'Write a report' : 'Reported'"
-            :disabled="selectedEvent.reported"
+            v-if="!selectedEvent.reported && isPast(selectedEvent.end)"
             class="-mr-1 rounded-lg p-1.5 hover:bg-neutral-100"
           >
-            <ReportSearchIcon
-              :class="{ 'text-gray-500 ': selectedEvent.reported }"
-              stroke-width="1.75"
-              class="pointer-events-none"
-            />
+            <ReportSearchIcon stroke-width="1.75" class="pointer-events-none" />
           </button>
+          <Button
+            v-if="
+              isPast(sub(selectedEvent.originalEvent.start, { hours: 2 })) &&
+              isFuture(sub(selectedEvent.originalEvent.end, { hours: 2 }))
+            "
+            @click="renewReservation(selectedEvent)"
+            class="bg-emerald-600 !px-4 !py-2 text-white"
+          >
+            Renew Reservation
+          </Button>
         </div>
       </div>
     </div>
@@ -169,21 +182,35 @@
     :user="selectedEvent?.name"
     :businessType="businessType"
   />
+  <CreateSaleModal
+    v-if="business"
+    :businessId="business.id"
+    :services="business.services"
+    :pricePerUnit="business.pricePerUnit.amount"
+    :businessType="businessType"
+    :is-open="isRenewModalOpen"
+    @modal-closed="isRenewModalOpen = false"
+  />
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import { sub, format, isPast } from 'date-fns'
+import { sub, format, isPast, isFuture } from 'date-fns'
 import { ReportSearchIcon } from 'vue-tabler-icons'
 import Button from '@/components/ui/Button.vue'
 import CreateComplaint from '@/components/reservations/CreateComplaint.vue'
 import { businessType } from '@/stores/userStore'
 
+import CreateSaleModal from '../view/CreateSaleModal.vue'
+import api from '@/api/api'
+
 const props = defineProps(['selectedEvent', 'selectedDayEvents', 'selectedDay'])
 const emit = defineEmits(['eventSelected', 'deleteEvent'])
 
 const isReportModalOpen = ref(false)
+const isRenewModalOpen = ref(false)
 const report = () => !selectEvent.reported && (isReportModalOpen.value = true)
+const business = ref()
 
 const selectEvent = event => {
   emit('eventSelected', props.selectedEvent?.id == event.id ? null : event)
@@ -193,4 +220,17 @@ const getEventStart = e =>
   sub(e.chunked ? e.originalEvent.start : e.start, { hours: 2 })
 const getEventEnd = e =>
   sub(e.chunked ? e.originalEvent.end : e.end, { hours: 2 })
+
+const renewReservation = async event => {
+  const [data, error] = await api.business.get(
+    event.businessId,
+    businessType.value,
+    {}
+  )
+  if (!error) {
+    isRenewModalOpen.value = true
+    business.value = data
+  }
+  console.log(event)
+}
 </script>
