@@ -90,15 +90,41 @@
           <button
             @click="report()"
             :title="!selectedEvent.reported ? 'Write a report' : 'Reported'"
-            v-if="!selectedEvent.reported && isPast(selectedEvent.end)"
+            v-if="
+              !(selectedEvent.chunked
+                ? selectedEvent.originalEvent.reported
+                : selectedEvent.reported) &&
+              isPast(
+                sub(
+                  selectedEvent.chunked
+                    ? selectedEvent.originalEvent.end
+                    : selectedEvent.end,
+                  { hours: 2 }
+                )
+              )
+            "
             class="-mr-1 rounded-lg p-1.5 hover:bg-neutral-100"
           >
             <ReportSearchIcon stroke-width="1.75" class="pointer-events-none" />
           </button>
           <Button
             v-if="
-              isPast(sub(selectedEvent.originalEvent.start, { hours: 2 })) &&
-              isFuture(sub(selectedEvent.originalEvent.end, { hours: 2 }))
+              isPast(
+                sub(
+                  selectedEvent.chunked
+                    ? selectedEvent.originalEvent.start
+                    : selectedEvent.start,
+                  { hours: 2 }
+                )
+              ) &&
+              isFuture(
+                sub(
+                  selectedEvent.chunked
+                    ? selectedEvent.originalEvent.end
+                    : selectedEvent.end,
+                  { hours: 2 }
+                )
+              )
             "
             @click="renewReservation(selectedEvent)"
             class="bg-emerald-600 !px-4 !py-2 text-white"
@@ -181,14 +207,17 @@
     :reservationId="selectedEvent?.id"
     :user="selectedEvent?.name"
     :businessType="businessType"
+    @success="$emit('eventReported')"
   />
   <CreateSaleModal
     v-if="business"
+    :is-renewal="true"
     :businessId="business.id"
     :services="business.services"
     :pricePerUnit="business.pricePerUnit.amount"
     :businessType="businessType"
     :is-open="isRenewModalOpen"
+    :customer-id="customerId"
     @modal-closed="isRenewModalOpen = false"
   />
 </template>
@@ -205,15 +234,19 @@ import CreateSaleModal from '../view/CreateSaleModal.vue'
 import api from '@/api/api'
 
 const props = defineProps(['selectedEvent', 'selectedDayEvents', 'selectedDay'])
-const emit = defineEmits(['eventSelected', 'deleteEvent'])
+const emit = defineEmits(['eventSelected', 'deleteEvent', 'eventReported'])
 
 const isReportModalOpen = ref(false)
 const isRenewModalOpen = ref(false)
-const report = () => !selectEvent.reported && (isReportModalOpen.value = true)
+const report = () =>
+  !props.selectedEvent.reported && (isReportModalOpen.value = true)
 const business = ref()
+const customerId = ref()
 
 const selectEvent = event => {
-  emit('eventSelected', props.selectedEvent?.id == event.id ? null : event)
+  const selectedEvent = props.selectedEvent?.id == event.id ? null : event
+  customerId.value = selectedEvent?.userId
+  emit('eventSelected', selectedEvent)
 }
 
 const getEventStart = e =>
@@ -231,6 +264,5 @@ const renewReservation = async event => {
     isRenewModalOpen.value = true
     business.value = data
   }
-  console.log(event)
 }
 </script>

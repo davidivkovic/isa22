@@ -750,6 +750,7 @@ public class BusinessController<
         var reservationsQuery = Context.Reservations
             .Include(r => r.Payment)
             .AsNoTrackingWithIdentityResolution()
+            .AsSplitQuery()
             .Where(r => r.User != null)
             .Where(r => r.Business is TBusiness)
             .Where(r => r.Status != Reservation.ReservationStatus.Cancelled);

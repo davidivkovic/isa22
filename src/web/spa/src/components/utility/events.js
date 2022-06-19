@@ -51,6 +51,7 @@ const chunkEvents = e => {
           isFirstChunk: i == 0,
           time: format(sub(e.start, { hours: 2 }), 'hh:mm a'),
           originalEvent: {
+            reported: e.reported,
             start: e.start,
             end: e.end
           }

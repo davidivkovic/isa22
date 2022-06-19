@@ -1,36 +1,34 @@
 <template>
   <Logo class="" />
   <div class="flex space-x-8">
-    <div class="cursor-pointer space-y-1">
+    <div class="relative cursor-pointer">
       <RouterLink :to="{ name: 'profile' }" v-slot="{ isActive }">
-        <div :class="{ 'font-medium text-emerald-600': isActive }">
-          My profile
-        </div>
+        <div :class="{ 'font-medium text-emerald-600': isActive }">Profile</div>
         <div
           v-if="isActive"
-          class="absolute h-1 w-14 rounded-full bg-emerald-600"
+          class="absolute left-1/2 h-1 w-14 -translate-x-1/2 rounded-full bg-emerald-600"
         ></div>
       </RouterLink>
     </div>
-    <div class="cursor-pointer space-y-1">
+    <div class="relative cursor-pointer">
       <RouterLink :to="`/my-${businessName}`" v-slot="{ isActive }">
         <div :class="{ 'font-medium text-emerald-600': isActive }">
           {{ businessName }}
         </div>
         <div
           v-if="isActive"
-          class="absolute h-1 w-14 rounded-full bg-emerald-600"
+          class="absolute left-1/2 h-1 w-14 -translate-x-1/2 rounded-full bg-emerald-600"
         ></div>
       </RouterLink>
     </div>
-    <div class="cursor-pointer space-y-1">
+    <div class="relative cursor-pointer">
       <RouterLink :to="`/${businessName}-reservations`" v-slot="{ isActive }">
         <div :class="{ 'font-medium text-emerald-600': isActive }">
           Resevations
         </div>
         <div
           v-if="isActive"
-          class="absolute h-1 w-14 rounded-full bg-emerald-600"
+          class="absolute left-1/2 h-1 w-14 -translate-x-1/2 rounded-full bg-emerald-600"
         />
       </RouterLink>
     </div>

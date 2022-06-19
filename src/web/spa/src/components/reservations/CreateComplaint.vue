@@ -27,13 +27,14 @@
         v-model="content"
         rows="5"
         placeholder="The adventure wasn't fun at all..."
-        class="mt-3 rounded-xl"
+        class="mt-3 rounded-lg"
       />
       <div v-if="type === 'report'">
         <h2 class="mt-5 mb-1 font-medium">
           2. Should we penalize the customer?
         </h2>
         <Checkbox
+          id="penalize-cb"
           v-model="penalize"
           label="Yes, the customer did not show up"
         />
@@ -44,7 +45,7 @@
   </Modal>
 </template>
 <script setup>
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 import Modal from '@/components/ui/Modal.vue'
 import TextArea from '@/components/ui/TextArea.vue'
 import Button from '@/components/ui/Button.vue'
@@ -65,16 +66,15 @@ const props = defineProps([
   'user'
 ])
 
-const emit = defineEmits(['modalClosed'])
+const emit = defineEmits(['modalClosed', 'success'])
 const reviewForm = ref()
 const content = ref('')
 const errorMessage = ref('')
 const penalize = ref(false)
 
 const submitReport = async () => {
-  console.log(penalize.value)
   errorMessage.value = ''
-  const [_, error] = await api.business.report(
+  const [, error] = await api.business.report(
     props.reservationId,
     props.businessType,
     content.value,
@@ -85,12 +85,13 @@ const submitReport = async () => {
     errorMessage.value = error
   } else {
     emit('modalClosed')
+    emit('success')
   }
 }
 
 const submitComplaint = async () => {
   errorMessage.value = ''
-  const [_, error] = await api.business.complain(
+  const [, error] = await api.business.complain(
     props.reservationId,
     props.businessType,
     content.value

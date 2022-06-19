@@ -10,9 +10,13 @@
       @submit.prevent="previewSale()"
       class="space-y-3.5 py-8 px-10"
     >
-      <h1 class="text-center text-2xl font-medium">Create a new sale</h1>
+      <h1 v-if="isRenewal" class="text-center text-2xl font-medium">
+        Renew reservation
+      </h1>
+      <h1 v-else class="text-center text-2xl font-medium">Create a new sale</h1>
       <p class="text-sm text-gray-500">
-        1. Select starting and ending date of your sale.
+        1. Select starting and ending date of
+        {{ isRenewal ? 'the reservation' : 'your sale' }}.
       </p>
       <div class="!mt-2 flex">
         <div class="w-72 space-y-1">
@@ -58,6 +62,7 @@
           <div
             v-for="service in selectedServices"
             :key="service.name"
+            @click="service.selected = !service.selected"
             class="mt-3 flex cursor-pointer items-end justify-between"
           >
             <Checkbox v-model="service.selected" class="!-mt-6 !mr-2" />
@@ -73,7 +78,8 @@
         </div>
       </div>
       <p class="text-sm text-gray-500">
-        4. Select how much your customers are going to save with this sale.
+        4. Select how much your customers are going to save with this
+        {{ isRenewal ? 'reservation' : 'sale' }}.
       </p>
       <NumberInput
         required
@@ -154,7 +160,9 @@ const props = defineProps([
   'isOpen',
   'services',
   'pricePerUnit',
-  'businessType'
+  'businessType',
+  'isRenewal',
+  'customerId'
 ])
 const emits = defineEmits(['success', 'modalClosed'])
 
@@ -205,7 +213,8 @@ const createSale = async () => {
       end: end.value,
       people: people.value,
       services: selectedServices.value.filter(s => s.selected),
-      discountPercentage: discount.value
+      discountPercentage: discount.value,
+      ...(props.isRenewal && { customerId: props.customerId })
     }
   )
   if (!error && data) {

@@ -64,6 +64,7 @@
         :selected-day-events="selectedDayEvents"
         @event-selected="e => (selectedEvent = e)"
         @delete-event="e => deleteEvent(e)"
+        @event-reported="eventReported()"
       />
     </div>
   </div>
@@ -108,6 +109,14 @@ const {
   transformEvent,
   deleteEvent
 } = useEvents(props.businessId, props.businessType)
+
+const eventReported = () => {
+  if (selectedEvent.value.chunked) {
+    selectedEvent.value.originalEvent.reported = true
+  } else {
+    selectedEvent.value.reported = true
+  }
+}
 
 const selectDay = async date => {
   const start = add(startOfDay(date), { hours: 2 })
