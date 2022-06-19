@@ -3,30 +3,35 @@
   <div class="flex space-x-8">
     <div class="cursor-pointer space-y-1">
       <RouterLink :to="{ name: 'profile' }" v-slot="{ isActive }">
-        <div>My profile</div>
+        <div :class="{ 'font-medium text-emerald-600': isActive }">
+          My profile
+        </div>
         <div
           v-if="isActive"
-          class="h-1 w-full rounded-full bg-emerald-600"
+          class="absolute h-1 w-14 rounded-full bg-emerald-600"
         ></div>
       </RouterLink>
     </div>
     <div class="cursor-pointer space-y-1">
       <RouterLink :to="`/my-${businessName}`" v-slot="{ isActive }">
-        <div>My {{ businessName }}</div>
+        <div :class="{ 'font-medium text-emerald-600': isActive }">
+          {{ businessName }}
+        </div>
         <div
           v-if="isActive"
-          class="h-1 w-full rounded-full bg-emerald-600"
+          class="absolute h-1 w-14 rounded-full bg-emerald-600"
         ></div>
       </RouterLink>
     </div>
     <div class="cursor-pointer space-y-1">
-      <div>Income</div>
-      <!-- <div v-if="isActive" class="h-1 w-full rounded-full bg-emerald-600"></div> -->
-    </div>
-    <div class="cursor-pointer space-y-1">
       <RouterLink :to="`/${businessName}-reservations`" v-slot="{ isActive }">
-        <div>Resevations</div>
-        <div v-if="isActive" class="h-1 w-full rounded-full bg-emerald-600" />
+        <div :class="{ 'font-medium text-emerald-600': isActive }">
+          Resevations
+        </div>
+        <div
+          v-if="isActive"
+          class="absolute h-1 w-14 rounded-full bg-emerald-600"
+        />
       </RouterLink>
     </div>
   </div>
@@ -48,19 +53,11 @@ import { user } from '@/stores/userStore'
 
 const currentRoute = computed(() => useRoute().path)
 
-const ownerType = computed(() => {
-  return {
-    'Cabin Owner': 'cabin-owner',
-    'Boat Owner': 'boat-owner',
-    Fisher: 'adventure-owner'
-  }[user.roles[0]]
-})
-
 const businessName = computed(() => {
   return {
-    'Cabin Owner': 'cabins',
-    'Boat Owner': 'boats',
-    Fisher: 'adventures'
+    'Cabin Owner': 'Cabins',
+    'Boat Owner': 'Boats',
+    Fisher: 'Adventures'
   }[user.roles[0]]
 })
 

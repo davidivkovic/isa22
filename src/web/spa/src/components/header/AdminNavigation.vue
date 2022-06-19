@@ -69,12 +69,6 @@ const peopleMenuItems = [
 
 const earningsMenuItems = [
   {
-    name: 'Earnings',
-    description: "Check the site's daily, monthly and yearly income.",
-    icon: CashIcon,
-    path: '/requests'
-  },
-  {
     name: 'Loyalty programs',
     description: 'Manipulate loyalty programs.',
     icon: GiftIcon,

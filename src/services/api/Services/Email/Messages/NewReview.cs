@@ -13,10 +13,9 @@ public class NewReview : IMessage
     private readonly string contactUrl;
     private readonly string businessImageUrl;
 
-    public NewReview(Review review, Reservation reservation, string businessImageUrl, string contactUrl)
+    public NewReview(Review review, string businessImageUrl, string contactUrl)
     {
         this.review = review;
-        this.reservation = reservation;
         this.businessImageUrl = businessImageUrl;
         this.contactUrl = contactUrl;
     }

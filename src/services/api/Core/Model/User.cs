@@ -35,6 +35,8 @@ public class Penalty
     public int            Points  { get; set; }
     public DateTimeOffset Expires { get; set; }
 
+    public bool HasExpired => Expires < DateTimeOffset.UtcNow;
+
     private void Unexpire()
     {
         Expires = DateTimeOffset.Now.AddMonths(1).AddDays(-DateTimeOffset.Now.Day + 1);

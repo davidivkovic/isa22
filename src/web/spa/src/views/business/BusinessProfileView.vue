@@ -581,8 +581,8 @@
           </div>
         </div>
         <div
-          v-if="!isAuthenticated || user.role == 'Customer'"
-          class="to h-32 w-full rounded-md bg-amber-50 bg-gradient-to-b from-emerald-50 px-8 py-4"
+          v-if="!isAuthenticated || user.roles.includes('Customer')"
+          class="h-32 w-full rounded-md bg-amber-50 bg-gradient-to-b from-emerald-50 px-8 py-4"
         >
           <div class="w-2/3 space-y-1">
             <p class="text-2xl font-medium">We have the best offers!</p>
@@ -601,7 +601,7 @@
       <h2 class="text-lg font-medium">
         See what guests said about this {{ entityType.slice(0, -1) }}:
       </h2>
-      <div v-if="entity.reviews" class="flex h-full space-x-5">
+      <div v-if="entity.reviews.length > 0" class="flex h-full space-x-5">
         <div
           v-for="review in entity.reviews"
           :key="review.user.id"
@@ -629,7 +629,10 @@
         </div>
       </div>
       <div v-else>There are no reviews for this business.</div>
-      <Button class="!mt-5 flex items-center space-x-2 border py-4">
+      <Button
+        v-if="entity.reviews.length > 0"
+        class="!mt-5 flex items-center space-x-2 border py-4"
+      >
         <p>See all reviews</p>
         <MessagesIcon class="h-4 w-4" />
       </Button>

@@ -29,7 +29,7 @@
   <Suspense v-else-if="!isAdmin">
     <OwnerDashboard />
   </Suspense>
-  <Suspense v-else> <RequestsView /> </Suspense>
+  <Suspense v-else> <AdminDashboard /> </Suspense>
 </template>
 
 <script setup>
@@ -39,7 +39,7 @@ import Button from '@/components/ui/Button.vue'
 import SearchBar from '@/components/homepage/SearchBar.vue'
 import { ArrowRightIcon } from 'vue-tabler-icons'
 import OwnerDashboard from '@/components/homepage/OwnerDashboard.vue'
-import RequestsView from './admin/RequestsView.vue'
+import AdminDashboard from '@/components/homepage/AdminDashboard.vue'
 import { isCustomer, isAdmin } from '@/stores/userStore'
 
 import cabinsURL from '@/assets/images/cabins.png'

@@ -346,12 +346,13 @@ public class UserController : ControllerBase
         }
 
         await _context.SaveChangesAsync();
-        //_mailer.Send(review.Business.Owner, new NewReview(
-        //    review,
-        //    reservations[0],
-        //    ImageUrl(business.Id, business.Images.FirstOrDefault()),
-        //    "#contactUrl"
-        //));
+        
+        // notify advertiser
+        _mailer.Send(review.Business.Owner, new NewReview(
+            review,
+            ImageUrl(review.Business.Id, review.Business.Images.FirstOrDefault()),
+            "#contactUrl"
+        ));
 
         return Ok();
     }
@@ -383,7 +384,8 @@ public class UserController : ControllerBase
         if (penalize)
         {
             // penalize points
-            reservation.User.LoyaltyPoints -= 1;
+            reservation.User.Penalty ??= new();
+            reservation.User.Penalty.Increment();
 
             // notify client and advertiser
             _mailer.Send(reservation.User, new ComplaintApproved(
