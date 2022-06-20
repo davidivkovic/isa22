@@ -57,17 +57,12 @@ namespace API.Migrations
                     b.Property<int>("People")
                         .HasColumnType("integer");
 
-                    b.Property<int>("Rating")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("uuid");
+                    b.Property<double>("Rating")
+                        .HasColumnType("double precision");
 
                     b.HasKey("Id");
 
                     b.HasIndex("OwnerId");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("Businesses");
 
@@ -245,9 +240,6 @@ namespace API.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer");
 
-                    b.Property<Guid?>("BusinessId")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("text");
@@ -315,8 +307,6 @@ namespace API.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BusinessId");
-
                     b.HasIndex("LevelName");
 
                     b.HasIndex("NormalizedEmail")
@@ -361,6 +351,21 @@ namespace API.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("RefreshTokens", (string)null);
+                });
+
+            modelBuilder.Entity("BusinessUser", b =>
+                {
+                    b.Property<Guid>("SubscribersId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SubscriptionsId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("SubscribersId", "SubscriptionsId");
+
+                    b.HasIndex("SubscriptionsId");
+
+                    b.ToTable("Subscriptions", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>
@@ -516,10 +521,6 @@ namespace API.Migrations
                     b.HasOne("API.Core.Model.User", "Owner")
                         .WithMany()
                         .HasForeignKey("OwnerId");
-
-                    b.HasOne("API.Core.Model.User", null)
-                        .WithMany("Subscriptions")
-                        .HasForeignKey("UserId");
 
                     b.OwnsOne("API.Core.Model.Address", "Address", b1 =>
                         {
@@ -840,10 +841,6 @@ namespace API.Migrations
 
             modelBuilder.Entity("API.Core.Model.User", b =>
                 {
-                    b.HasOne("API.Core.Model.Business", null)
-                        .WithMany("Subscribers")
-                        .HasForeignKey("BusinessId");
-
                     b.HasOne("API.Core.Model.Loyalty", "Level")
                         .WithMany()
                         .HasForeignKey("LevelName");
@@ -999,6 +996,21 @@ namespace API.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("BusinessUser", b =>
+                {
+                    b.HasOne("API.Core.Model.User", null)
+                        .WithMany()
+                        .HasForeignKey("SubscribersId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("API.Core.Model.Business", null)
+                        .WithMany()
+                        .HasForeignKey("SubscriptionsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", null)
@@ -1130,13 +1142,6 @@ namespace API.Migrations
                     b.Navigation("Reservations");
 
                     b.Navigation("Reviews");
-
-                    b.Navigation("Subscribers");
-                });
-
-            modelBuilder.Entity("API.Core.Model.User", b =>
-                {
-                    b.Navigation("Subscriptions");
                 });
 #pragma warning restore 612, 618
         }

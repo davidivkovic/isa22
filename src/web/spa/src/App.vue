@@ -77,4 +77,42 @@ body {
   border: 4px solid transparent;
   background-clip: padding-box;
 }
+
+.gmnoprint a,
+.gmnoprint span,
+.gm-style-cc {
+  display: none;
+}
+
+.gm-svpc {
+  display: none;
+}
+
+.gmnoprint div {
+  background: white !important;
+}
+
+.pac-container {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  font-family: 'Circular Std', sans-serif;
+  box-shadow: none;
+  @apply ml-px rounded-md border py-1 shadow-md;
+}
+
+.pac-container::after {
+  content: none;
+}
+
+.pac-item {
+  @apply cursor-pointer border-none px-3 py-2 text-[13px];
+}
+
+.pac-item-selected {
+  @apply bg-emerald-50 text-emerald-700;
+}
+
+.pac-matched {
+  @apply text-sm;
+}
 </style>

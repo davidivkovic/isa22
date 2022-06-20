@@ -84,6 +84,16 @@ const router = createRouter({
       component: () => import('../views/CalendarView.vue')
     },
     {
+      path: '/my-adventures',
+      name: 'owners adventures',
+      component: () => import('../views/OwnersBusinesses.vue')
+    },
+    {
+      path: '/adventures-reservations',
+      name: 'adventure owners reservations',
+      component: () => import('../views/OwnersReservations.vue')
+    },
+    {
       path: '/cabin-profile/:id',
       name: 'cabin-profile',
       component: () => import('../views/business/CabinProfileView.vue')
@@ -92,6 +102,16 @@ const router = createRouter({
       path: '/cabin-profile/:id/calendar',
       name: 'cabin-calendar',
       component: () => import('../views/CalendarView.vue')
+    },
+    {
+      path: '/cabins-reservations',
+      name: 'cabin owners reservations',
+      component: () => import('../views/OwnersReservations.vue')
+    },
+    {
+      path: '/boats-reservations',
+      name: 'boat owners reservations',
+      component: () => import('../views/OwnersReservations.vue')
     },
     {
       path: '/boat-profile/:id',
@@ -114,9 +134,9 @@ const router = createRouter({
       component: () => import('../views/CabinOwnerHomePage.vue')
     },
     {
-      path: '/cabin-owner/:id/cabins',
+      path: '/my-cabins',
       name: 'owners cabins',
-      component: () => import('../views/OwnersCabins.vue')
+      component: () => import('../views/OwnersBusinesses.vue')
     },
     {
       path: '/boat-owner/:id',
@@ -124,9 +144,9 @@ const router = createRouter({
       component: () => import('../views/BoatOwnerHomePage.vue')
     },
     {
-      path: '/boat-owner/:id/boats',
+      path: '/my-boats',
       name: 'owners boats',
-      component: () => import('../views/OwnersBoats.vue')
+      component: () => import('../views/OwnersBusinesses.vue')
     },
     {
       path: '/profile',
@@ -147,11 +167,51 @@ const router = createRouter({
       path: '/loyalty',
       name: 'loyalty',
       component: () => import('../components/admin/LoyaltyProgram.vue')
+    },
+    {
+      path: '/get-profile/:id',
+      name: 'user profile',
+      component: () => import('../views/UserProfile.vue')
+    },
+    {
+      path: '/reviews',
+      name: 'reviews',
+      component: () => import('../views/admin/ReviewsView.vue')
+    },
+    {
+      path: '/users',
+      name: 'users',
+      component: () => import('../views/admin/UsersView.vue')
+    },
+    {
+      path: '/businesses',
+      name: 'businesses',
+      component: () => import('../views/OwnersBusinesses.vue')
+    },
+    {
+      path: '/admin-signup',
+      name: 'admin-signup',
+      beforeEnter: (to, from) =>
+        modalRouteFunc(
+          to,
+          from,
+          '../components/registration/AdminSignUpModal.vue'
+        )
+    },
+    {
+      path: '/reports',
+      name: 'reports',
+      component: () => import('../views/admin/ReportsView.vue')
     }
   ]
 })
 
-const modalNames = ['signin', 'verification', 'admin-verification']
+const modalNames = [
+  'signin',
+  'admin-signup',
+  'verification',
+  'admin-verification'
+]
 const nonSearchRoutes = ['profile', 'reservations']
 
 export { modalNames, nonSearchRoutes }

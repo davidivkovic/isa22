@@ -7,19 +7,29 @@ namespace API.Services.Email;
 
 public class Mailer
 {
+    private static readonly Action<ILogger, string, Guid, Exception> _emailDeliveryFailed = 
+    LoggerMessage.Define<string, Guid>(
+        LogLevel.Error,
+        new EventId(0, "email-delivery-failed"), 
+        "Delivering email '{EmailName}' to User with Id='{Id}' failed"
+    );
+
+    private readonly ILogger _logger;
     private readonly Dictionary<string, Template> _templates;
 
-    public Mailer()
+    public Mailer(ILogger<Mailer> logger)
     {
         string templateDir = Path.Combine(
             AppDomain.CurrentDomain.BaseDirectory,
             "Services/Email/Templates"
         );
-        _templates = Directory.GetFiles(templateDir)
-                              .ToDictionary(
-                                  f => Path.GetFileName(f),
-                                  f => Template.Parse(File.ReadAllText(f))
-                              );
+        _templates = Directory
+            .GetFiles(templateDir)
+            .ToDictionary(
+                f => Path.GetFileName(f),
+                f => Template.Parse(File.ReadAllText(f))
+            );
+        _logger = logger;
     }
 
     public void Send(User user, IMessage message)
@@ -38,14 +48,21 @@ public class Mailer
 
         Task.Run(() =>
         {
-            using var client = new SmtpClient();
-            client.Connect("smtp.gmail.com", 465, true);
-            client.Authenticate(
-                "isamrsadventure@gmail.com",
-                "da438bd680f84f90a66a61eb2bee482b"
-            );
-            client.Send(email);
-            client.Disconnect(true);
+            try
+            {
+                using var client = new SmtpClient();
+                client.Connect("smtp.gmail.com", 465, true);
+                client.Authenticate(
+                    "isamrsadventure@gmail.com",
+                    "mihnbnibbhukszrp"
+                );
+                client.Send(email);
+                client.Disconnect(true);
+            }
+            catch (Exception e)
+            {
+                _emailDeliveryFailed(_logger, message.Subject, user.Id, e);
+            }
         });
     }
 }

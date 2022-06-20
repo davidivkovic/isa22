@@ -45,6 +45,7 @@ import { useRoute } from 'vue-router'
 import Modal from '@/components/ui/Modal.vue'
 import DateInput from '@/components/ui/DateInput.vue'
 import Button from '@/components/ui/Button.vue'
+import { businessType } from '@/stores/userStore'
 import api from '@/api/api.js'
 
 const emit = defineEmits('success', 'modalClosed')
@@ -58,7 +59,7 @@ const createUnavailability = async () => {
     businessId,
     start.value,
     end.value,
-    'adventures'
+    businessType.value
   )
   if (!error) {
     emit('success', data)

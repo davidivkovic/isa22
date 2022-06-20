@@ -66,7 +66,7 @@ if (!document.getElementById('google-maps-script')) {
     'src',
     `https://maps.googleapis.com/maps/api/js?key=${
       import.meta.env.VITE_GOOGLE_MAPS_KEY
-    }&libraries=places`
+    }&libraries=places&language=en`
   )
   mapsScript.onload = () => createMap()
   document.head.appendChild(mapsScript)
@@ -169,43 +169,3 @@ export default {
   inheritAttrs: false
 }
 </script>
-
-<style>
-.gmnoprint a,
-.gmnoprint span,
-.gm-style-cc {
-  display: none;
-}
-
-.gm-svpc {
-  display: none;
-}
-
-.gmnoprint div {
-  background: white !important;
-}
-
-.pac-container {
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  font-family: 'Circular Std', sans-serif;
-  box-shadow: none;
-  @apply ml-px py-1 shadow-md;
-}
-
-.pac-container::after {
-  content: none;
-}
-
-.pac-item {
-  @apply cursor-pointer border-none px-3 py-2 text-[13px];
-}
-
-.pac-item-selected {
-  @apply bg-emerald-50 text-emerald-700;
-}
-
-.pac-matched {
-  @apply text-sm;
-}
-</style>

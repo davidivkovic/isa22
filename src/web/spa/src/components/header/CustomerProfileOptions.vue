@@ -1,5 +1,5 @@
 <template>
-  <Menu as="div" class="relative z-20 block text-left">
+  <Menu as="div" class="relative z-10 block text-left">
     <MenuButton class="mt-0.5 flex space-x-2 rounded-full">
       <img
         :src="userDefaultImg"

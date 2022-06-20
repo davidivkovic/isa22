@@ -6,10 +6,6 @@
     class="w-[500px] space-y-3 bg-white px-14 py-16 text-left"
   >
     <div v-if="!success">
-      <XIcon
-        @click="closeModal()"
-        class="absolute top-3 right-3 h-6 w-6 cursor-pointer text-black"
-      ></XIcon>
       <h1 class="text-3xl font-medium">Almost there</h1>
       <h2 class="mt-5 text-base leading-6 text-gray-700">
         Please enter the 6 digit confirmation code we sent you to your email to

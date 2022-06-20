@@ -49,7 +49,7 @@
         v-model="content"
         rows="5"
         placeholder="The adventure was really fun because..."
-        class="mt-3 rounded-2xl"
+        class="mt-3 rounded-lg"
       />
       <p class="text-sm text-red-500">{{ errorMessage }}</p>
       <Button class="float-right mt-5 bg-emerald-600 text-white"
@@ -111,7 +111,7 @@ const submitReview = async () => {
   } else {
     errorMessage.value = ''
     console.log(selectedGrade.value, content.value)
-    const [_, error] = await api.business.review(
+    const [, error] = await api.business.review(
       props.id,
       props.businessType,
       content.value,

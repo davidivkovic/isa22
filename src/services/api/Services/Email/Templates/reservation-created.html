@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:v="urn:schemas-microsoft-com:vml">
+<head>
+  <meta charset="utf-8">
+  <meta name="x-apple-disable-message-reformatting">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
+  <!--[if mso]>
+  <noscript>
+    <xml>
+      <o:OfficeDocumentSettings xmlns:o="urn:schemas-microsoft-com:office:office">
+        <o:PixelsPerInch>96</o:PixelsPerInch>
+      </o:OfficeDocumentSettings>
+    </xml>
+  </noscript>
+  <style>
+    td,th,div,p,a,h1,h2,h3,h4,h5,h6 {font-family: "Segoe UI", sans-serif; mso-line-height-rule: exactly;}
+  </style>
+  <![endif]-->
+    <title>New reservation on adventure.com</title>
+    <style>
+.hover-no-underline:hover {
+  text-decoration: none !important;
+}
+@media (max-width: 600px) {
+  .sm-w-full {
+    width: 100% !important;
+  }
+  .sm-px-24 {
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+  }
+  .sm-leading-32 {
+    line-height: 32px !important;
+  }
+}
+</style>
+</head>
+<body style="margin: 0; width: 100%; padding: 0; word-break: break-word; -webkit-font-smoothing: antialiased;">
+    <div style="display: none;">Here is the receipt for your reservation. Have fun!&#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &zwnj;
+      &#160;&#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &#847; &zwnj;
+      &#160;&#847; &#847; &#847; &#847; &#847; </div>
+  <div role="article" aria-roledescription="email" aria-label="New reservation on adventure.com" lang="en">
+    <table style="width: 100%; font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;" cellpadding="0" cellspacing="0" role="presentation">
+      <tr>
+        <td align="center" style="background-color: #ffffff;">
+          <table class="sm-w-full" style="width: 730px;" cellpadding="0" cellspacing="0" role="presentation">
+            <tr>
+              <td style="padding: 8px; text-align: center;">
+              </td>
+            </tr>
+            <tr>
+              <td align="center" class="sm-px-24">
+                <table style="width: 100%;" cellpadding="0" cellspacing="0" role="presentation">
+                  <tr>
+                    <td class="sm-px-24" style="border-radius: 16px; background-color: #ffffff; padding-left: 40px; padding-right: 40px; padding-top: 12px; padding-bottom: 24px; text-align: left; font-size: 16px; line-height: 24px; color: #1f2937;">
+                      <p style="font-size: 18px; font-weight: 600; color: #059669;"> adventure․com<br></p>
+                      <p class="sm-leading-32" style="margin-bottom: 16px; font-size: 24px; font-weight: 600; color: #000000;">Thank you {{ reservation.user.full_name }} 🥰</p>
+                      <p>
+                          Your reservation is now confirmed, check out the details below.
+                          If you wish, you may cancel this reservation up to three days before it starts.
+                      </p>
+                      <table style="margin-top: 32px;" cellpadding="0" cellspacing="0" role="presentation">
+                        <tr>
+                          <td style="padding-bottom: 12px;">
+                            <div>
+                              <div style="font-size: 18px; font-weight: 500;">Reservation</div>
+                              <div style="white-space: nowrap; font-size: 14px;">
+                                <span style="color: #6b7280;">from</span>
+                                <span style="font-weight: 500;">
+                                  {{ reservation.start.date_time | date.add_hours 2 | date.to_string '%e %B, %Y %H:%M' 'en-US' }}
+                                </span>
+                                <span style="color: #6b7280;">to</span>
+                                <span style="font-weight: 500;">
+                                  {{ reservation.end.date_time | date.add_hours 2 | date.to_string '%e %B, %Y %H:%M' 'en-US' }}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+                          <td style="padding-bottom: 12px; text-align: right;">
+                            <div style="white-space: nowrap; font-size: 15px;">
+                              <span style="color: #6b7280;">
+                                Reservation date:
+                              </span>
+                              <span style="font-weight: 500;">
+                                {{ reservation.timestamp.date_time | date.add_hours 2 | date.to_string '%e %B, %Y %H:%M' 'en-US' }}
+                              </span>
+                            </div>
+                            <div style="white-space: nowrap; font-size: 15px; line-height: 16px;">
+                              <span style="color: #6b7280;">
+                                Reservation ID:
+                              </span>
+                              <span style="font-weight: 500;">
+                                  {{ reservation.id | string.upcase | string.replace "-" "" | string.slice1 0 length: 16 }}
+                              </span>
+                            </div>
+                          </td>
+                        </tr>
+                        <tr style="height: 1px; width: 100%; background-color: #e5e7eb;"><td></td><td></td></tr>
+                        <tr>
+                          <td style="width: 100%; padding-top: 16px; vertical-align: top;" valign="top">
+                            <table cellpadding="0" cellspacing="0" role="presentation">
+                              <tr>
+                                <td>
+                                  <img src="{{ business_image_url }}" alt="" style="max-width: 100%; vertical-align: middle; line-height: 100%; border: 0; height: 100px; width: 100px; border-radius: 8px; object-fit: cover;">
+                                </td>
+                                <td style="padding-left: 14px; vertical-align: top;" valign="top">
+                                  <div style="font-weight: 500;">{{ reservation.business.name }}</div>
+                                  <div style="font-size: 14px; color: #6b7280;">
+                                    <div>{{ reservation.business.address.street }} {{ reservation.business.address.apartment }}</div>
+                                    <div style="line-height: 10px;">{{ reservation.business.address.city }}, {{ reservation.business.address.country }}</div>
+                                  </div>
+                                  <div style="padding-top: 8px; font-size: 14px;">Reservation for {{ reservation.business.people }} People</div>
+                                </td>
+                              </tr>
+                            </table>
+                          </td>
+                          <td style="padding-top: 16px;">
+                            <table style="width: 100%;" cellpadding="0" cellspacing="0" role="presentation">
+                              <tr>
+                                <td style="font-weight: 500;">
+                                  Base
+                                </td>
+                                <td style="text-align: right; font-weight: 500;">
+                                  {{ cost.base_cost }}
+                                </td>
+                              </tr>
+                              <tr>
+                                <td style="white-space: nowrap; font-size: 14px; color: #374151;">
+                                  {{ reservation.business.people }} People x {{ reservation.units }} {{ reservation.business.unit_name }}
+                                </td>
+                                <td style="white-space: nowrap; font-size: 14px; text-align: right; ">
+                                  {{ cost.base_details }}
+                                </td>
+                              </tr>
+                              <tr>
+                                <td style="padding-top: 6px; font-weight: 500;">
+                                  Services
+                                </td>
+                                <td style="padding-top: 6px; text-align: right; font-weight: 500;">
+                                  {{ cost.services_total }}
+                                </td>
+                              </tr>
+                              {{ for service in cost.services }} 
+                                <tr style="font-size: 14px; color: #374151;">
+                                  <td>
+                                    {{ service.name }}
+                                  </td>
+                                  <td style="text-align: right;">
+                                    {{ service.price }}
+                                  </td>
+                              </tr>
+                              {{end}}
+                              <tr>
+                                <td style="padding-top: 6px; font-weight: 500;">
+                                  Subtotal
+                                </td>
+                                <td style="padding-top: 6px; text-align: right; font-weight: 500;">
+                                  {{ cost.subtotal }}
+                                </td>
+                              </tr>
+                              <tr>
+                                <td style="padding-top: 6px; font-size: 14px; font-weight: 500;">
+                                  Discount ({{ reservation.payment.discount_percentage }}%)
+                                </td>
+                                <td style="text-align: right;">
+                                  <div style="width: fit-content; margin-left: auto; margin-right: -6px; border-radius: 8px; background-color: #dc2626; padding-left: 8px; padding-right: 8px; padding-top: 0.125rem; padding-bottom: 0.25rem; text-align: right; font-size: 14px; color: #ffffff;">
+                                    - {{ cost.discount }}
+                                  </div>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td style="font-size: 14px;">
+                                  Tax ({{ reservation.payment.tax_percentage }}%)
+                                </td>
+                                <td style="text-align: right; font-size: 14px; color: #374151;">
+                                  {{ cost.tax }}
+                                </td>
+                              </tr>
+                              <tr>
+                                <td style="padding-top: 10px; font-size: 18px; font-weight: 600;">
+                                  Total
+                                </td>
+                                <td style="padding-top: 10px; text-align: right; font-size: 18px; font-weight: 600;">
+                                  {{ cost.total }}
+                                </td>
+                              </tr>
+                            </table>
+                          </td>
+                        </tr>
+                      </table>
+                      <p style="margin-bottom: 2px; margin-top: 40px; font-size: 14px; font-weight: 500;">Not sure why you received this email? Please <a href="#" class="hover-no-underline" style="color: #059669; text-decoration: underline;">let us know</a>.</p>
+                      <p style="margin-bottom: 6px; font-size: 14px; color: #9ca3af;">© 2022 adventure․com. All rights reserved.</p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </div>
+</body>
+</html>

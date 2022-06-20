@@ -316,6 +316,7 @@
           :selected-day-events="selectedDayEvents"
           @event-selected="e => (selectedEvent = e)"
           @delete-event="e => deleteEvent(e)"
+          @event-reported="eventReported()"
         />
       </div>
     </div>
@@ -376,6 +377,14 @@ const colStart = {
   7: 'col-start-7'
 }
 
+const eventReported = () => {
+  if (selectedEvent.value.chunked) {
+    selectedEvent.value.originalEvent.reported = true
+  } else {
+    selectedEvent.value.reported = true
+  }
+}
+
 const nextWeek = async () => {
   currentDate.value = add(currentDate.value, { days: 7 })
   await renderCalendar()
@@ -427,7 +436,6 @@ const renderCalendar = async () => {
       sub(e.end, { hours: 2 })
     )
 
-    console.log(sameDay)
     if (!sameDay) {
       chunkEvents(e, days)
     } else {
@@ -440,8 +448,6 @@ const renderCalendar = async () => {
       )
     }
   })
-
-  console.log(days.value)
 }
 
 defineExpose({

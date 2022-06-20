@@ -22,4 +22,20 @@ const isCustomer = computed(
   () => !isAuthenticated.value || user?.roles.includes('Customer')
 )
 
-export { user, setUser, removeUser, isAuthenticated, isCustomer }
+const isAdmin = computed(() => user?.roles.includes('Admin'))
+
+const businessType = computed(() => {
+  if (user?.roles.includes('Cabin Owner')) return 'cabins'
+  else if (user?.roles.includes('Boat Owner')) return 'boats'
+  else if (user?.roles.includes('Fisher')) return 'adventures'
+  else return 'none'
+})
+export {
+  user,
+  setUser,
+  removeUser,
+  isAuthenticated,
+  isCustomer,
+  isAdmin,
+  businessType
+}

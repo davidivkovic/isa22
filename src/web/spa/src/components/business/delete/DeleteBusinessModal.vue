@@ -11,7 +11,7 @@
         <div>Are you sure you want to delete your business?</div>
       </div>
       <button
-        @click="deleteBusiness()"
+        @click="deleteBusiness(this)"
         class="w-full p-3 font-medium text-red-500"
       >
         Delete business
@@ -25,12 +25,16 @@ import api from '@/api/api.js'
 import Modal from '@/components/ui/Modal.vue'
 import { useRouter } from 'vue-router'
 
-const props = defineProps(['isOpen', 'businessId', 'type'])
+const props = defineProps(['isOpen', 'businessId', 'type', 'back'])
 
 const router = useRouter()
-const deleteBusiness = async () => {
-  const [data, error] = await api.business.remove(props.businessId, props.type)
-  // TODO notifikacija o brisanju
-  !error && router.back()
+const deleteBusiness = async self => {
+  const [, error] = await api.business.remove(props.businessId, props.type)
+  if (!error) {
+    if (props.back) {
+      router.back()
+    }
+    self.$emit('elementDeleted', props.businessId)
+  }
 }
 </script>

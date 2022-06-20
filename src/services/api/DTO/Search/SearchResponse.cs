@@ -8,23 +8,25 @@ public class SearchResponse
     public string Name { get; set; }
     public string Description { get; set; }
     public string Image { get; set; }
+    public List<string> Images { get; set; }
     public Address Address { get; set; }
     public Money Price { get; set; }
+    public Money PricePerUnit { get; set; }
     public double Discount { get; set; }
     public int People { get; set; }
     public double Rating { get; set; }
     public double CancellationFee { get; set; }
+    public string UnitName { get; set; }
 }
 
 public class CabinSearchResponse : SearchResponse
 {
-    public int Rooms { get; set; }
-    public int Beds { get; set; }
+    public List<Room> Rooms { get; set; }
 }
 
 public class BoatSearchResponse : SearchResponse
 {
-    public BoatCharacteristics BoatCharacteristics { get; set; }
+    public BoatCharacteristics Characteristics { get; set; }
 }
 
 public class AdventureSearchResponse : SearchResponse 

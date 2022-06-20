@@ -12,7 +12,11 @@
         "
       ></CheckboxGroup>
     </div>
-    <div v-if="props.type === 'cabins'" id="rooms" class="space-y-1.5 py-3">
+    <div
+      v-if="props.businessType === 'cabins'"
+      id="rooms"
+      class="space-y-1.5 py-3"
+    >
       <p class="font-medium">Room number</p>
       <CheckboxGroup
         :key="rooms"
@@ -21,7 +25,11 @@
         :selectedValue="roomFilters.find(filter => filter.value == rooms)"
       ></CheckboxGroup>
     </div>
-    <div v-if="props.type === 'boats'" id="seats" class="space-y-1.5 py-3">
+    <div
+      v-if="props.businessType === 'boats'"
+      id="seats"
+      class="space-y-1.5 py-3"
+    >
       <p class="font-medium">Seat number</p>
       <CheckboxGroup
         :key="seats"
@@ -45,25 +53,21 @@
         "
       ></CheckboxGroup>
     </div>
-    <Button type="button" @click="resetFilters()" class="!px-0 font-normal"
+    <Button @click="resetFilters()" class="!px-0 font-normal"
       >Reset filters</Button
-    >
-    <Button
-      @click="applyFilters()"
-      class="w-full !border border-emerald-600 text-emerald-600"
-      >Apply filters</Button
     >
   </div>
 </template>
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import CheckboxGroup from '../ui/CheckboxGroup.vue'
 import Button from '../ui/Button.vue'
 import { useRoute, useRouter } from 'vue-router'
 
+const props = defineProps({ businessType: { required: false, type: String } })
+const emit = defineEmits(['filter'])
 const route = useRoute()
 const router = useRouter()
-const props = defineProps(['type'])
 
 const ratingHigher = ref(route.query.ratingHigher)
 const rooms = ref(route.query.rooms)
@@ -72,10 +76,10 @@ const priceHigh = ref(route.query.priceHigh)
 const seats = ref(route.query.seats)
 
 const ratingFilters = [
-  { label: 'Superb: 9+', id: 'rating9', value: 9 },
-  { label: 'Very good: 8+', id: 'rating8', value: 8 },
-  { label: 'Good: 7+', id: 'rating7', value: 7 },
-  { label: 'Not bad 6+', id: 'rating6', value: 6 }
+  { label: 'Excellent: 4+', id: 'rating5', value: 4 },
+  { label: 'Very good: 3+', id: 'rating4', value: 3 },
+  { label: 'Good: 2+', id: 'rating3', value: 2 },
+  { label: 'Not bad 1+', id: 'rating2', value: 1 }
 ]
 const roomFilters = [
   { label: '1 room', id: 'room1', value: 1 },
@@ -144,8 +148,7 @@ const setPrice = newPrice => {
   priceHigh.value = newPrice.priceHigh
 }
 const setSeats = newSeatNumber => (seats.value = newSeatNumber)
-
-const applyFilters = () => {
+watch([ratingHigher, rooms, priceLow, priceHigh, seats], () => {
   const query = {
     ...route.query,
     ratingHigher: ratingHigher.value,
@@ -162,9 +165,11 @@ const applyFilters = () => {
     name: 'search',
     query: {
       ...filtered
-    }
+    },
+    params: { type: props.businessType }
   })
-}
+  setTimeout(() => emit('filter', filtered), 0)
+})
 
 const resetFilters = () => {
   ratingHigher.value = ''
@@ -172,6 +177,5 @@ const resetFilters = () => {
   priceLow.value = ''
   priceHigh.value = ''
   seats.value = ''
-  applyFilters()
 }
 </script>

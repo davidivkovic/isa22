@@ -19,6 +19,8 @@ public class Report
     public string Reason     { get; set; }
     public bool   IsApproved { get; set; }
     public bool   Penalize   { get; set; }
+
+    public void Approve() => IsApproved = true;
 }
 
 public class Reservation : Entity
@@ -89,4 +91,23 @@ public class Reservation : Entity
         }
         return false;
     }
+
+    public void Complain(string content)
+    {
+        Complaint = new()
+        {
+            Reason = content,
+            Timestamp = DateTimeOffset.UtcNow
+        };
+    }
+
+    public void ReportUser(string reason, bool penalize)
+    {
+        Report = new()
+        {
+            Reason = reason,
+            Penalize = penalize
+        };
+    }
+
 }

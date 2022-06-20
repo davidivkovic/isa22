@@ -32,22 +32,30 @@ const update = async (data, type) => createOrUpdate(data, type, 'update')
 const getName = async (id, type) =>
   fetch(instance.get(`${endpoints[type]}/${id}/name`))
 
-const search = (query, type) =>
-  fetch(instance.get(`${type}/search`, { params: { ...query } }))
+const search = async (query, type, page) =>
+  fetch(instance.get(`${type}/search`, { params: { ...query, page } }))
 
-const searchCabins = (query, id) =>
-  fetch(instance.get(`cabin-owner/${id}/cabins`, { params: { ...query } }))
+const getBusinesses = async (type, query = {}) =>
+  fetch(
+    instance.get(`${endpoints[type]}/`, {
+      params: { ...query }
+    })
+  )
 
-const searchBoats = (query, id) =>
-  fetch(instance.get(`boat-owner/${id}/boats`, { params: { ...query } }))
-
-const ownersBusinesses = async type => fetch(instance.get(`${type}`))
-
-const getReservations = async (status, type) =>
+const getReservations = async (
+  type,
+  status,
+  page = 0,
+  size = 10,
+  isDashboard = false
+) =>
   fetch(
     instance.get(`${endpoints[type]}/reservations`, {
       params: {
-        status
+        status,
+        page,
+        size,
+        isDashboard
       }
     })
   )
@@ -126,6 +134,30 @@ const review = async (id, type, content, rating) =>
     })
   )
 
+const complain = async (reservationId, type, content) =>
+  fetch(
+    instance.post(`${endpoints[type]}/reservations/${reservationId}/complain`, {
+      content
+    })
+  )
+
+const report = async (reservationId, type, reason, penalize) =>
+  fetch(
+    instance.post(`${endpoints[type]}/reservations/${reservationId}/report`, {
+      reason,
+      penalize
+    })
+  )
+
+const subscribe = async (id, type) =>
+  fetch(instance.post(`${endpoints[type]}/${id}/subscribe`))
+
+const unsubscribe = async (id, type) =>
+  fetch(instance.post(`${endpoints[type]}/${id}/unsubscribe`))
+
+const getSubscriptions = async type =>
+  fetch(instance.get(`${endpoints[type]}/subscriptions`))
+
 export default {
   get,
   create,
@@ -133,8 +165,6 @@ export default {
   update,
   getName,
   search,
-  searchBoats,
-  searchCabins,
   getReservations,
   getCalendar,
   createUnavailability,
@@ -142,9 +172,14 @@ export default {
   previewCreateSale,
   createSale,
   deleteSale,
-  ownersBusinesses,
   makeQuickReservation,
   makeResrvation,
   cancelReservation,
-  review
+  review,
+  complain,
+  getBusinesses,
+  report,
+  subscribe,
+  unsubscribe,
+  getSubscriptions
 }

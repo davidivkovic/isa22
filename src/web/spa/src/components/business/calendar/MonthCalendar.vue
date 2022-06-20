@@ -111,6 +111,7 @@
         :selected-day-events="selectedDayEvents"
         @event-selected="e => (selectedEvent = e)"
         @delete-event="e => deleteEvent(e)"
+        @event-reported="eventReported()"
       />
     </div>
   </div>
@@ -131,6 +132,14 @@ import api from '@/api/api.js'
 
 defineEmits(['switchCalendar'])
 const props = defineProps(['businessId', 'businessType', 'businessName'])
+
+const eventReported = () => {
+  if (selectedEvent.value.chunked) {
+    selectedEvent.value.originalEvent.reported = true
+  } else {
+    selectedEvent.value.reported = true
+  }
+}
 
 const today = new Date()
 const currentDate = ref(new Date())

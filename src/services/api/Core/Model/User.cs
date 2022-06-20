@@ -35,6 +35,8 @@ public class Penalty
     public int            Points  { get; set; }
     public DateTimeOffset Expires { get; set; }
 
+    public bool HasExpired => Expires < DateTimeOffset.UtcNow;
+
     private void Unexpire()
     {
         Expires = DateTimeOffset.Now.AddMonths(1).AddDays(-DateTimeOffset.Now.Day + 1);
@@ -68,6 +70,8 @@ public static class Role
     public const string BoatOwner = "Boat Owner";
     public const string CabinOwner = "Cabin Owner";
     public const string Fisher = "Fisher";
+    public const string BusinessOwner = $"{BoatOwner}, {CabinOwner}, {Fisher}";
+    public const string BusinessOwnerOrAdmin = $"{BusinessOwner}, {Admin}";
 
     public static readonly List<string> Available = new()
     {
@@ -109,4 +113,9 @@ public class User : IdentityUser<Guid>, IDeletable
     .Contains(r));
 
     public void Delete() => IsDeleted = true;
+
+    public void Subscribe(Business business) => Subscriptions.Add(business);
+    public void Unsubscribe(Business business) => Subscriptions.Remove(business);
+
+
 }

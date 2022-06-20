@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto w-2/3 pb-10">
+  <div class="mx-auto max-w-4.5xl pb-10">
     <h1 class="mt-8 text-2xl font-medium">Reservations</h1>
     <div class="mt-3 flex space-x-3">
       <Dropdown
@@ -15,7 +15,7 @@
         class="mt-auto w-fit"
       />
     </div>
-    <div class="mt-4 space-y-3">
+    <div v-if="reservations?.length != 0" class="mt-4 space-y-6">
       <div
         v-for="reservation in reservations"
         :key="reservation.id"
@@ -47,26 +47,40 @@
                 }}
               </span>
             </div>
-            <button
-              @click="writeReview(reservation)"
-              v-if="reservationStatus(reservation) == 'Completed'"
-              class="mt-2 flex items-center space-x-1 text-sm font-medium text-emerald-700 hover:underline"
+            <div
+              v-if="allowReview(reservation)"
+              class="flex items-center space-x-2 text-sm"
             >
-              <div>Write a review</div>
-              <PencilIcon class="h-4 w-4 stroke-2 text-emerald-700" />
-            </button>
-            <button
-              @click="cancelReservation(reservation)"
-              v-if="reservation.isCancellable"
-              class="mt-2 flex items-center space-x-1 text-sm font-medium text-red-500 hover:underline"
-            >
-              <div>Cancel reservation</div>
-              <CircleXIcon class="h-4 w-4 stroke-2 text-red-500" />
-            </button>
-            <div v-else class="mt-2 w-2/3 text-sm text-gray-400">
-              Reservation is not cancellable anymore. If you don't show up, you
-              must pay the cancellation fee of
-              {{ reservation.business.cancellationFee }}%.
+              <button
+                @click="writeReview(reservation)"
+                class="mt-2 flex items-center space-x-1 text-sm font-medium text-emerald-700 hover:underline"
+              >
+                <div>Write a review</div>
+                <PencilIcon class="h-4 w-4 stroke-2 text-emerald-700" />
+              </button>
+              <span class="mt-1.5 text-gray-500">or</span>
+              <button
+                @click="writeComplaint(reservation)"
+                class="mt-2 flex items-center space-x-1 text-sm font-medium hover:underline"
+              >
+                <div>Write a complaint</div>
+                <MessageReportIcon class="h-4 w-4 stroke-2" />
+              </button>
+            </div>
+
+            <div v-if="reservation.isCancellable">
+              <p class="mt-2 text-sm text-gray-600">
+                If you cancel your reservation, you must pay the cancellation
+                fee of
+                {{ reservation.business.cancellationFee }}%.
+              </p>
+              <button
+                @click="cancelReservation(reservation)"
+                class="mt-1 flex items-center space-x-1 text-sm font-medium hover:underline"
+              >
+                <div>Cancel reservation</div>
+                <XIcon class="h-3 w-3 stroke-2" />
+              </button>
             </div>
           </div>
           <div class="ml-auto text-right text-sm">
@@ -94,7 +108,7 @@
             />
             <div>
               <RouterLink
-                :to="`/adventure-profile/${reservation.business.id}`"
+                :to="`/${businessProfiles[currentBusinessType]}/${reservation.business.id}`"
                 class="font-medium"
                 >{{ reservation.business.name }}</RouterLink
               >
@@ -197,6 +211,9 @@
         </div>
       </div>
     </div>
+    <div v-else class="mt-3">
+      There are currently no reservations for defined parameters.
+    </div>
   </div>
   <CreateReview
     @modalClosed="isReviewModalOpen = false"
@@ -216,17 +233,30 @@
     :reservationId="reservationId"
     :businessType="currentBusinessType"
   />
+  <CreateComplaint
+    @modalClosed="isComplaintModalOpen = false"
+    :isOpen="isComplaintModalOpen"
+    :name="name"
+    :start="start"
+    :end="end"
+    :address="address"
+    :duration="duration"
+    :unit="unit"
+    :businessType="currentBusinessType"
+    :reservationId="reservationId"
+    type="complaint"
+  />
 </template>
 <script setup>
 import { ref, watchEffect } from 'vue'
+import { RouterLink } from 'vue-router'
 import {
   ChevronDownIcon,
   ChevronUpIcon,
   PencilIcon,
-  CircleXIcon
+  XIcon,
+  MessageReportIcon
 } from 'vue-tabler-icons'
-import { RouterLink } from 'vue-router'
-import Dropdown from '@/components/ui/Dropdown.vue'
 import {
   format,
   parseJSON,
@@ -235,8 +265,10 @@ import {
   parseISO
 } from 'date-fns'
 import api from '@/api/api'
+import Dropdown from '@/components/ui/Dropdown.vue'
 import CreateReview from '@/components/reservations/CreateReview.vue'
 import CancelReservation from '@/components/reservations/CancelReservation.vue'
+import CreateComplaint from '@/components/reservations/CreateComplaint.vue'
 import { formatAddress } from '@/components/utility/address'
 
 const businessTypes = [
@@ -253,6 +285,12 @@ const businessTypes = [
     value: 'cabins'
   }
 ]
+
+const businessProfiles = {
+  adventures: 'adventure-profile',
+  cabins: 'cabin-profile',
+  boats: 'boat-profile'
+}
 
 const timeFormats = {
   cabins: 'MMM d, yyyy',
@@ -282,6 +320,7 @@ const reservationStatuses = [
 const reservations = ref()
 const isReviewModalOpen = ref(false)
 const isCancelModalOpen = ref(false)
+const isComplaintModalOpen = ref(false)
 const id = ref()
 const name = ref()
 const address = ref()
@@ -291,13 +330,19 @@ const duration = ref()
 const unit = ref()
 const reservationId = ref()
 const currentBusinessType = ref(businessTypes[0].value)
-console.log(currentBusinessType.value)
 const currentReservationStatus = ref(reservationStatuses[0].value)
 
 const reservationStatus = reservation => {
   if (isPast(parseJSON(reservation.end))) return 'Completed'
   if (isPast(parseJSON(reservation.start))) return 'Ongoing'
   return 'Pending'
+}
+
+const allowReview = reservation => {
+  return (
+    reservationStatus(reservation) == 'Completed' &&
+    reservation.status != 'Cancelled'
+  )
 }
 
 const costs = reservation => {
@@ -355,12 +400,12 @@ const calculateSubtotal = reservation => {
 watchEffect(async () => {
   const [reservationsData, reservationsError] =
     await api.business.getReservations(
-      currentReservationStatus.value,
-      currentBusinessType.value
+      currentBusinessType.value,
+      currentReservationStatus.value
     )
 
   if (!reservationsError) {
-    reservations.value = reservationsData
+    reservations.value = reservationsData.results
     reservations.value.forEach(r => {
       r.cost = costs(r)
       r.detailsVisible = false
@@ -368,12 +413,13 @@ watchEffect(async () => {
   }
 })
 
-const writeReview = reservation => {
+const saveData = reservation => {
   name.value = reservation.business.name
   start.value = format(parseISO(reservation.start), 'MMM d, yyyy')
   end.value = format(parseISO(reservation.end), 'MMM d, yyyy')
   address.value = formatAddress(reservation.business.address)
   id.value = reservation.business.id
+  reservationId.value = reservation.id
   duration.value = differenceInHours(
     parseISO(reservation.end),
     parseISO(reservation.start)
@@ -386,8 +432,16 @@ const writeReview = reservation => {
       : duration.value == 1
       ? 'hour'
       : 'hours'
-  console.log(name.value, start.value, end.value, address.value, duration.value)
+}
+
+const writeReview = reservation => {
+  saveData(reservation)
   isReviewModalOpen.value = true
+}
+
+const writeComplaint = reservation => {
+  saveData(reservation)
+  isComplaintModalOpen.value = true
 }
 
 const cancelReservation = reservation => {

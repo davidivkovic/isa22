@@ -3,13 +3,13 @@
     <div class="flex items-center space-x-1 text-neutral-500">
       <ArmchairIcon stroke-width="2" class="h-4 w-4 pb-px" />
       <h4 class="font- text-[13px]">
-        {{ props.result.boatCharacteristics.seats }}
+        {{ props.result.characteristics.seats }}
       </h4>
     </div>
     <div class="flex items-center space-x-1 text-neutral-500">
       <BoltIcon stroke-width="2" class="h-4 w-4 pb-px" />
       <h4 class="font- text-[13px]">
-        {{ props.result.boatCharacteristics.bhp }} bhp
+        {{ props.result.characteristics.bhp }} bhp
       </h4>
     </div>
     <div class="flex items-center space-x-1 text-neutral-500">

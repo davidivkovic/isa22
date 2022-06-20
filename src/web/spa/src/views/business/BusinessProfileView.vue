@@ -2,23 +2,7 @@
   <ErrorAlert @close="errorAlert = false" v-if="errorAlert">{{
     reservationError
   }}</ErrorAlert>
-  <SuccessAlert @close="successAlert = false" v-if="successAlert"
-    >Reservation sucessfully made.</SuccessAlert
-  >
   <div class="mx-auto h-screen max-w-6xl space-y-5 border-t !py-8">
-    <div v-if="isOwnersBusiness || user.role == 'Admin'" class="">
-      <Button
-        @click="editBusiness()"
-        class="border !py-1 !text-base font-medium"
-        >Edit</Button
-      >
-      <Button
-        v-if="props.entity.isDeletable"
-        @click="deleteBusiness()"
-        class="!py-0 !text-base font-bold text-red-500"
-        >Delete</Button
-      >
-    </div>
     <div class="flex w-full space-x-10">
       <div class="h-full w-[62.5%] space-y-3">
         <div class="flex h-[405px] space-x-4">
@@ -66,30 +50,61 @@
             </div>
           </div>
         </div>
-        <div class="relative !mt-3 h-max flex-1">
+        <div class="relative !mt-5 h-max flex-1">
           <div class="flex w-full items-center justify-between">
-            <div class="text-[38px] font-medium">
+            <div class="text-3xl font-medium">
               {{ props.entity.name }}
             </div>
             <p class="">
-              <span class="text-3xl font-bold text-emerald-600"
+              <span class="text-2xl font-bold text-emerald-600"
                 >{{ props.entity.pricePerUnit.symbol
                 }}{{ props.entity.pricePerUnit.amount.toFixed(2) }}</span
               >
               / {{ entityType == 'cabins' ? 'night' : 'hour' }}
             </p>
           </div>
-          <div
-            class="-mt-2 flex items-center space-x-1 border-b pb-5 text-gray-500"
-          >
-            <MapPinIcon class="h-5 w-5" />
-            <h2 class="">
-              {{ props.entity.address.street }}
-              {{ props.entity.address.apartment }},
-              {{ props.entity.address.postalCode }}
-              {{ props.entity.address.city }},
-              {{ props.entity.address.country }}
-            </h2>
+          <div class="border-b pb-5">
+            <div class="-mt-1 flex items-center space-x-1 text-gray-700">
+              <MapPinIcon class="h-5 w-5" />
+              <h2 class="pt-0.5">
+                {{ props.entity.address.street }}
+                {{ props.entity.address.apartment }},
+                {{ props.entity.address.postalCode }}
+                {{ props.entity.address.city }},
+                {{ props.entity.address.country }}
+              </h2>
+            </div>
+            <div
+              v-if="isOwnersBusiness || user.role == 'Admin'"
+              class="mt-3 flex space-x-3"
+            >
+              <RouterLink
+                v-if="isOwnersBusiness"
+                :to="`${$route.path}/calendar`"
+              >
+                <Button
+                  class="flex space-x-1 border !py-1 !text-sm hover:bg-neutral-50"
+                >
+                  <span class="font-medium">View Calendar</span>
+                  <CalendarIcon class="-mt-px h-5 w-5" />
+                </Button>
+              </RouterLink>
+              <Button
+                @click="editBusiness()"
+                class="flex space-x-1 border !py-1 !text-sm hover:bg-neutral-50"
+              >
+                <span class="font-medium">Edit</span>
+                <PencilIcon class="-mt-0.5 h-5 w-5" />
+              </Button>
+              <Button
+                v-if="props.entity.isDeletable"
+                @click="deleteBusiness()"
+                class="flex space-x-1 border !py-1 !text-sm text-red-500 hover:bg-neutral-50"
+              >
+                <span class="font-medium">Delete</span>
+                <TrashIcon class="-mt-px h-5 w-5" />
+              </Button>
+            </div>
           </div>
           <div v-if="props.entityType == 'cabins'" class="mt-5 flex space-x-14">
             <div class="flex items-center space-x-1 rounded-full">
@@ -261,15 +276,18 @@
       </div>
       <div class="flex-1 space-y-5">
         <div class="flex space-x-2">
-          <div class="bg-emerald-50 p-1 text-xl font-bold text-emerald-700">
-            {{ props.entity.rating.toFixed(2) }}
+          <div
+            class="flex items-center rounded-md bg-emerald-600 px-2 text-xl font-bold text-white"
+          >
+            {{ props.entity.rating.toFixed(1) }}
           </div>
           <div class="-space-y-1">
-            <div class="text-sm font-medium text-gray-500">
+            <div class="font-medium">
               {{ ratingDesc }}
             </div>
-            <div class="text-[13px]">
-              {{ props.entity.numberOfReviews }} reviews
+            <div class="text-sm">
+              {{ props.entity.numberOfReviews }}
+              {{ props.entity.numberOfReviews == 1 ? 'review' : 'reviews' }}
             </div>
           </div>
         </div>
@@ -278,7 +296,7 @@
             class="flex items-center space-x-2 text-sm font-medium text-gray-600"
           >
             <UsersIcon class="h-4 w-4 text-gray-600" />
-            <div>{{ people }} {{ people == 1 ? 'Person' : 'Persons' }}</div>
+            <div>{{ people }} {{ people == 1 ? 'Person' : 'People' }}</div>
           </div>
           <div class="text-sm">
             {{ units }} {{ entityType == 'cabins' ? 'Nights' : 'Hours' }} incl.
@@ -293,11 +311,11 @@
           <div class="!mt-3 flex justify-between">
             <div>
               <p>Price:</p>
-              <p class="text-xs text-gray-500">
+              <p class="text-sm text-gray-500">
                 {{ props.entity.pricePerUnit.symbol
                 }}{{ props.entity.pricePerUnit.amount }} x {{ units }}
-                {{ entityType == 'cabins' ? 'nights' : 'hours' }} x
-                {{ people }} people
+                {{ entityType == 'cabins' ? 'Nights' : 'Hours' }} x
+                {{ people }} {{ people == 1 ? 'Person' : 'People' }}
               </p>
             </div>
             <p>
@@ -349,23 +367,37 @@
           <div class="flex justify-between">
             <div>
               <p>Discount:</p>
-              <p v-if="!user?.loyaltyLevel" class="text-xs text-gray-500">
-                no loyalty status
+              <p v-if="!loyaltyLevel" class="text-sm text-gray-500">
+                No loyalty level
               </p>
               <div
                 v-else
-                class="flex items-center justify-center space-x-1 rounded-lg bg-amber-300 py-0.5 text-xs"
+                class="flex items-center justify-center space-x-1 rounded-lg bg-amber-300 px-2 py-0.5 text-xs"
               >
                 <GiftIcon class="h-3 w-3 text-amber-800" />
-                <p class="text-amber-800">user.loyaltyLevel.name</p>
+                <p class="text-amber-800">{{ loyaltyLevel.name }} Loyalty</p>
               </div>
             </div>
-            <p>{{ props.entity.pricePerUnit.symbol }}0.00</p>
+            <p>
+              {{ props.entity.pricePerUnit.symbol
+              }}{{
+                (
+                  (totalPrice * (loyaltyLevel?.discountPercentage ?? 0)) /
+                  100
+                ).toFixed(2)
+              }}
+            </p>
           </div>
           <div class="!mt-5 flex justify-between border-t pt-2">
             <p class="text-lg font-bold">Total amount:</p>
             <p class="text-lg font-medium text-emerald-600">
-              {{ props.entity.pricePerUnit.symbol }}{{ totalPrice.toFixed(2) }}
+              {{ props.entity.pricePerUnit.symbol
+              }}{{
+                (
+                  totalPrice *
+                  (1 - (loyaltyLevel?.discountPercentage ?? 0) / 100)
+                ).toFixed(2)
+              }}
             </p>
           </div>
           <div class="text-gray-600">
@@ -390,9 +422,13 @@
               You cannot make a reservation as a business owner. Please make a
               customer account.
             </div>
+            <div v-if="props.entity.isPenalized" class="text-xs text-gray-700">
+              You currently have 3 or more penalty points and cannot make a
+              reservation.
+            </div>
             <Button
               @click="makeReservation()"
-              :disabled="!isCustomer"
+              :disabled="!isCustomer || props.entity.isPenalized"
               class="ml-48 bg-emerald-600 text-white"
               >Make a reservation</Button
             >
@@ -431,10 +467,12 @@
             discount!
           </p>
           <div v-for="(sale, ind) in sortedSales" :key="sale.id">
-            <div class="rounded-md border px-3 py-4">
+            <div class="rounded-lg border px-4 pt-3.5 pb-2.5">
               <div class="flex w-full items-center justify-between">
-                <div class="grid space-y-1 text-[13px] text-gray-500">
-                  <p v-if="sale.services.length == 0">No services</p>
+                <div class="-mt-3.5 grid space-y-1 text-[13px] text-gray-500">
+                  <p class="-mt-4" v-if="sale.services.length == 0">
+                    No services
+                  </p>
                   <div v-else class="whitespace-nowrap font-medium">
                     <p>
                       {{
@@ -454,7 +492,7 @@
                     </p>
                   </div>
                 </div>
-                <div class="flex space-x-5">
+                <div class="flex items-center space-x-3">
                   <div class="flex flex-col items-end">
                     <p
                       v-if="ind != 0"
@@ -469,27 +507,27 @@
                       }}
                     </p>
                     <p
-                      class="bg-emerald-50 p-1 text-xs font-medium text-emerald-700"
+                      class="rounded-md bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700"
                       v-else
                     >
-                      Top deal
+                      Top Deal
                     </p>
-                    <p class="text-lg font-bold text-emerald-700">
+                    <p class="text-xl font-bold text-emerald-700">
                       {{ sale.price.symbol }}{{ sale.price.amount.toFixed(2) }}
                     </p>
                   </div>
                   <Button
                     @click="makeQuickReservation(sale)"
                     v-if="!isOwnersBusiness"
-                    class="= h-12 whitespace-nowrap rounded-full bg-emerald-600 text-white"
+                    class="mb-1 whitespace-nowrap !rounded-lg bg-emerald-600 !px-3 text-white"
                   >
                     Book now
                   </Button>
                 </div>
               </div>
-              <details class="space-y-2">
+              <details :id="'sale-details-' + ind" class="space-y-2">
                 <summary
-                  class="-mt-1.5 flex cursor-pointer items-center space-x-1"
+                  class="-mt-2.5 flex cursor-pointer items-center space-x-1"
                 >
                   <p class="text-[13px]">Read more</p>
                   <ChevronDownIcon
@@ -547,8 +585,8 @@
           </div>
         </div>
         <div
-          v-if="!isAuthenticated || user.role == 'Customer'"
-          class="to h-32 w-full rounded-md bg-amber-50 bg-gradient-to-b from-emerald-50 px-8 py-4"
+          v-if="!isAuthenticated || user.roles.includes('Customer')"
+          class="h-32 w-full rounded-md bg-amber-50 bg-gradient-to-b from-emerald-50 px-8 py-4"
         >
           <div class="w-2/3 space-y-1">
             <p class="text-2xl font-medium">We have the best offers!</p>
@@ -567,7 +605,7 @@
       <h2 class="text-lg font-medium">
         See what guests said about this {{ entityType.slice(0, -1) }}:
       </h2>
-      <div v-if="entity.review" class="flex h-full space-x-5">
+      <div v-if="entity.reviews.length > 0" class="flex h-full space-x-5">
         <div
           v-for="review in entity.reviews"
           :key="review.user.id"
@@ -583,14 +621,22 @@
               {{ review.user.firstName }} {{ review.user.lastName }}
             </p>
           </div>
+          <div>
+            <span>{{ review.rating }}</span>
+            <span class="text-sm text-neutral-500">/5</span>
+            <span>⭐</span>
+          </div>
           <p class="h-32 text-sm text-gray-600">
             {{ review.content }}
           </p>
-          <p class="!mt-5 text-sm text-emerald-700">Read more</p>
+          <p class="!-mt-2 text-sm text-emerald-700">Read more</p>
         </div>
       </div>
       <div v-else>There are no reviews for this business.</div>
-      <Button class="!mt-5 flex items-center space-x-2 border py-4">
+      <Button
+        v-if="entity.reviews.length > 0"
+        class="!mt-5 flex items-center space-x-2 border py-4"
+      >
         <p>See all reviews</p>
         <MessagesIcon class="h-4 w-4" />
       </Button>
@@ -606,6 +652,7 @@
     :isOpen="isDeleteModalOpen"
     :businessId="entity.id"
     :type="props.entityType"
+    :back="true"
     @modalClosed="isDeleteModalOpen = false"
   />
   <CreateSaleModal
@@ -643,7 +690,9 @@ import {
   ChecksIcon,
   CheckIcon,
   ChevronDownIcon,
-  CalendarIcon
+  CalendarIcon,
+  PencilIcon,
+  TrashIcon
 } from 'vue-tabler-icons'
 import Checkbox from '@/components/ui/Checkbox.vue'
 import Button from '@/components/ui/Button.vue'
@@ -658,7 +707,6 @@ import { googleMapsFlatStyle } from '@/components/utility/maps.js'
 import boatImage from '@/assets/images/boat.png'
 import api from '@/api/api'
 import ErrorAlert from '@/components/ui/alerts/ErrorAlert.vue'
-import SuccessAlert from '@/components/ui/alerts/SuccessAlert.vue'
 import Loader from '@/components/ui/Loader.vue'
 
 const symbols = {
@@ -672,7 +720,6 @@ const isDeleteModalOpen = ref(false)
 const isSalesModalOpen = ref(false)
 const reservationError = ref('')
 const errorAlert = ref(false)
-const successAlert = ref(false)
 const isSubscribed = ref(props.entity.isSubscribed)
 const props = defineProps({
   entity: {
@@ -690,11 +737,6 @@ const showErrorAlert = () => {
   setTimeout(() => (errorAlert.value = false), 5000)
 }
 
-const showSuccessAlert = () => {
-  setTimeout(() => (successAlert.value = true), 100)
-  setTimeout(() => (successAlert.value = false), 5000)
-}
-
 const route = useRoute()
 const router = useRouter()
 
@@ -708,7 +750,6 @@ const makeQuickReservation = async sale => {
     reservationError.value = error
     showErrorAlert()
   } else {
-    showSuccessAlert()
     router.push({ name: 'reservations' })
   }
 }
@@ -727,7 +768,6 @@ const makeReservation = async () => {
     reservationError.value = error
     showErrorAlert()
   } else {
-    showSuccessAlert()
     router.push({ name: 'reservations' })
   }
 }
@@ -735,6 +775,7 @@ const makeReservation = async () => {
 const isCustomer = isAuthenticated.value && user.roles.includes('Customer')
 const isOwnersBusiness = user.id == props.entity.owner?.id
 const services = ref(props.entity.services)
+const loyaltyLevel = ref(props.entity?.loyaltyLevel)
 services.value.forEach(s => (s.selected = false))
 
 const people = ref(route.query.people)
@@ -777,10 +818,10 @@ const totalPrice = computed(
 
 const ratingDesc = computed(() => {
   const rating = props.entity.rating
-  if (rating >= 9) return 'Excellent'
-  else if (rating >= 8) return 'Very good'
-  else if (rating >= 7) return 'Good'
-  else if (rating >= 6) return 'Not bad'
+  if (rating >= 4.5) return 'Excellent'
+  else if (rating >= 3.5) return 'Very good'
+  else if (rating >= 2.5) return 'Good'
+  else if (rating >= 1.5) return 'Not bad'
   else return 'Bad'
 })
 
@@ -814,20 +855,36 @@ const createNewSale = () => {
   isSalesModalOpen.value = true
 }
 
-const subscribe = () => {
+const subError = ref('')
+
+const subscribe = async () => {
   isLoading.value = true
-  setTimeout(() => {
+  const [, error] = await api.business.subscribe(
+    props.entity.id,
+    props.entityType
+  )
+
+  if (error) {
+    subError.value = error
+  } else {
     isLoading.value = false
     isSubscribed.value = true
-  }, 2000)
+  }
 }
 
-const unsubscribe = () => {
+const unsubscribe = async () => {
   isLoading.value = true
-  setTimeout(() => {
+  const [, error] = await api.business.unsubscribe(
+    props.entity.id,
+    props.entityType
+  )
+
+  if (error) {
+    subError.value = error
+  } else {
     isLoading.value = false
     isSubscribed.value = false
-  }, 2000)
+  }
 }
 
 const oldPrice = (newPrice, discPer) => {
@@ -868,13 +925,19 @@ if (!document.getElementById('google-maps-script')) {
     'src',
     `https://maps.googleapis.com/maps/api/js?key=${
       import.meta.env.VITE_GOOGLE_MAPS_KEY
-    }&libraries=places`
+    }&libraries=places&language=en`
   )
   mapsScript.onload = () => createMap()
   document.head.appendChild(mapsScript)
 } else {
   onMounted(() => createMap())
 }
+
+onMounted(() => {
+  const featuredSale = document.getElementById('sale-details-0')
+  console.log(featuredSale)
+  if (featuredSale) featuredSale.open = true
+})
 </script>
 
 <style scoped>

@@ -24,19 +24,43 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Services\Email\Templates\complaint-approved.html" />
     <None Remove="Services\Email\Templates\confirm-email.html" />
+    <None Remove="Services\Email\Templates\delete-request-approved.html" />
+    <None Remove="Services\Email\Templates\delete-request-declined.html" />
+    <None Remove="Services\Email\Templates\new-review.html" />
+    <None Remove="Services\Email\Templates\new-sale.html" />
     <None Remove="Services\Email\Templates\registration-approved.html" />
     <None Remove="Services\Email\Templates\registration-declined.html" />
+    <None Remove="Services\Email\Templates\reservation-created.html" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Services\Email\Templates\complaint-approved.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Services\Email\Templates\confirm-email.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Services\Email\Templates\delete-request-approved.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Services\Email\Templates\delete-request-declined.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Services\Email\Templates\new-review.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Services\Email\Templates\new-sale.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Services\Email\Templates\registration-approved.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Services\Email\Templates\registration-declined.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Services\Email\Templates\reservation-created.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

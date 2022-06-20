@@ -34,23 +34,25 @@
     <RouterLink
       :to="{ name: 'profile' }"
       v-slot="{ isActive }"
-      class="cursor-pointer space-y-1"
+      class="relative w-24 cursor-pointer text-center"
     >
-      <div>My profile</div>
+      <div :class="{ 'font-medium text-emerald-600': isActive }">Profile</div>
       <div
         v-if="isActive"
-        class="h-0.5 w-full rounded-full bg-emerald-600"
+        class="absolute left-1/2 h-1 w-14 -translate-x-1/2 rounded-full bg-emerald-600"
       ></div>
     </RouterLink>
     <RouterLink
       :to="{ name: 'reservations' }"
       v-slot="{ isActive }"
-      class="cursor-pointer space-y-1"
+      class="relative w-24 cursor-pointer text-center"
     >
-      <div>My reservations</div>
+      <div :class="{ 'font-medium text-emerald-600': isActive }">
+        Reservations
+      </div>
       <div
         v-if="isActive"
-        class="h-0.5 w-full rounded-full bg-emerald-600"
+        class="absolute left-1/2 h-1 w-14 -translate-x-1/2 rounded-full bg-emerald-600"
       ></div>
     </RouterLink>
   </div>
@@ -86,10 +88,10 @@ const isNonSearchRoute = computed(() =>
 )
 
 const selectedTab = computed(() => {
-  if (currentRoute.value.includes('cabins') || currentRouteName.value == 'home')
+  if (currentRoute.value.includes('cabin') || currentRouteName.value == 'home')
     return 0
-  else if (currentRoute.value.includes('boats')) return 1
-  else if (currentRoute.value.includes('adventures')) return 2
+  else if (currentRoute.value.includes('boat')) return 1
+  else if (currentRoute.value.includes('adventure')) return 2
   else if (currentRoute.value.includes('profile')) return 3
   else if (selectedTab.value) return selectedTab.value
   return 0

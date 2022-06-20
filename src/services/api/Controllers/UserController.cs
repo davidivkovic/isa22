@@ -13,6 +13,7 @@ using API.Infrastructure.Data;
 using API.Services.Email.Messages;
 using API.Infrastructure.Extensions;
 using API.Core.Model;
+using API.Services;
 
 [Route("users")]
 [ApiController]
@@ -27,18 +28,63 @@ public class UserController : ControllerBase
         _mailer = mailer;
     }
 
-    [Authorize]
-    [HttpGet("{id}")]
-    public async Task<ActionResult> Get(Guid id)
+    [Authorize(Roles = Role.Admin)]
+    [HttpGet]
+    public async Task<ActionResult> Search(string query, int page = 0)
     {
-        var user = await _context.Users.FindAsync(id);
+        var dbQuery = _context.Users
+        .AsNoTracking()
+        .Where(u =>
+            EF.Functions.ILike(u.FirstName, $"%{query}%") ||
+            EF.Functions.ILike(u.LastName, $"%{query}%") ||
+            EF.Functions.ILike(u.Email, $"%{query}%")
+        );
 
-        if (User.Id() != id && user.IsCustomer)
+        var totalUsers = await dbQuery.CountAsync();
+        var users = dbQuery
+            .OrderBy(u => u.Id)
+            .Skip(page * 9)
+            .Take(9)
+            .ProjectToType<UserDTO>();
+
+        return Ok(new
         {
-            return StatusCode(403);
+            results = users,
+            totalResults = totalUsers
+        });
+    }
+
+    protected ActionResult GetImage([FromRoute] Guid id, [FromRoute] string image)
+    {
+        string imagePath = ImageService.GetPath(id, image);
+        if (imagePath is null)
+        {
+            return BadRequest();
         }
 
-        return Ok(user.Adapt<UserDTO>());
+        return PhysicalFile(imagePath, "image/*");
+    }
+
+    protected string ImageUrl(Guid id, string image)
+    {
+        return Url.Action(
+            nameof(GetImage),
+            ControllerContext.ActionDescriptor.ControllerName,
+            new { id, image },
+            Request.Scheme
+        );
+    }
+
+
+    [Authorize]
+    [HttpGet("{id}")]
+    public ActionResult Get(Guid id)
+    {
+        return Ok(_context.Users
+            .Where(u => u.Id == id)
+            .ProjectToType<UserDTO>()
+            .FirstOrDefault()
+        );
     }
 
     [Authorize]
@@ -61,6 +107,19 @@ public class UserController : ControllerBase
         {
             return BadRequest("Could not update your information at this time. Please try again later");
         }
+
+        return Ok();
+    }
+
+    [Authorize(Roles = Role.Admin)]
+    [HttpPost("{id}/delete")]
+    public async Task<ActionResult> Delete(Guid id)
+    {
+        var user = _context.Users.Find(id);
+        if (user is null) return BadRequest("User does not exist");
+
+        user.Delete();
+        await _context.SaveChangesAsync();
 
         return Ok();
     }
@@ -100,6 +159,7 @@ public class UserController : ControllerBase
         var user = await _context.Users
             .AsNoTracking()
             .Where(u => u.Id == User.Id())
+            .Include(u => u.Penalty)
             .FirstOrDefaultAsync();
         
         if (user is null)
@@ -126,11 +186,12 @@ public class UserController : ControllerBase
                 Points = user.LoyaltyPoints,
                 Current = loyaltyLevel,
                 Next = nextLoyaltyLevel
-            }
+            },
+            Penalty = user.Penalty
         });
     }
 
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = Role.Admin)]
     [HttpGet("registrations/pending")]
     public async Task<List<PendingRequestDTO>> GetPendingRegistrations([FromQuery] DateTimeOffset before)
     {
@@ -149,7 +210,7 @@ public class UserController : ControllerBase
             .ToListAsync();
     }
 
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = Role.Admin)]
     [HttpPost("registrations/{email}/update")]
     public async Task<ActionResult> AcceptRegistration([FromRoute] string email, [FromBody] string reason)
     {
@@ -199,7 +260,7 @@ public class UserController : ControllerBase
     }
 
 
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = Role.Admin)]
     [HttpGet("delete-requests/pending")]
     public async Task<List<PendingRequestDTO>> GetDeleteRequests([FromQuery] DateTimeOffset before)
     {
@@ -218,7 +279,7 @@ public class UserController : ControllerBase
             .ToListAsync();
     }
 
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = Role.Admin)]
     [HttpPost("delete-requests/{email}/update")]
     public async Task<ActionResult> AcceptDeleteRequest([FromRoute] string email, [FromBody] string reason)
     {
@@ -262,5 +323,122 @@ public class UserController : ControllerBase
         return Ok();
     }
 
+    [Authorize(Roles = Role.Admin)]
+    [HttpPost("reviews/{id}/update")]
+    public async Task<ActionResult> ApproveReview([FromRoute] Guid id, [FromQuery] bool approve)
+    {
+        var review = await _context.Reviews
+            .Include(r => r.Business)
+            .Include(r => r.Business.Owner)
+            .Include(r => r.User)
+            .FirstOrDefaultAsync(r => r.Id == id);
 
+        if (review is null)
+        {
+            return BadRequest();
+        }
+
+        if (approve)
+        {
+            review.Approve();
+        }
+        else
+        {
+            review.Deny();
+        }
+
+        await _context.SaveChangesAsync();
+        
+        // notify advertiser
+        _mailer.Send(review.Business.Owner, new NewReview(
+            review,
+            ImageUrl(review.Business.Id, review.Business.Images.FirstOrDefault()),
+            "#contactUrl"
+        ));
+
+        return Ok();
+    }
+
+    [Authorize(Roles = Role.Admin)]
+    [HttpPost("reservations/{reservationId}/report/update")]
+    public async Task<ActionResult> ApproveReport([FromRoute] Guid reservationId, [FromQuery] bool penalize)
+    {
+        var reservation = await _context.Reservations
+            .Where(r => r.Id == reservationId)
+            .Include(r => r.Report)
+            .Include(r => r.User)
+            .Include(r => r.Business)
+                .ThenInclude(b => b.Owner)
+            .FirstOrDefaultAsync();
+
+        if (reservation is null)
+        {
+            return BadRequest("The reservation doesn't exist.");
+        }
+
+        if (reservation.Report is null)
+        {
+            return BadRequest("There are no reports for this reservation.");
+        }
+
+        reservation.Report.Approve();
+
+        if (penalize)
+        {
+            // penalize points
+            reservation.User.Penalty ??= new();
+            reservation.User.Penalty.Increment();
+
+            // notify client and advertiser
+            _mailer.Send(reservation.User, new ComplaintApproved(
+                reservation,
+                ImageUrl(reservation.Business.Id, reservation.Business.Images.FirstOrDefault()),
+                "#contactUrl"
+            ));
+
+            _mailer.Send(reservation.Business.Owner, new ComplaintApproved(
+              reservation,
+              ImageUrl(reservation.Business.Id, reservation.Business.Images.FirstOrDefault()),
+              "#contactUrl"
+          ));
+        }
+
+        await _context.SaveChangesAsync();
+        return Ok();
+    }
+
+    [Authorize(Roles = Role.Admin)]
+    [HttpGet("reports/pending")]
+    public async Task<List<PendingReportDTO>> GetPendingReports([FromQuery] DateTimeOffset before)
+    {
+        return await _context.Reservations
+            .AsNoTracking()
+            .Where(r => !r.Report.IsApproved)
+            .Take(10)
+            .Select(r => new PendingReportDTO()
+            {
+                Business = r.Business.Adapt<BusinessDTO>(),
+                Id = r.Id,
+                Penalize = r.Report.Penalize,
+                Reason = r.Report.Reason,
+                Timestamp = r.Timestamp,
+                User = r.User.Adapt<UserDTO>()
+            })
+            .ToListAsync();
+    }
+
+    [Authorize(Roles = Role.Admin)]
+    [HttpGet("reviews/pending")]
+    public async Task<List<PendingReviewDTO>> GetPendingReviews([FromQuery] DateTimeOffset before)
+    {
+        return await _context.Reviews
+            .AsNoTracking()
+            .Where(r => !r.Approved)
+            .Where(r => !r.Rejected)
+            //.Where(r => r.Timestamp <= before)
+            .OrderByDescending(r => r.Timestamp)
+            .Take(10)
+            .ProjectToType<PendingReviewDTO>()
+            .ToListAsync();
+    }
 }

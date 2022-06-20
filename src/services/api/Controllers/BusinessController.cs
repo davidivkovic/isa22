@@ -15,7 +15,9 @@ using API.Infrastructure.Data;
 using API.Infrastructure.Extensions;
 using API.Services;
 using API.Infrastructure.Data.Queries;
-using API.DTO.Report;
+using API.Services.Email;
+using API.Services.Email.Messages;
+using API.DTO.Search;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -23,20 +25,24 @@ public class BusinessController<
     TBusiness,
     TReadDTO,
     TCreateDTO,
-    TUpdateDTO
+    TUpdateDTO,
+    TSearchDTO
 > : ControllerBase 
     where TBusiness : Business
     where TReadDTO : BusinessDTO
     where TUpdateDTO : UpdateBusinessDTO
     where TCreateDTO : CreateBusinessDTO
+    where TSearchDTO : SearchResponse
 {
-    protected virtual string BusinessType { get; set; }
+    private readonly Mailer _mailer;
 
+    protected virtual string BusinessType { get; set; }
     protected AppDbContext Context { get; }
 
-    public BusinessController(AppDbContext dbContext)
+    public BusinessController(AppDbContext dbContext, Mailer mailer)
     {
         Context = dbContext;
+        _mailer = mailer;
     }
 
     protected string ImageUrl(Guid id, string image)
@@ -47,6 +53,54 @@ public class BusinessController<
             new { id, image },
             Request.Scheme
         );
+    }
+
+    protected async Task<ActionResult> GetBusinesses([FromQuery] SearchRequest request)
+    {
+        var query = Context.Set<TBusiness>()
+            .AsNoTrackingWithIdentityResolution();
+
+        if (User.IsInRole(Role.BusinessOwner))
+        {
+            query = query.Where(b => b.Owner.Id == User.Id());
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Name))
+        {
+            query = query.Where(b => EF.Functions.ILike(b.Name, $"%{request.Name}%"));
+        };
+        if (!string.IsNullOrWhiteSpace(request.City))
+        {
+            query = query.Where(b => EF.Functions.ILike(b.Address.City, $"%{request.City}%"));
+        };
+        if (!string.IsNullOrWhiteSpace(request.Country))
+        {
+            query = query.Where(b => EF.Functions.ILike(b.Address.Country, $"%{request.Country}%"));
+        }
+        if (request.People != 0)
+        {
+            query = query.Where(c => c.People == request.People);
+        }
+
+        int totalResults = await query.CountAsync();
+
+        var results = await query
+            .OrderBy(request.Direction)
+            .Skip(request.Page * 6)
+            .Take(6)
+            .ProjectToType<TSearchDTO>()
+            .ToListAsync();
+
+            results.ForEach(r =>
+            {
+                r.Image = ImageUrl(r.Id, r.Images.FirstOrDefault());
+                r.Price = new Money
+                {
+                    Amount = r.PricePerUnit.Amount,
+                    Currency = r.PricePerUnit.Currency
+                };
+            });
+        return Ok(new { results, totalResults, averageRating = results.Select(c => c.Rating).DefaultIfEmpty().Average() });
     }
 
     [HttpGet("{id}/images/{image}")]
@@ -114,24 +168,38 @@ public class BusinessController<
         var businessDTO = business.Adapt<TReadDTO>();
 
         var user = await Context.Users
+            .AsNoTracking()
             .Include(u => u.Subscriptions)
+            .Include(u => u.Penalty)
             .Where(u => u.Id == User.Id())
             .Select(u => new
             {
                 IsSubscribed = u.Subscriptions.Contains(business),
-                u.LoyaltyPoints
+                u.LoyaltyPoints,
+                u.Penalty
             })
             .FirstOrDefaultAsync();
 
+
+        businessDTO.IsSubscribed = user?.IsSubscribed ?? false;
+        if(user.Penalty is not null)
+        {
+            businessDTO.IsPenalized = user.Penalty.Points >= 3 && !user.Penalty.HasExpired;
+
+        }
+
         var sales = await Context.Sales
             .Include(s => s.Business)
+            .Where(s => s.Payment == null)
             .Where(s => s.Business.Id == business.Id)
+            .OrderBy(s => s.Start)
             .Take(3)
             .ToListAsync();
 
         var reviews = await Context.Reviews
-            .Include(s => s.User)
-            .Where(s => s.Business.Id == business.Id)
+            .Include(r => r.User)
+            .Where(r => r.Business.Id == business.Id)
+            .Where(r => r.Approved)
             .Take(3)
             .ToListAsync();
 
@@ -153,6 +221,7 @@ public class BusinessController<
                 new()
             );
         }
+
 
         businessDTO.Reviews = reviews.Select(r => r.Adapt<ReviewDTO>()).ToList();
 
@@ -270,7 +339,7 @@ public class BusinessController<
             return BadRequest($"The specified {BusinessType} does not exist.");
         }
 
-        if (business.Owner.Id != User.Id())
+        if (business?.Owner?.Id != User.Id() && !User.IsInRole(Role.Admin))
         {
             return StatusCode(403);
         }
@@ -331,6 +400,7 @@ public class BusinessController<
         var business = await Context.Set<TBusiness>()
                     .Include(b => b.Owner)
                     .Include(b => b.Services)
+                    .Include(b => b.Subscribers)
                     .FirstOrDefaultAsync(b => b.Id == id);
 
         if (business is null)
@@ -363,10 +433,67 @@ public class BusinessController<
             request.People,
             business.Services.Where(s => request.Services.Contains(s)).ToList()
         );
+
+        User customer = null;
+
+        if (request.CustomerId != default) 
+        {
+            customer = await Context.Users.FindAsync(request.CustomerId);
+            var finance = await Context.Finances.FirstOrDefaultAsync();
+            var loyalty = await Context.GetLoyaltyLevel(User.Id());
+
+            sale.Sell(customer, loyalty?.DiscountPercentage ?? 0, finance.TaxPercentage);
+            customer.LoyaltyPoints += finance.CustomerPoints;
+        }
+
         Context.Add(sale);
         await Context.SaveChangesAsync();
 
+        sale.Business.Subscribers.ForEach(u => _mailer.Send(u, new NewSale(
+            u.FullName,
+            sale,
+            ImageUrl(sale.Business.Id, sale.Business.Images.FirstOrDefault()),
+            "#contactUrl"
+        )));
+
         return Ok(sale.Adapt<SaleDTO>());
+    }
+
+    [Authorize(Roles = Role.Customer)]
+    [HttpPost("{id}/subscribe")]
+    public async Task<ActionResult> Subscribe([FromRoute] Guid id)
+    {
+        var business = await Context.Set<TBusiness>()
+                    .FirstOrDefaultAsync(b => b.Id == id);
+
+        var user = await Context.Users
+                   .Include(u => u.Subscriptions)
+                   .FirstOrDefaultAsync(u => u.Id == User.Id());
+
+        bool isSubscribed = user.Subscriptions.Contains(business);
+        if (isSubscribed)
+        {
+            return BadRequest($"You are already subscribed to this {BusinessType}.");
+        }
+
+        user.Subscribe(business);
+        await Context.SaveChangesAsync();
+
+        return Ok();
+    }
+
+    [Authorize(Roles = Role.Customer)]
+    [HttpPost("{id}/unsubscribe")]
+    public async Task<ActionResult> Unubscribe([FromRoute] Guid id)
+    {
+        var user = await Context.Users
+                   .Include(u => u.Subscriptions)
+                   .FirstOrDefaultAsync(u => u.Id == User.Id());
+
+        user.Subscriptions.RemoveAll(b => b.Id == id);
+        await Context.SaveChangesAsync();
+
+        return Ok();
     }
 
     [HttpPost("{id}/sales/delete")]
@@ -375,6 +502,7 @@ public class BusinessController<
         var business = await Context.Set<TBusiness>()
             .Include(b => b.Owner)
             .Include(b => b.Reservations.Where(r => r.Id == saleId))
+                .ThenInclude(r => r.User)
             .FirstOrDefaultAsync(b => b.Id == id);
 
         if (business is null)
@@ -385,6 +513,11 @@ public class BusinessController<
         if (business.Owner.Id != User.Id())
         {
             return StatusCode(403);
+        }
+
+        if (business.Reservations.Exists(r => r.User is not null))
+        {
+            return BadRequest("Cannot delete a sale after reservation.");
         }
 
         business.Reservations.ForEach(r => r.Delete());
@@ -422,7 +555,7 @@ public class BusinessController<
 
     [Authorize(Roles = Role.Customer)]
     [HttpPost("{id}/sales/{saleId}/book")]
-    public async Task<ActionResult> MakeQuickReservation([FromQuery] Guid id, [FromQuery] Guid saleId)
+    public async Task<ActionResult> MakeQuickReservation([FromRoute] Guid id, [FromRoute] Guid saleId)
     {
         var sale = await Context.Set<Sale>()
                     .Include(s => s.Business)
@@ -446,7 +579,14 @@ public class BusinessController<
         var loyalty = await Context.GetLoyaltyLevel(User.Id());
 
         sale.Sell(user, loyalty?.DiscountPercentage ?? 0, finance.TaxPercentage);
+        user.LoyaltyPoints += finance.CustomerPoints;
         await Context.SaveChangesAsync();
+
+        _mailer.Send(user, new ReservationCreated(
+            sale,
+            ImageUrl(sale.Business.Id, sale.Business.Images.FirstOrDefault()),
+            "#contactUrl"
+         ));
 
         return Ok();
     }
@@ -457,6 +597,7 @@ public class BusinessController<
     public async Task<ActionResult> Review([FromRoute] Guid id, [FromBody] CreateReviewDTO request)
     {
         var business = await Context.Set<TBusiness>()
+                    .Include(b => b.Owner)
                     .FirstOrDefaultAsync(b => b.Id == id);
 
         if (business is null)
@@ -472,9 +613,11 @@ public class BusinessController<
             .ToListAsync();
 
         var reviews = await Context.Reviews
+            .Include(r => r.User)
+            .Include(r => r.Business)
             .Where(r => r.User.Id == user.Id)
-            .Include(s => s.User)
-            .Where(s => s.Business.Id == id)
+            .Where(r => r.Approved || r.Rejected)
+            .Where(r => r.Business.Id == id)
             .ToListAsync();
 
         if (reservations.Count == 0)
@@ -487,9 +630,73 @@ public class BusinessController<
             return BadRequest($"You have already reviewed this business.");
         }
 
-        business.Review(user, request.Rating, request.Content);
+        Review review = business.Review(user, request.Rating, request.Content);
         await Context.SaveChangesAsync();
+
         return Ok();
+    }
+
+    [Authorize(Roles = Role.Customer)]
+    [HttpPost("reservations/{reservationId}/complain")]
+    public async Task<ActionResult> Complain([FromRoute] Guid reservationId, [FromBody] CreateComplaintDTO request)
+    {
+        var user = await Context.Users.FindAsync(User.Id());
+
+        var reservation = await Context.Reservations
+            .Where(r => r.User.Id == user.Id)
+            .Where(r => r.Id == reservationId)
+            .FirstOrDefaultAsync();
+
+        var isPast = reservation.End < DateTimeOffset.UtcNow;
+
+        if (reservation is null)
+        {
+            return BadRequest("You must have a completed reservation in order to leave a complaint.");
+        }
+
+        if(reservation.Complaint is not null)
+        {
+            return BadRequest("You have already complained about this reservation.");
+        }
+
+        if (!isPast)
+        {
+            return BadRequest("The reservation is still not over.");
+        }
+
+        reservation.Complain(request.Content);
+
+        await Context.SaveChangesAsync();
+        return Ok(reservation.Complaint);
+
+    }
+
+    [HttpPost("reservations/{reservationId}/report")]
+    public virtual async Task<ActionResult> Report([FromRoute] Guid reservationId, CreateReportDTO request)
+    {
+        var user = await Context.Users.FindAsync(User.Id());
+
+        var reservation = await Context.Reservations
+            .Where(r => r.Business.Owner.Id == user.Id)
+            .Where(r => r.Id == reservationId)
+            .FirstOrDefaultAsync();
+
+        var isPast = reservation.End < DateTimeOffset.UtcNow;
+
+        if (reservation is null)
+        {
+            return BadRequest("There must be a completed reservation in order to leave a report.");
+        }
+
+        if (reservation.Report is not null)
+        {
+            return BadRequest("You have already submitted a report.");
+        }
+
+        reservation.ReportUser(request.Reason, request.Penalize);
+        await Context.SaveChangesAsync();
+
+        return Ok(reservation.Report);
     }
 
     [Authorize(Roles = Role.Customer)]
@@ -529,28 +736,42 @@ public class BusinessController<
         );
 
         Context.Add(reservation);
+        user.LoyaltyPoints += finance.CustomerPoints;
         await Context.SaveChangesAsync();
+
+        _mailer.Send(user, new ReservationCreated(
+            reservation,
+            ImageUrl(reservation.Business.Id, reservation.Business.Images.FirstOrDefault()),
+            "#contactUrl"
+         ));
 
         return Ok(reservation.Id);
     }
 
+    [Authorize]
     [HttpGet("reservations")]
-    protected async Task<ActionResult> GetReservations(string businessType, string status)
+    public async Task<ActionResult> GetReservations(string status, int page, int size = 10, bool isDashboard = false)
     {
+        size = Math.Clamp(size, 0, 20);
         var currentTime = DateTimeOffset.Now;
+        var isCustomer = User.IsInRole(Role.Customer);
 
         var reservationsQuery = Context.Reservations
+            .Include(r => r.Payment)
             .AsNoTrackingWithIdentityResolution()
-            .Where(r => r.User.Id == User.Id())
-            .Where(r => r.Status != "Cancelled");
+            .AsSplitQuery()
+            .Where(r => r.User != null)
+            .Where(r => r.Business is TBusiness)
+            .Where(r => r.Status != Reservation.ReservationStatus.Cancelled);
 
-        reservationsQuery = businessType switch
+        if (isCustomer)
         {
-            "boats" => reservationsQuery.Where(b => b.Business is Boat),
-            "adventures" => reservationsQuery.Where(b => b.Business is Adventure),
-            "cabins" => reservationsQuery.Where(b => b.Business is Cabin),
-            "all" or _ => reservationsQuery
-        };
+            reservationsQuery = reservationsQuery.Where(r => r.User.Id == User.Id());
+        }
+        else
+        {
+            reservationsQuery = reservationsQuery.Where(r => r.Business.Owner.Id == User.Id());
+        }
 
         reservationsQuery = status switch
         {
@@ -560,34 +781,70 @@ public class BusinessController<
             "all" or _ => reservationsQuery
         };
 
-        var reservations = await reservationsQuery
+        int totalResults = await reservationsQuery.CountAsync();
+        reservationsQuery = reservationsQuery
             .OrderBy(r => r.Start)
-            .Take(10)
-            .ProjectToType<ReservationDTO>()
-            .ToListAsync();
+            .Skip(page * size)
+            .Take(size);
 
-        reservations.ForEach(r => r.Business.WithImages(ImageUrl));
-        reservations.ForEach(r => r.IsCancellable = r.Start - currentTime >= TimeSpan.FromDays(3));
+        if (isDashboard)
+        {
+            var reservations = await reservationsQuery
+                .ProjectToType<DashboardReservationDTO>()
+                .ToListAsync();
+            reservations.ForEach(r => r.Business.WithImages(ImageUrl));
 
-        return Ok(reservations);
+            return Ok(new { Results = reservations, totalResults });
+        }
+        else
+        {
+            var reservations = await reservationsQuery
+                .ProjectToType<ReservationDTO>()
+                .ToListAsync();
+            reservations.ForEach(r => r.Business.WithImages(ImageUrl));
+            reservations.ForEach(r => r.IsCancellable = r.Start - currentTime >= TimeSpan.FromDays(3));
+
+            return Ok(new { Results = reservations, totalResults });
+        }
+    }
+
+    // TODO: Ultra slow, probably a bug
+    [HttpGet("subscriptions")]
+    public async Task<ActionResult> GetSubscriptions()
+    {
+        var subscriptions = await Context.Users
+                    .AsNoTrackingWithIdentityResolution()
+                    .Where(u => u.Id == User.Id())
+                    .SelectMany(u => u.Subscriptions)
+                    .Where(b => b is TBusiness)
+                    .ProjectToType<SubscriptionDTO>()
+                    .ToListAsync();
+        subscriptions.ForEach(s => s.WithImages(ImageUrl));
+
+        return Ok(subscriptions);
     }
 
     [Authorize(Roles = Role.Customer)]
     [HttpPost("reservations/{reservationId}/cancel")]
     public async Task<ActionResult> CancelReservation([FromRoute] Guid reservationId)
     {
-        var reservation = await Context.Set<Reservation>().FirstOrDefaultAsync(r => r.Id == reservationId);
+        var reservation = await Context.Set<Reservation>()
+            .Include(r => r.User)
+            .FirstOrDefaultAsync(r => r.Id == reservationId);
 
         if (reservation == null)
         {
             return BadRequest($"The specified reservation does not exist.");
         }
 
-        bool canceled = reservation.Cancel();
-        if(!canceled)
+        bool cancelled = reservation.Cancel();
+        if(!cancelled)
         {
-            return BadRequest($"The specified reservation cannot be canceled.");
+            return BadRequest($"The specified reservation cannot be cancelled.");
         }
+
+        var finance = await Context.Finances.FirstOrDefaultAsync();
+        reservation.User.LoyaltyPoints -= finance.CustomerPoints;
 
         await Context.SaveChangesAsync();
         return Ok();
@@ -612,6 +869,7 @@ public class BusinessController<
             return StatusCode(403);
         }
 
+        string ownerId = User.Id().ToString(); 
         var reservations = await Context.Reservations
             .AsNoTracking()
             .Include(r => r.User)
@@ -624,10 +882,13 @@ public class BusinessController<
             .Select(r => new
             {
                 r.Id,
+                BusinessId = r.Business.Id.ToString(),
                 r.Start,
                 r.End,
                 Type = r.GetType().Name.ToLowerInvariant(),
-                Name = r.User == null ? "" : r.User.FirstName + " " + r.User.LastName
+                Name = r.User == null ? "" : r.User.FirstName + " " + r.User.LastName,
+                UserId = r.User == null ? "" : r.User.Id.ToString(),
+                Reported = r.Report != null
             })
             .ToListAsync();
 
@@ -643,10 +904,13 @@ public class BusinessController<
                 .Select(r => new
                 {
                     r.Id,
+                    BusinessId = string.Empty,
                     r.Start,
                     r.End,
                     Type = "unavailable",
-                    Name = "Unavailable"
+                    Name = "Unavailable",
+                    UserId = ownerId,
+                    Reported = false
                 })
                 .ToListAsync();
 
@@ -723,91 +987,55 @@ public class BusinessController<
         return Ok();
     }
 
-    [Authorize]
-    [HttpGet("reservations-rating")]
-    public virtual async Task<List<ReportReservationResponse>> GetReservationsInPeriod(DateTime startDate, DateTime endDate)
+    protected async Task<ActionResult> Search(SearchRequest request, Func<IQueryable<TBusiness>, IQueryable<TBusiness>> filter = null)
     {
-        List<ReportReservationResponse> result = new List<ReportReservationResponse>();
+        decimal discountMultiplier = await Context.GetDiscountMultiplier(User.Id());
 
-        int days = GetDaysSpan(endDate - startDate);
-
-        var reservations = getReservationsInSpanPeriod(startDate - TimeSpan.FromDays(days), endDate);
-
-        result.Add(new ReportReservationResponse() { NumOfReservations = reservations.Count, Date = startDate });
-
-        while (startDate < endDate)
-        {
-            DateTime lastDate = startDate + TimeSpan.FromDays(days);
-            if (lastDate > endDate)
-            {
-                lastDate = endDate;
-            }
-            reservations = getReservationsInSpanPeriod(startDate, lastDate);
-
-            result.Add(new ReportReservationResponse() { NumOfReservations = reservations.Count, Date = lastDate });
-            startDate += TimeSpan.FromDays(30);
-        }
-
-        return result;
-    }
-
-    [Authorize]
-    [HttpGet("payment-rating")]
-    public virtual async Task<List<ReportPaymentResponse>> GetPaymentReport(DateTime startDate, DateTime endDate)
-    {
-        List<ReportPaymentResponse> result = new List<ReportPaymentResponse>();
-
-        int days = GetDaysSpan(endDate - startDate);
-
-        double income = GetIncomeInPeriod(startDate - TimeSpan.FromDays(days), endDate);
-
-        result.Add(new ReportPaymentResponse() { Date = startDate, IncomeAmount = income });
-
-        while (startDate < endDate)
-        {
-            DateTime lastDate = startDate + TimeSpan.FromDays(days);
-            if (lastDate > endDate)
-            {
-                lastDate = endDate;
-            }
-            income = GetIncomeInPeriod(startDate, lastDate);
-
-            result.Add(new ReportPaymentResponse() { Date = startDate, IncomeAmount = income });
-            startDate += TimeSpan.FromDays(30);
-        }
-
-        return result;
-    }
-    protected List<ReservationDTO> getReservationsInSpanPeriod(DateTime startDate, DateTime endDate)
-    {
-        return Context.Reservations
+        var query = Context.Set<TBusiness>()
             .AsNoTrackingWithIdentityResolution()
-            .Where(r => r.Business.Owner.Id == User.Id())
-            .Where(r => r.Start >= startDate && r.End <= endDate)
-            .Where(r => r.Status == "Fulfilled")
-            .ProjectToType<ReservationDTO>().ToList();
-    }
+            .Available(request.Start.UtcDateTime, request.End.UtcDateTime)
+            .Where(c => c.Address.City == request.City)
+            .Where(c => c.Address.Country == request.Country)
+            .Where(c => c.People == request.People);
 
-    protected int GetDaysSpan(TimeSpan daysDifference)
-    {
-        if (daysDifference.Days > 365) return 30;
-        else if (daysDifference.Days > 30) return 7;
-        else return 1;
-    }
-
-    protected double GetIncomeInPeriod(DateTime startDate, DateTime endDate)
-    {
-        var reservations = getReservationsInSpanPeriod(startDate, endDate);
-
-        var payments = (from r in reservations
-                        select r.Payment);
-
-        double income = 0;
-        foreach (Payment payment in payments)
+        if (request.RatingHigher != default)
         {
-            income += (double)payment.Price.Amount * (1 - payment.DiscountPercentage) * (1 - payment.TaxPercentage);
+            query = query.Where(b => b.Rating >= request.RatingHigher);
         }
-        return income;
+        if (request.PriceLow != default)
+        {
+            query = query.Where(b => b.PricePerUnit.Amount >= request.PriceLow);
+        }
+        if (request.PriceHigh != default)
+        {
+            query = query.Where(b => b.PricePerUnit.Amount <= request.PriceHigh);
+        }
+
+        if (filter is not null) query = filter.Invoke(query);
+
+        int totalResults = await query.CountAsync();
+        var results = await query
+            .OrderBy(request.Direction)
+            .Skip(request.Page * 6)
+            .Take(6)
+            .ProjectToType<TSearchDTO>()
+            .ToListAsync();
+
+        results.ForEach(r =>
+        {
+            r.Image = ImageUrl(r.Id, r.Images.FirstOrDefault());
+            r.Price = new Money
+            {
+                Amount = r.PricePerUnit.Amount * request.People,
+                Currency = r.PricePerUnit.Currency
+            };
+        });
+
+        return Ok(new
+        {
+            results,
+            totalResults,
+        });
     }
 
 }

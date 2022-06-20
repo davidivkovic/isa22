@@ -26,7 +26,10 @@
     </div>
     <SearchBar class="relative -mt-20" />
   </div>
-  <OwnerDashboard v-else />
+  <Suspense v-else-if="!isAdmin">
+    <OwnerDashboard />
+  </Suspense>
+  <Suspense v-else> <AdminDashboard /> </Suspense>
 </template>
 
 <script setup>
@@ -36,7 +39,8 @@ import Button from '@/components/ui/Button.vue'
 import SearchBar from '@/components/homepage/SearchBar.vue'
 import { ArrowRightIcon } from 'vue-tabler-icons'
 import OwnerDashboard from '@/components/homepage/OwnerDashboard.vue'
-import { isCustomer } from '@/stores/userStore'
+import AdminDashboard from '@/components/homepage/AdminDashboard.vue'
+import { isCustomer, isAdmin } from '@/stores/userStore'
 
 import cabinsURL from '@/assets/images/cabins.png'
 import boatsURL from '@/assets/images/boats.png'
@@ -50,11 +54,12 @@ const images = {
   adventures: fishingURL
 }
 
-const route = computed(() => useRoute()?.name)
-const pacStyle = computed(() => (route.value in images ? '-230px' : '0px'))
+const route = useRoute()
+const routeName = computed(() => route?.name)
+const pacStyle = computed(() => (routeName.value in images ? '-230px' : '0px'))
 
 const selectedImage = computed(() => {
-  if (route.value in images) return images[route.value]
+  if (routeName.value in images) return images[routeName.value]
   else if (selectedImage.value) return selectedImage.value
   return defaultImage
 })
