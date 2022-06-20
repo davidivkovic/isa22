@@ -120,6 +120,7 @@
                   >
                   reviewed
                   <span class="font-medium">{{ review.business.name }} </span>
+                  with grade {{ review.rating }}⭐
                 </h2>
                 <h3 class="mt-2">
                   <p class="text-gray-700">

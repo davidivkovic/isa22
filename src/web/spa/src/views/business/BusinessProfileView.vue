@@ -422,9 +422,13 @@
               You cannot make a reservation as a business owner. Please make a
               customer account.
             </div>
+            <div v-if="props.entity.isPenalized" class="text-xs text-gray-700">
+              You currently have 3 or more penalty points and cannot make a
+              reservation.
+            </div>
             <Button
               @click="makeReservation()"
-              :disabled="!isCustomer"
+              :disabled="!isCustomer || props.entity.isPenalized"
               class="ml-48 bg-emerald-600 text-white"
               >Make a reservation</Button
             >

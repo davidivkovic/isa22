@@ -21,4 +21,6 @@ const props = defineProps({
   routeName: String,
   isActive: Boolean
 })
+
+console.log(props.isActive)
 </script>

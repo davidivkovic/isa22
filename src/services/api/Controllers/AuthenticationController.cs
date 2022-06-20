@@ -41,54 +41,6 @@ public class AuthenticationController : ControllerBase
         _mailer = mailer;
     }
 
-    //[Authorize]
-    [HttpGet]
-    public async Task<ActionResult> Test()
-    {
-        //var user = _context.Users.Find(User.Id());
-        //_mailer.Send(user, new ConfirmEmail(user.FirstName, "784320"));
-
-        var reservation = await _context.Reservations
-            .Include(r => r.Business)
-            .Include(r => r.User)
-            .Where(r => r.Id == Guid.Parse("e8dc6d2a-60fb-4f05-bc20-76379a41c145"))
-            .FirstOrDefaultAsync();
-
-        var loyaltyLevel = await _context.LoyaltyLevels
-            .AsNoTracking()
-            .OrderBy(l => l.Threshold)
-            .FirstOrDefaultAsync(l => l.Threshold <= reservation.User.LoyaltyPoints);
-
-        reservation.Start = new DateTimeOffset(2022, 7, 7, 21, 0, 0, TimeSpan.Zero);
-        reservation.End = new DateTimeOffset(2022, 7, 8, 5, 0, 0, TimeSpan.Zero);
-
-        reservation.Services = new()
-        {
-            new()
-            {
-                Name = "Sauna",
-                Price = new(12, "USD")
-            },
-            new()
-            {
-                Name = "Dinner",
-                Price = new(6, "USD")
-            },
-        };
-
-        reservation.Payment.Price = reservation.Business.Price(
-            reservation.Start,
-            reservation.End,
-            reservation.Business.People,
-            loyaltyLevel.DiscountPercentage,
-            reservation.Services
-        );
-
-        await _context.SaveChangesAsync();
-
-        return Ok();
-    }
-
     [Authorize]
     [HttpPost("password/reset")]
     public async Task<ActionResult> ResetPassword(ResetPasswordRequest request)

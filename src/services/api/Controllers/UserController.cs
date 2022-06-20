@@ -159,6 +159,7 @@ public class UserController : ControllerBase
         var user = await _context.Users
             .AsNoTracking()
             .Where(u => u.Id == User.Id())
+            .Include(u => u.Penalty)
             .FirstOrDefaultAsync();
         
         if (user is null)
@@ -185,7 +186,8 @@ public class UserController : ControllerBase
                 Points = user.LoyaltyPoints,
                 Current = loyaltyLevel,
                 Next = nextLoyaltyLevel
-            }
+            },
+            Penalty = user.Penalty
         });
     }
 

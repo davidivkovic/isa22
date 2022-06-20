@@ -36,6 +36,7 @@ public class BusinessDTO : BaseBusinessDTO
     public Money TotalPrice { get; set; }
     public bool IsSubscribed { get; set; }
     public bool IsDeletable { get; set; } = true;
+    public bool IsPenalized { get; set; }
     public Loyalty LoyaltyLevel { get; set; }
     public List<SaleDTO> Sales { get; set; }
     public List<ReviewDTO> Reviews { get; set; }

@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto mb-10 max-w-4.5xl space-y-16">
+  <div class="mx-auto mb-10 max-w-4.5xl space-y-10">
     <div class="flex-1">
       <h1 class="text-2xl font-medium">Profile</h1>
 
@@ -290,7 +290,21 @@
         </form>
       </Modal>
     </div>
-
+    <div v-if="penalty != null">
+      <h1 class="text-2xl font-medium">Penalty points</h1>
+      <p class="mt-2 text-gray-600">
+        You currenlty have {{ penalty?.points }} penalty points.
+        <span v-if="penalty?.points < 3"
+          >Earn {{ 3 - penalty?.points }} more
+          {{ 3 - penalty?.points == 1 ? 'point' : 'points' }} and you won't be
+          allowed to make reservations anymore.</span
+        >
+        <span v-else
+          >Making reservations is not allowed untill
+          {{ format(parseJSON(penalty?.expires), 'MMM d, yyyy') }}.
+        </span>
+      </p>
+    </div>
     <div
       v-if="!user.roles.includes('Admin')"
       class="mx-auto max-w-4.5xl space-y-2"
@@ -389,6 +403,7 @@ const user = ref()
 const loyaltyLevel = ref()
 const deletionRequest = ref()
 const deletionReason = ref('')
+const penalty = ref()
 
 const businessTypes = [
   {
@@ -444,6 +459,7 @@ if (!profileError) {
   user.value = profileData.user
   loyaltyLevel.value = profileData.loyaltyLevel
   deletionRequest.value = profileData.deletionRequest
+  penalty.value = profileData.penalty
 }
 
 const unsubscribe = async subscription => {

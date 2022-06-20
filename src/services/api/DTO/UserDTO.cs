@@ -40,4 +40,5 @@ public class UserProfileDTO
     public UserDTO User { get; set; }
     public LoyaltyDTO LoyaltyLevel { get; set; }
     public Request DeletionRequest { get; set; }
+    public Penalty Penalty { get; set; }
 }

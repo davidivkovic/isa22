@@ -168,17 +168,25 @@ public class BusinessController<
         var businessDTO = business.Adapt<TReadDTO>();
 
         var user = await Context.Users
+            .AsNoTracking()
             .Include(u => u.Subscriptions)
+            .Include(u => u.Penalty)
             .Where(u => u.Id == User.Id())
             .Select(u => new
             {
                 IsSubscribed = u.Subscriptions.Contains(business),
-                u.LoyaltyPoints
+                u.LoyaltyPoints,
+                u.Penalty
             })
             .FirstOrDefaultAsync();
 
 
         businessDTO.IsSubscribed = user?.IsSubscribed ?? false;
+        if(user.Penalty is not null)
+        {
+            businessDTO.IsPenalized = user.Penalty.Points >= 3 && !user.Penalty.HasExpired;
+
+        }
 
         var sales = await Context.Sales
             .Include(s => s.Business)
@@ -213,6 +221,7 @@ public class BusinessController<
                 new()
             );
         }
+
 
         businessDTO.Reviews = reviews.Select(r => r.Adapt<ReviewDTO>()).ToList();
 
