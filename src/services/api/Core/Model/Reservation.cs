@@ -87,6 +87,7 @@ public class Reservation : Entity
         if (Start - TimeSpan.FromDays(3) > DateTimeOffset.Now)
         {
             Status = ReservationStatus.Cancelled;
+            Delete();
             return true;
         }
         return false;

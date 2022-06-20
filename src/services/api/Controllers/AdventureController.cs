@@ -96,6 +96,6 @@ public class AdventureController : BusinessController<Adventure, AdventureDT0, C
     [HttpGet("search")]
     public Task<ActionResult> Search([FromQuery] AdventureSearchRequest request)
     {
-        return Search(request);
+        return base.Search(request);
     }
 }

@@ -11,7 +11,36 @@ spec:
   - port: 80
     targetPort: 80
     nodePort: 30021
-
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: api-volume-claim
+  labels:
+    app: api
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: api-volume
+  labels:
+    type: local
+    app: api
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: /mnt/data
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -34,7 +63,17 @@ spec:
         imagePullPolicy: Never
         resources:
           limits:
-            memory: 128Mi
+            memory: 1024Mi
             cpu: 500m
         ports:
         - containerPort: 80
+        env:
+        - name: POSTGRES_CONNECTION
+          value: Server=postgres;Port=5432;Database=api;User ID=admin;Password=admin
+        volumeMounts:
+        - mountPath: /data/images
+          name: api-volume-claim
+      volumes:
+      - name: api-volume-claim
+        persistentVolumeClaim:
+          claimName: api-volume-claim

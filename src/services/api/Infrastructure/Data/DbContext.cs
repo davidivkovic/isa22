@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 using API.Core.Model;
 using API.Security;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using System.Linq.Expressions;
 
 public class AppDbContext : IdentityDbContext<
     User,
@@ -53,11 +55,9 @@ public class AppDbContext : IdentityDbContext<
         builder.Owned<Service>();
         builder.Owned<OneTimePassword>();
 
-        //builder.Entity<User>().HasMany(b => b.Subscriptions);
         builder.Entity<User>().Navigation(c => c.Address).IsRequired();
         builder.Entity<Boat>().Navigation(c => c.Equipment).IsRequired();
         builder.Entity<Business>().HasOne(b => b.Owner);
-        //builder.Entity<Business>().HasMany(b => b.Subscribers);
         builder.Entity<Business>().Navigation(c => c.Address).IsRequired();
         builder.Entity<Loyalty>().HasKey(l => l.Name);
         builder.Entity<Reservation>().HasIndex(r => r.Start);
@@ -80,5 +80,24 @@ public class AppDbContext : IdentityDbContext<
         builder.Entity<RefreshToken>().ToTable("RefreshTokens").HasKey(k => k.Id);
 
         builder.EnableDeleteFilter();
+    }
+
+    /*
+        In order to use a mock DB for testing we ensure that a List<string> can be serialized.
+    */
+    public class ListToStringConverter : ValueConverter<List<string>, string>
+    {
+        public ListToStringConverter() : base(Serialize, Deserialize, null) { }
+
+        static readonly Expression<Func<string, List<string>>> Deserialize = v => new List<string>(v.Split(',', StringSplitOptions.RemoveEmptyEntries));
+        static readonly Expression<Func<List<string>, string>> Serialize = v => string.Join("'", v);
+    }
+
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        if (!Database.IsRelational())
+        {
+            configurationBuilder.Properties<List<string>>().HaveConversion<ListToStringConverter>();
+        }
     }
 }

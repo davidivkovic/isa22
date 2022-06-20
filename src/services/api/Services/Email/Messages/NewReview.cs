@@ -9,7 +9,6 @@ public class NewReview : IMessage
     public string Subject => "New review on adventure.com";
 
     private readonly Review review;
-    private readonly Reservation reservation;
     private readonly string contactUrl;
     private readonly string businessImageUrl;
 
@@ -34,7 +33,6 @@ public class NewReview : IMessage
         return messageTemplate.Render(new
         {
             review,
-            reservation,
             ratingDescription,
             businessImageUrl,
             contactUrl

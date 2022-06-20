@@ -93,7 +93,10 @@ await using var scope = app.Services.CreateAsyncScope();
 var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
 
-await context.Database.MigrateAsync();
+if (context.Database.IsRelational())
+{
+    await context.Database.MigrateAsync();
+}
 await DbSeed.SeedUsers(userManager);
 await DbSeed.SeedFinance(context);
 
@@ -103,11 +106,12 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    app.UseCors(c => c.AllowAnyMethod()
-                      .AllowAnyHeader()
-                      .SetIsOriginAllowed(origin => true)
-                      .AllowCredentials());
 }
+
+app.UseCors(c => c.AllowAnyMethod()
+                  .AllowAnyHeader()
+                  .SetIsOriginAllowed(origin => true)
+                  .AllowCredentials());
 
 TypeAdapterConfig.GlobalSettings.Compiler = exp => exp.CompileFast();
 
@@ -115,5 +119,7 @@ app.UseAuthentication();
 app.UseRouting();
 app.UseAuthorization();
 app.MapControllers();
+
+app.MapGet("/", () => "API is up and running.");
 
 app.Run();

@@ -24,14 +24,15 @@ public static class BusinessQueries
                 (s.Start <= start && s.End >= end ||
                 s.Start >= start && s.Start < end ||
                 s.End > start && s.End <= end) &&
-               !s.Available
+               !s.Available && !s.IsDeleted
             )
         )
         .Where(b =>
             !b.Reservations.Any(r =>
-                r.Start <= start && r.End >= end ||
+                (r.Start <= start && r.End >= end ||
                 r.Start >= start && r.Start < end ||
-                r.End > start && r.End <= end
+                r.End > start && r.End <= end) &&
+                !r.IsDeleted
             )
         );
     }

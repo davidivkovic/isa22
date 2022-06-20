@@ -18,6 +18,7 @@ using API.Infrastructure.Data.Queries;
 using API.Services.Email;
 using API.Services.Email.Messages;
 using API.DTO.Search;
+using System.Data;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -27,7 +28,7 @@ public class BusinessController<
     TCreateDTO,
     TUpdateDTO,
     TSearchDTO
-> : ControllerBase 
+> : ControllerBase
     where TBusiness : Business
     where TReadDTO : BusinessDTO
     where TUpdateDTO : UpdateBusinessDTO
@@ -91,15 +92,15 @@ public class BusinessController<
             .ProjectToType<TSearchDTO>()
             .ToListAsync();
 
-            results.ForEach(r =>
+        results.ForEach(r =>
+        {
+            r.Image = ImageUrl(r.Id, r.Images.FirstOrDefault());
+            r.Price = new Money
             {
-                r.Image = ImageUrl(r.Id, r.Images.FirstOrDefault());
-                r.Price = new Money
-                {
-                    Amount = r.PricePerUnit.Amount,
-                    Currency = r.PricePerUnit.Currency
-                };
-            });
+                Amount = r.PricePerUnit.Amount,
+                Currency = r.PricePerUnit.Currency
+            };
+        });
         return Ok(new { results, totalResults, averageRating = results.Select(c => c.Rating).DefaultIfEmpty().Average() });
     }
 
@@ -436,7 +437,7 @@ public class BusinessController<
 
         User customer = null;
 
-        if (request.CustomerId != default) 
+        if (request.CustomerId != default)
         {
             customer = await Context.Users.FindAsync(request.CustomerId);
             var finance = await Context.Finances.FirstOrDefaultAsync();
@@ -654,7 +655,7 @@ public class BusinessController<
             return BadRequest("You must have a completed reservation in order to leave a complaint.");
         }
 
-        if(reservation.Complaint is not null)
+        if (reservation.Complaint is not null)
         {
             return BadRequest("You have already complained about this reservation.");
         }
@@ -712,40 +713,52 @@ public class BusinessController<
             return BadRequest($"The specified {BusinessType} does not exist.");
         }
 
-        bool isAvailable = await Context.Set<TBusiness>()
-            .Where(b => b.Id == id)
-            .Available(request.Start, request.End)
-            .AnyAsync();
-
-        if (!isAvailable)
+        await using var transaction = await Context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+        try
         {
+
+            bool isAvailable = await Context.Set<TBusiness>()
+                .Where(b => b.Id == id)
+                .Available(request.Start, request.End)
+                .AnyAsync();
+
+            if (!isAvailable)
+            {
+                return BadRequest($"The {BusinessType} is already occupied at that time.");
+            }
+
+            var user = await Context.Users.FindAsync(User.Id());
+            var finance = await Context.Finances.FirstOrDefaultAsync();
+
+            Reservation reservation = new(
+                user,
+                business,
+                request.Start,
+                request.End,
+                business.People,
+                business.Services.Where(s => request.Services.Contains(s)).ToList(),
+                finance.TaxPercentage
+            );
+
+            user.LoyaltyPoints += finance.CustomerPoints;
+            Context.Add(reservation);
+
+            await Context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            _mailer.Send(user, new ReservationCreated(
+                reservation,
+                ImageUrl(reservation.Business.Id, reservation.Business.Images.FirstOrDefault()),
+                "#contactUrl"
+             ));
+
+            return Ok(reservation.Id);
+        }
+        catch (Exception)
+        {
+            await transaction.RollbackAsync();
             return BadRequest($"The {BusinessType} is already occupied at that time.");
         }
-
-        var user = await Context.Users.FindAsync(User.Id());
-        var finance = await Context.Finances.FirstOrDefaultAsync();
-
-        Reservation reservation = new(
-            user,
-            business,
-            request.Start,
-            request.End,
-            business.People,
-            business.Services.Where(s => request.Services.Contains(s)).ToList(),
-            finance.TaxPercentage
-        );
-
-        Context.Add(reservation);
-        user.LoyaltyPoints += finance.CustomerPoints;
-        await Context.SaveChangesAsync();
-
-        _mailer.Send(user, new ReservationCreated(
-            reservation,
-            ImageUrl(reservation.Business.Id, reservation.Business.Images.FirstOrDefault()),
-            "#contactUrl"
-         ));
-
-        return Ok(reservation.Id);
     }
 
     [Authorize]
@@ -838,7 +851,7 @@ public class BusinessController<
         }
 
         bool cancelled = reservation.Cancel();
-        if(!cancelled)
+        if (!cancelled)
         {
             return BadRequest($"The specified reservation cannot be cancelled.");
         }
@@ -849,7 +862,7 @@ public class BusinessController<
         await Context.SaveChangesAsync();
         return Ok();
 
-    }    
+    }
 
     [HttpGet("{id}/calendar")]
     public virtual async Task<ActionResult> GetCalendar(Guid id, DateTimeOffset start, DateTimeOffset end)
@@ -869,7 +882,7 @@ public class BusinessController<
             return StatusCode(403);
         }
 
-        string ownerId = User.Id().ToString(); 
+        string ownerId = User.Id().ToString();
         var reservations = await Context.Reservations
             .AsNoTracking()
             .Include(r => r.User)
@@ -996,7 +1009,7 @@ public class BusinessController<
             .Available(request.Start.UtcDateTime, request.End.UtcDateTime)
             .Where(c => c.Address.City == request.City)
             .Where(c => c.Address.Country == request.Country)
-            .Where(c => c.People == request.People);
+            .Where(c => c.People >= request.People);
 
         if (request.RatingHigher != default)
         {
