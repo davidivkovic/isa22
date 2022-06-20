@@ -50,7 +50,7 @@
               {{
                 format(
                   parseISO(
-                    `${point.year}-${point.month < 10 ? '0' : ''}${
+                    `${point.year}-${point.month >= 10 ? '' : '0'}${
                       point.month
                     }-01`
                   ),
@@ -71,6 +71,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { format, parseISO } from 'date-fns'
+
 const props = defineProps({
   points: Array,
   isMoney: Boolean
@@ -96,12 +97,6 @@ watch(
     const exponent = Math.round(Math.log10(range))
     const magnitude = Math.pow(10, exponent)
     const step = ((magnitude / 5) * Math.round((max / magnitude) * 10)) / 10
-    console.log({
-      step,
-      max,
-      magnitude,
-      div: Math.round((max / magnitude) * 10) / 10
-    })
     data.value = {
       max: 0,
       steps: [],
@@ -138,19 +133,15 @@ watch(
 
 <style scoped>
 .bars-gradient-orange {
-  /* background: #10b981; */
   background: linear-gradient(
     to top,
     #a855f7 20px,
     rgb(129 140 248),
     rgb(153 246 228)
   );
-  /* background: linear-gradient(to top, #14c38e, #b8f1b0); */
-  /* background: linear-gradient(to top, #007d2c, #cdffe7); */
 }
 
 .bars-gradient-green {
-  /* background: orange; */
   background: linear-gradient(to top, #10b981, #86efac);
 }
 
