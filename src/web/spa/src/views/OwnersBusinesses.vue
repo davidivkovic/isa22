@@ -431,7 +431,7 @@ if (!document.getElementById('google-maps-script')) {
     'src',
     `https://maps.googleapis.com/maps/api/js?key=${
       import.meta.env.VITE_GOOGLE_MAPS_KEY
-    }&libraries=places`
+    }&libraries=places&language=en`
   )
   mapsScript.onload = () => createAutocompleteInput()
   document.head.appendChild(mapsScript)

@@ -147,13 +147,15 @@ const setPrice = newPrice => {
   priceLow.value = newPrice.priceLow
   priceHigh.value = newPrice.priceHigh
 }
-watch([ratingHigher, rooms, priceLow, priceHigh], () => {
+const setSeats = newSeatNumber => (seats.value = newSeatNumber)
+watch([ratingHigher, rooms, priceLow, priceHigh, seats], () => {
   const query = {
     ...route.query,
     ratingHigher: ratingHigher.value,
     rooms: rooms.value,
     priceLow: priceLow.value,
-    priceHigh: priceHigh.value
+    priceHigh: priceHigh.value,
+    seats: seats.value
   }
   let filtered = Object.fromEntries(
     // eslint-disable-next-line no-unused-vars

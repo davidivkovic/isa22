@@ -88,10 +88,10 @@ const isNonSearchRoute = computed(() =>
 )
 
 const selectedTab = computed(() => {
-  if (currentRoute.value.includes('cabins') || currentRouteName.value == 'home')
+  if (currentRoute.value.includes('cabin') || currentRouteName.value == 'home')
     return 0
-  else if (currentRoute.value.includes('boats')) return 1
-  else if (currentRoute.value.includes('adventures')) return 2
+  else if (currentRoute.value.includes('boat')) return 1
+  else if (currentRoute.value.includes('adventure')) return 2
   else if (currentRoute.value.includes('profile')) return 3
   else if (selectedTab.value) return selectedTab.value
   return 0
