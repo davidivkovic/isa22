@@ -42,7 +42,7 @@
             :value="value"
             as="template"
           >
-            <li
+            <div
               :class="[
                 { 'bg-neutral-50': active },
                 'relative flex cursor-pointer select-none items-start justify-between space-x-3 py-2 px-3.5'
@@ -54,7 +54,7 @@
                 {{ value.name }}
               </span>
               <CheckIcon v-if="selected" class="h-4 w-4" aria-hidden="true" />
-            </li>
+            </div>
           </ListboxOption>
         </ListboxOptions>
       </Transition>
