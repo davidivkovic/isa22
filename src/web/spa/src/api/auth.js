@@ -25,10 +25,12 @@ const register = data => {
 }
 
 const confirmEmail = (email, code) => {
+  email = email.replace(' ', '+')
   return fetch(instance.post('auth/email/confirm', { email, code }))
 }
 
 const sendConfirmation = email => {
+  email = email.replace(' ', '+')
   return fetch(
     instance.post(
       `auth/email/send-confirmation?email=${encodeURIComponent(email)}`

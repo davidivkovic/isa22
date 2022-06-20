@@ -219,7 +219,7 @@ public class AuthenticationController : ControllerBase
 
         if (!user.EmailConfirmed)
         {
-            if (user.JoinRequest.Rejected)
+            if (user.JoinRequest is not null && user.JoinRequest.Rejected)
             {
                 return BadRequest("Sorry, but your registration request was rejected. Please contact us for further information.");
             }
