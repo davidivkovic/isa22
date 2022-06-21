@@ -57,7 +57,6 @@ import VerificationPanel from './VerificationPanel.vue'
 import Divider from '@/components/ui/Divider.vue'
 import { ArrowNarrowLeftIcon } from 'vue-tabler-icons'
 import api from '@/api/api.js'
-import router from '@/router/index.js'
 
 const emit = defineEmits(['switchAuth'])
 const selectedPanel = ref(0)
@@ -116,10 +115,9 @@ const register = async newData => {
   formError.value = error
 
   if (!error && selectedRole.value === 'customer') {
-    // router.push({ name: 'verification', query: { email: data.email } })
     window.location.replace(`/verification?email=${data.email}`)
   } else if (!error) {
-    router.forward()
+    forward()
   }
 }
 </script>

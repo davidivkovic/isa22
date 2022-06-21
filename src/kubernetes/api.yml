@@ -24,7 +24,7 @@ spec:
     - ReadWriteMany
   resources:
     requests:
-      storage: 5Gi
+      storage: 4Gi
 ---
 kind: PersistentVolume
 apiVersion: v1
@@ -36,11 +36,11 @@ metadata:
 spec:
   storageClassName: manual
   capacity:
-    storage: 5Gi
+    storage: 4Gi
   accessModes:
     - ReadWriteMany
   hostPath:
-    path: /mnt/data
+    path: /var/lib/data
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -59,12 +59,12 @@ spec:
       restartPolicy: Always
       containers:
       - name: api
-        image: api:latest
-        imagePullPolicy: Never
+        image: gcr.io/isa-mrs-345117/api:latest
+        imagePullPolicy: Always
         resources:
           limits:
-            memory: 1024Mi
-            cpu: 500m
+            memory: 512Mi
+            cpu: 128m
         ports:
         - containerPort: 80
         env:

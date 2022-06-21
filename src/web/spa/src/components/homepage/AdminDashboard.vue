@@ -9,7 +9,7 @@
         <div class="items-center justify-between">
           <h3 class="text-lg font-medium">Pending Registration Requests</h3>
           <div
-            v-for="request in registrationRequests"
+            v-for="request in registrationRequests.slice(0, 4)"
             :key="request.id"
             class="my-7"
           >
@@ -100,7 +100,11 @@
       >
         <div class="items-center justify-between">
           <h3 class="text-lg font-medium">Pending Reviews</h3>
-          <div v-for="review in reviews" :key="review.id" class="my-7">
+          <div
+            v-for="review in reviews.slice(0, 4)"
+            :key="review.id"
+            class="my-7"
+          >
             <div class="my-6 flex items-start space-x-3">
               <div
                 class="mb-1 flex h-12 w-12 items-center justify-center space-x-px rounded-full bg-emerald-50 text-lg font-semibold text-emerald-700"
@@ -243,10 +247,10 @@ const fetchRegistrationRequests = async () => {
   if (!error) registrationRequests.value = data
 }
 
-onMounted(async () => {
-  await fetchEarnings()
-  await fetchAttendance()
-  await fetchReviews()
-  await fetchRegistrationRequests()
+onMounted(() => {
+  fetchEarnings()
+  fetchAttendance()
+  fetchReviews()
+  fetchRegistrationRequests()
 })
 </script>

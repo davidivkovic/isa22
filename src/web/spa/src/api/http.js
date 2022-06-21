@@ -3,7 +3,9 @@ import axios from 'axios'
 import router from '@/router/index.js'
 import { setUser } from '../stores/userStore'
 
-const baseURL = `http://${window.location.hostname}:5000/`
+const baseURL = import.meta.env.PROD
+  ? `http://${window.location.hostname}:5000/`
+  : 'https://api.ftnstudents.com'
 
 const instance = axios.create({
   baseURL,

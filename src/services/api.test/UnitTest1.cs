@@ -15,6 +15,6 @@ public class ApiTests
     public async Task CheckHealth_ReturnsOK()
     {
         var response = await _httpClient.GetStringAsync("/");
-        Assert.AreEqual("API is up and running.", response);
+        Assert.AreEqual("API is up and running V3.", response);
     }
 }

@@ -120,6 +120,6 @@ app.UseRouting();
 app.UseAuthorization();
 app.MapControllers();
 
-app.MapGet("/", () => "API is up and running.");
+app.MapGet("/", () => "API is up and running V3.");
 
 app.Run();

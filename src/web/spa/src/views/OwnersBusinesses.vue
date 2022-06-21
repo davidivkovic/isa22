@@ -218,7 +218,7 @@
 </template>
 
 <script setup>
-import { shallowRef, ref, onMounted, computed, watchEffect } from 'vue'
+import { shallowRef, ref, onMounted, computed, watch } from 'vue'
 import Button from '../components/ui/Button.vue'
 import Dropdown from '../components/ui/Dropdown.vue'
 import NumberInput from '../components/ui/NumberInput.vue'
@@ -283,7 +283,7 @@ const businessTypes = [
 
 const currentBusinessType = ref(businessTypes[0].value)
 
-// watch(currentBusinessType, () => fetchResults())
+watch(currentBusinessType, () => fetchResults())
 
 const userType = userTypes[user.roles[0]]
 const sortingOption = [
@@ -367,7 +367,7 @@ const fetchResults = async () => {
   }
 }
 
-watchEffect(() => fetchResults())
+// watchEffect(() => fetchResults())
 
 const showElement = id => {
   router.push(`/${userType[3]}/` + id)
