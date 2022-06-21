@@ -1,21 +1,28 @@
 {
-    "rewrites": [{ "source": "/:path*", "destination": "/index.html" }],
-    "redirects": [
-        { 
-            "source": "/api",
-            "destination": "http://34.107.246.218", 
-            "permanent": true
-          }
-    ],
-    "headers": [
+  "rewrites": [
+    { "source": "/:path*", "destination": "/index.html" },
+    {
+      "source": "/api",
+      "destination": "http://34.107.246.218",
+      "permanent": true
+    }
+  ],
+
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Credentials", "value": "true" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
         {
-          "source": "/api/(.*)",
-          "headers": [
-            { "key": "Access-Control-Allow-Credentials", "value": "true" },
-            { "key": "Access-Control-Allow-Origin", "value": "*" },
-            { "key": "Access-Control-Allow-Methods", "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT" },
-            { "key": "Access-Control-Allow-Headers", "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Authorization, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version" }
-          ]
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Authorization, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version"
         }
       ]
+    }
+  ]
 }
