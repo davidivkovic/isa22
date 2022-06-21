@@ -195,7 +195,7 @@ const router = createRouter({
         modalRouteFunc(
           to,
           from,
-          '../components/registration/AdminSignUpModal.vue'
+          './components/registration/AdminSignUpModal.vue'
         )
     },
     {
