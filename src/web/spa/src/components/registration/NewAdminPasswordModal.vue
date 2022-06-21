@@ -31,10 +31,10 @@
 </template>
 <script setup>
 import { ref } from 'vue'
-import Modal from './ui/Modal.vue'
-import { useModal } from '../stores/modalStore'
-import PasswordInput from './ui/PasswordInput.vue'
-import Button from './ui/Button.vue'
+import Modal from '@/components/ui/Modal.vue'
+import { useModal } from '@/stores/modalStore'
+import PasswordInput from '@/components/ui/PasswordInput.vue'
+import Button from '@/components/ui/Button.vue'
 import { XIcon } from 'vue-tabler-icons'
 const { isModalOpen, closeModal } = useModal()
 
