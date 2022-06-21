@@ -1,3 +1,10 @@
 {
-    "rewrites": [{ "source": "/:path*", "destination": "/index.html" }]
+    "rewrites": [{ "source": "/:path*", "destination": "/index.html" }],
+    "redirects": [
+        { 
+            "source": "/api",
+            "destination": "http://34.107.246.218", 
+            "permanent": true
+          }
+    ]
 }
