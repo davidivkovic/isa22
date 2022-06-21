@@ -74,5 +74,4 @@ jobs:
     - name: Deploy
       run: |-
         kubectl apply -f ./src/kubernetes
-        kubectl scale --replicas=0 deployment api-deployment
-        kubectl scale --replicas=1 deployment api-deployment
+        kubectl rollout restart deploy api-deployment
