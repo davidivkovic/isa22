@@ -1,0 +1,27 @@
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: api-ingress-certificate
+spec:
+  domains:
+    - api.ftnstudents.com
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: api-ingress
+  annotations: 
+    kubernetes.io/ingress.class: "gce"
+    kubernetes.io/ingress.global-static-ip-name: "api-ingress-ip"
+    networking.gke.io/managed-certificates: api-ingress-certificate
+spec:
+  rules:
+    - http:
+        paths:
+        - pathType: ImplementationSpecific
+          path: "/*"
+          backend:
+            service:
+              name: api
+              port: 
+                number: 80

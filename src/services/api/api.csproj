@@ -1,0 +1,93 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <AnalysisLevel>latest-Recommended</AnalysisLevel>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>d179e6f8-4fe9-488c-9dca-e98709fff768</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <DockerfileContext>.</DockerfileContext>
+    <DockerComposeProjectPath>docker-compose.dcproj</DockerComposeProjectPath>
+    <RootNamespace>API</RootNamespace>
+    <PackageId>API</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Services\EmailTemplates\**" />
+    <Content Remove="Services\EmailTemplates\**" />
+    <EmbeddedResource Remove="Services\EmailTemplates\**" />
+    <None Remove="Services\EmailTemplates\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Services\Email\Templates\complaint-approved.html" />
+    <None Remove="Services\Email\Templates\confirm-email.html" />
+    <None Remove="Services\Email\Templates\delete-request-approved.html" />
+    <None Remove="Services\Email\Templates\delete-request-declined.html" />
+    <None Remove="Services\Email\Templates\new-review.html" />
+    <None Remove="Services\Email\Templates\new-sale.html" />
+    <None Remove="Services\Email\Templates\registration-approved.html" />
+    <None Remove="Services\Email\Templates\registration-declined.html" />
+    <None Remove="Services\Email\Templates\reservation-created.html" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Services\Email\Templates\complaint-approved.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Services\Email\Templates\confirm-email.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Services\Email\Templates\delete-request-approved.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Services\Email\Templates\delete-request-declined.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Services\Email\Templates\new-review.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Services\Email\Templates\new-sale.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Services\Email\Templates\registration-approved.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Services\Email\Templates\registration-declined.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Services\Email\Templates\reservation-created.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\.editorconfig" Link=".editorconfig" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FastExpressionCompiler" Version="3.3.0" />
+    <PackageReference Include="MailKit" Version="3.2.0" />
+    <PackageReference Include="Mapster" Version="7.3.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.15.1" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.4" />
+    <PackageReference Include="Scriban" Version="5.4.4" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.3.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<InternalsVisibleTo Include="$(AssemblyName).test" />
+  </ItemGroup>
+
+</Project>

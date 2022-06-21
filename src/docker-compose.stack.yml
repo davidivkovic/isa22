@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # can be used for local development with hmr, a bit slower than native node
+  spa:
+    image: ${DOCKER_REGISTRY-}spa
+    build:
+      context: ./web/spa
+      dockerfile: Dockerfile
+    ports:
+      - 3000:3000
+    volumes:
+      - ./web/spa:/src
+      - /src/node_modules
+    tty: true
+    stdin_open: true
+
+  api:
+    image: ${DOCKER_REGISTRY-}api
+    build:
+      context: ./services/api
+      dockerfile: Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - POSTGRES_CONNECTION=Server=postgres;Port=5432;Database=api;User ID=postgres;Password=postgres
+    ports:
+      - 5000:80
+    volumes:
+      - ../data/images:/data/images
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:14.2-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres:/var/lib/postgresql/data
+
+volumes:
+  postgres:
+    driver: local
