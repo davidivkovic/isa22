@@ -1,11 +1,10 @@
 {
   "rewrites": [
-    { "source": "/:path*", "destination": "/index.html" },
     {
-      "source": "/api",
-      "destination": "http://34.107.246.218",
-      "permanent": true
-    }
+      "source": "/api/:match*",
+      "destination": "http://34.107.246.218/:match*"
+    },
+    { "source": "/:path*", "destination": "/index.html" }
   ],
 
   "headers": [
