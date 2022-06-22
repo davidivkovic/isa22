@@ -55,27 +55,22 @@ public class UserController : ControllerBase
         });
     }
 
-    protected ActionResult GetImage([FromRoute] Guid id, [FromRoute] string image)
+    protected string ImageUrl(Business b, string image)
     {
-        string imagePath = ImageService.GetPath(id, image);
-        if (imagePath is null)
+        string controllerName = b switch
         {
-            return BadRequest();
-        }
+            Adventure => "adventures",
+            Boat => "boats",
+            Cabin => "cabins",
+            _ => ""
+        };
 
-        return PhysicalFile(imagePath, "image/*");
+        bool isLocal = Request.Host.Host == "localhost";
+        string scheme = isLocal ? "http" : "https";
+        string port = isLocal ? ":" + Request.Host.Port.ToString() : "";
+
+        return $"{scheme}://{Request.Host.Host}{port}/{controllerName}/{b.Id}/images/{image}";
     }
-
-    protected string ImageUrl(Guid id, string image)
-    {
-        return Url.Action(
-            nameof(GetImage),
-            ControllerContext.ActionDescriptor.ControllerName,
-            new { id, image },
-            Request.Host.Host == "localhost" ? "http" : "https"
-        );
-    }
-
 
     [Authorize]
     [HttpGet("{id}")]
@@ -376,7 +371,7 @@ public class UserController : ControllerBase
             // notify advertiser
             _mailer.Send(review.Business.Owner, new NewReview(
                 review,
-                ImageUrl(review.Business.Id, review.Business.Images.FirstOrDefault()),
+                ImageUrl(review.Business, review.Business.Images.FirstOrDefault()),
                 "#contactUrl"
             ));
 
@@ -427,13 +422,13 @@ public class UserController : ControllerBase
                 // notify client and advertiser
                 _mailer.Send(reservation.User, new ComplaintApproved(
                     reservation,
-                    ImageUrl(reservation.Business.Id, reservation.Business.Images.FirstOrDefault()),
+                    ImageUrl(reservation.Business, reservation.Business.Images.FirstOrDefault()),
                     "#contactUrl"
                 ));
 
                 _mailer.Send(reservation.Business.Owner, new ComplaintApproved(
                   reservation,
-                  ImageUrl(reservation.Business.Id, reservation.Business.Images.FirstOrDefault()),
+                  ImageUrl(reservation.Business, reservation.Business.Images.FirstOrDefault()),
                   "#contactUrl"
               ));
             }

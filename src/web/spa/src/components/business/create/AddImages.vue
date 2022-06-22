@@ -86,7 +86,9 @@ const images = ref([])
 
 const imageUrlToFile = async imgUrl => {
   const fileName = imgUrl.split('/').pop()
-  const response = await fetch(imgUrl)
+  const response = await fetch(
+    imgUrl + '?nonce=' + Math.random().toString(36).slice(2)
+  )
   const blob = await response.blob()
   return new File([blob], fileName, {
     type: blob.type
