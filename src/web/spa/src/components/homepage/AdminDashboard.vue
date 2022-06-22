@@ -153,7 +153,6 @@ import Dropdown from '../ui/Dropdown.vue'
 import BarChart from '../ui/charts/BarChart.vue'
 import api from '@/api/api'
 import { add, sub } from 'date-fns'
-import { da } from 'date-fns/locale'
 
 const incomeOptions = [
   {
