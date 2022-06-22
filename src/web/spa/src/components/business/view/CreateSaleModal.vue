@@ -24,6 +24,7 @@
           <DateInput
             @change="value => (start = value)"
             placeholder="Start date"
+            :lowerLimit="format(Date.now(), dateFormat)"
             required
             :hasTime="businessType !== 'cabins'"
             type="datetime-local"
@@ -154,6 +155,7 @@ import Button from '@/components/ui/Button.vue'
 import DateInput from '@/components/ui/DateInput.vue'
 import api from '@/api/api.js'
 import { debounce } from '@/components/utility/forms.js'
+import { format } from 'date-fns'
 
 const props = defineProps([
   'businessId',
@@ -175,6 +177,9 @@ const selectedServices = ref(JSON.parse(JSON.stringify(props.services)))
 const previewError = ref()
 const previewData = ref()
 const startingPrice = ref('-')
+
+const dateFormat =
+  props.businessType !== 'cabins' ? "yyyy-MM-dd'T'HH:mm" : 'yyyy-MM-dd'
 
 const symbols = {
   USD: '$',
