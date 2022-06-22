@@ -53,9 +53,9 @@ const currentRoute = computed(() => useRoute().path)
 
 const businessName = computed(() => {
   return {
-    'Cabin Owner': 'Cabins',
-    'Boat Owner': 'Boats',
-    Fisher: 'Adventures'
+    'Cabin Owner': 'cabins',
+    'Boat Owner': 'boats',
+    Fisher: 'adventures'
   }[user.roles[0]]
 })
 
