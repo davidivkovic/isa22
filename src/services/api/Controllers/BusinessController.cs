@@ -410,25 +410,25 @@ public class BusinessController<
     [HttpPost("{id}/sales/create")]
     public virtual async Task<ActionResult> CreateSale([FromRoute] Guid id, [FromBody] CreateSaleDTO request)
     {
-        var business = await Context.Set<TBusiness>()
+        await using var transaction = await Context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+        try
+        {
+            var business = await Context.Set<TBusiness>()
                     .Include(b => b.Owner)
                     .Include(b => b.Services)
                     .Include(b => b.Subscribers)
                     .FirstOrDefaultAsync(b => b.Id == id);
 
-        if (business is null)
-        {
-            return BadRequest($"The specified {BusinessType} does not exist.");
-        }
+            if (business is null)
+            {
+                return BadRequest($"The specified {BusinessType} does not exist.");
+            }
 
-        if (business.Owner.Id != User.Id())
-        {
-            return StatusCode(403);
-        }
+            if (business.Owner.Id != User.Id())
+            {
+                return StatusCode(403);
+            }
 
-        await using var transaction = await Context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
-        try
-        {
             bool isAvailable = await Context.Set<TBusiness>()
                 .Where(b => b.Id == id)
                 .Available(request.Start, request.End)
