@@ -33,7 +33,7 @@ const getDeletionRequests = (before = new Date().toISOString()) =>
   )
 
 const getProfile = () => fetch(instance.get('users/profile'))
-const getUser = id => fetch(instance.get(`users/get-profile/${id}`))
+const getUser = id => fetch(instance.get(`users/${id}`))
 const update = data => fetch(instance.post('users/update', data))
 const searchUsers = (query, page) =>
   fetch(

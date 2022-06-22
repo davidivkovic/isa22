@@ -61,7 +61,7 @@ public class BusinessController<
         var query = Context.Set<TBusiness>()
             .AsNoTrackingWithIdentityResolution();
 
-        if (User.IsInRole(Role.BusinessOwner))
+        if (!User.IsInRole(Role.Admin))
         {
             query = query.Where(b => b.Owner.Id == User.Id());
         }

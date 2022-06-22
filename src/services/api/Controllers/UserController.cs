@@ -82,6 +82,7 @@ public class UserController : ControllerBase
     public ActionResult Get(Guid id)
     {
         return Ok(_context.Users
+            .AsNoTrackingWithIdentityResolution()
             .Where(u => u.Id == id)
             .ProjectToType<UserDTO>()
             .FirstOrDefault()
