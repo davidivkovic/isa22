@@ -9,7 +9,7 @@
         <div class="items-center justify-between">
           <h3 class="text-lg font-medium">Pending Registration Requests</h3>
           <div
-            v-for="request in registrationRequests.slice(0, 4)"
+            v-for="request in registrationRequests?.slice(0, 4)"
             :key="request.id"
             class="my-7"
           >
@@ -101,7 +101,7 @@
         <div class="items-center justify-between">
           <h3 class="text-lg font-medium">Pending Reviews</h3>
           <div
-            v-for="review in reviews.slice(0, 4)"
+            v-for="review in reviews?.slice(0, 4)"
             :key="review.id"
             class="my-7"
           >

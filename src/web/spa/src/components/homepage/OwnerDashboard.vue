@@ -35,7 +35,7 @@
             enter-to-class="opacity-100"
           >
             <div
-              v-for="(business, index) in businesses.slice(0, 4)"
+              v-for="(business, index) in businesses?.slice(0, 4)"
               :key="business?.id"
               :style="{ transitionDelay: 120 * index + 'ms' }"
             >
@@ -138,7 +138,7 @@
             enter-to-class="opacity-100"
           >
             <div
-              v-for="(reservation, index) in reservations.slice(0, 4)"
+              v-for="(reservation, index) in reservations?.slice(0, 4)"
               :style="{ transitionDelay: 120 * index + 'ms' }"
               :key="reservation.id"
             >

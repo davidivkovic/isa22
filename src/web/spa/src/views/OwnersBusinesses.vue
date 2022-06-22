@@ -373,7 +373,7 @@ const showElement = id => {
   router.push(`/${userType[3]}/` + id)
 }
 
-const search = () => {
+const search = (initial = false) => {
   if (newLocation.value == '') {
     country.value = ''
     city.value = ''
@@ -389,9 +389,14 @@ const search = () => {
       page: currentPage.value
     }
   })
-  setTimeout(() => {
+
+  if (initial) {
     fetchResults()
-  }, 100)
+  } else {
+    setTimeout(() => {
+      fetchResults()
+    }, 100)
+  }
 }
 
 const optionSelected = value => {
@@ -484,4 +489,6 @@ const extractFromAddress = (address, key) => {
   return address?.address_components?.find(a => a.types.includes(key))
     ?.long_name
 }
+
+search(true)
 </script>
