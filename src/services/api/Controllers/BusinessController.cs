@@ -52,7 +52,7 @@ public class BusinessController<
             nameof(GetImage),
             ControllerContext.ActionDescriptor.ControllerName,
             new { id, image },
-            Request.Scheme
+            Request.Host.Host == "localhost"? "http" : "https"
         );
     }
 
@@ -518,7 +518,7 @@ public class BusinessController<
         return Ok();
     }
 
-    [HttpPost("{id}/sales/delete")]
+    [HttpPost("{id}/sales/{saleId}/delete")]
     public virtual async Task<ActionResult> DeleteSale([FromRoute] Guid id, [FromRoute] Guid saleId)
     {
         var business = await Context.Set<TBusiness>()

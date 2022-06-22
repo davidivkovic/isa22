@@ -72,7 +72,7 @@ public class UserController : ControllerBase
             nameof(GetImage),
             ControllerContext.ActionDescriptor.ControllerName,
             new { id, image },
-            Request.Scheme
+            Request.Host.Host == "localhost" ? "http" : "https"
         );
     }
 
