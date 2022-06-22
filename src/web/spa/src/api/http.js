@@ -3,7 +3,7 @@ import axios from 'axios'
 import router from '@/router/index.js'
 import { setUser } from '../stores/userStore'
 
-const baseURL = import.meta.env.DEV
+const baseURL = import.meta.env.PROD
   ? `http://${window.location.hostname}:5000/`
   : '/api/'
 
