@@ -56,7 +56,7 @@ public class Student2Tests
     {
         using var scope = _app.Services.GetService<IServiceScopeFactory>().CreateScope();
         using var context = scope.ServiceProvider.GetService<AppDbContext>();
-        var cabin = context.Cabins.FirstOrDefault();
+        var cabin = context.Cabins.FirstOrDefault(c => c.Name == "Kabina");
 
         Assert.AreEqual(3.5, cabin.Rating);
         cabin.Rate(5);
@@ -70,7 +70,7 @@ public class Student2Tests
     {
         using var scope = _app.Services.GetService<IServiceScopeFactory>().CreateScope();
         using var context = scope.ServiceProvider.GetService<AppDbContext>();
-        var cabin = context.Cabins.FirstOrDefault();
+        var cabin = context.Cabins.FirstOrDefault(c => c.Name == "Kabina");
         User u = new User();
 
         Assert.AreEqual(0, cabin.Subscribers.Count);
