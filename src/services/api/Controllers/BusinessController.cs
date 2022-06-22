@@ -328,27 +328,38 @@ public class BusinessController<
         return Ok(business.Id);
     }
 
+    // Conflicting Situation 2.3
     [HttpPost("{id}/delete")]
     public virtual async Task<ActionResult> Delete(Guid id)
     {
-        var business = await Context.Set<TBusiness>()
-            .Include(b => b.Owner)
-            .FirstOrDefaultAsync(b => b.Id == id);
-
-        if (business is null)
+        await using var transaction = await Context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+        try
         {
-            return BadRequest($"The specified {BusinessType} does not exist.");
-        }
+            var business = await Context.Set<TBusiness>()
+                .Include(b => b.Owner)
+                .FirstOrDefaultAsync(b => b.Id == id);
 
-        if (business?.Owner?.Id != User.Id() && !User.IsInRole(Role.Admin))
+            if (business is null)
+            {
+                return BadRequest($"The specified {BusinessType} does not exist.");
+            }
+
+            if (business?.Owner?.Id != User.Id() && !User.IsInRole(Role.Admin))
+            {
+                return StatusCode(403);
+            }
+
+            business.Delete();
+            await Context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return Ok();
+        }
+        catch (Exception)
         {
-            return StatusCode(403);
+            await transaction.RollbackAsync();
+            return BadRequest($"Could not delete the {BusinessType} at this time. Please try again later.");
         }
-
-        business.Delete();
-        await Context.SaveChangesAsync();
-
-        return Ok();
     }
 
     [HttpPost("{id}/sales/preview-create")]
@@ -395,6 +406,7 @@ public class BusinessController<
         return Ok(new Payment(price, finance.TaxPercentage * (1 - (loyaltyLevel?.DiscountPercentage ?? 0) / 100)));
     }
 
+    // Conflicting Situation 2.1 + 2.2
     [HttpPost("{id}/sales/create")]
     public virtual async Task<ActionResult> CreateSale([FromRoute] Guid id, [FromBody] CreateSaleDTO request)
     {
@@ -414,50 +426,59 @@ public class BusinessController<
             return StatusCode(403);
         }
 
-        bool isAvailable = await Context.Set<TBusiness>()
-            .Where(b => b.Id == id)
-            .Available(request.Start, request.End)
-            .AnyAsync();
-
-        if (!isAvailable)
+        await using var transaction = await Context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+        try
         {
-            return BadRequest($"Your {BusinessType} is already occupied at that time.");
+            bool isAvailable = await Context.Set<TBusiness>()
+                .Where(b => b.Id == id)
+                .Available(request.Start, request.End)
+                .AnyAsync();
+
+            if (!isAvailable)
+            {
+                return BadRequest($"Your {BusinessType} is already occupied at that time.");
+            }
+
+            var loyaltyLevel = await Context.GetLoyaltyLevel(business.Owner.Id);
+
+            var sale = new Sale(
+                business,
+                request.Start,
+                request.End,
+                request.DiscountPercentage,
+                request.People,
+                business.Services.Where(s => request.Services.Contains(s)).ToList()
+            );
+
+            User customer = null;
+
+            if (request.CustomerId != default)
+            {
+                customer = await Context.Users.FindAsync(request.CustomerId);
+                var finance = await Context.Finances.FirstOrDefaultAsync();
+                var loyalty = await Context.GetLoyaltyLevel(User.Id());
+
+                sale.Sell(customer, loyalty?.DiscountPercentage ?? 0, finance.TaxPercentage);
+                customer.LoyaltyPoints += finance.CustomerPoints;
+            }
+
+            Context.Add(sale);
+            await Context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            sale.Business.Subscribers.ForEach(u => _mailer.Send(u, new NewSale(
+                u.FullName,
+                sale,
+                ImageUrl(sale.Business.Id, sale.Business.Images.FirstOrDefault()),
+                "#contactUrl"
+            )));
+            return Ok(sale.Adapt<SaleDTO>());
         }
-
-        var loyaltyLevel = await Context.GetLoyaltyLevel(business.Owner.Id);
-
-        var sale = new Sale(
-            business,
-            request.Start,
-            request.End,
-            request.DiscountPercentage,
-            request.People,
-            business.Services.Where(s => request.Services.Contains(s)).ToList()
-        );
-
-        User customer = null;
-
-        if (request.CustomerId != default)
+        catch (Exception)
         {
-            customer = await Context.Users.FindAsync(request.CustomerId);
-            var finance = await Context.Finances.FirstOrDefaultAsync();
-            var loyalty = await Context.GetLoyaltyLevel(User.Id());
-
-            sale.Sell(customer, loyalty?.DiscountPercentage ?? 0, finance.TaxPercentage);
-            customer.LoyaltyPoints += finance.CustomerPoints;
+            await transaction.RollbackAsync();
+            return BadRequest();
         }
-
-        Context.Add(sale);
-        await Context.SaveChangesAsync();
-
-        sale.Business.Subscribers.ForEach(u => _mailer.Send(u, new NewSale(
-            u.FullName,
-            sale,
-            ImageUrl(sale.Business.Id, sale.Business.Images.FirstOrDefault()),
-            "#contactUrl"
-        )));
-
-        return Ok(sale.Adapt<SaleDTO>());
     }
 
     [Authorize(Roles = Role.Customer)]
@@ -554,42 +575,52 @@ public class BusinessController<
     }
 
 
+    // Conflicting Situation 1.2
     [Authorize(Roles = Role.Customer)]
     [HttpPost("{id}/sales/{saleId}/book")]
     public async Task<ActionResult> MakeQuickReservation([FromRoute] Guid id, [FromRoute] Guid saleId)
     {
-        var sale = await Context.Set<Sale>()
+        await using var transaction = await Context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+        try
+        {
+            var sale = await Context.Set<Sale>()
                     .Include(s => s.Business)
                     .Where(s => s.Business.Id == id)
                     .Include(s => s.User)
                     .FirstOrDefaultAsync(s => s.Id == saleId);
 
-        if (sale is null)
-        {
-            return BadRequest($"The specified sale does not exist.");
+            if (sale is null)
+            {
+                return BadRequest($"The specified sale does not exist.");
+            }
+
+            if (sale.User is not null)
+            {
+                return BadRequest($"Sorry, the specified sale is already booked.");
+            }
+
+            var user = await Context.Users.FindAsync(User.Id());
+            var finance = await Context.Finances.FirstOrDefaultAsync();
+            var loyalty = await Context.GetLoyaltyLevel(User.Id());
+
+            sale.Sell(user, loyalty?.DiscountPercentage ?? 0, finance.TaxPercentage);
+            user.LoyaltyPoints += finance.CustomerPoints;
+            await Context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            _mailer.Send(user, new ReservationCreated(
+                sale,
+                ImageUrl(sale.Business.Id, sale.Business.Images.FirstOrDefault()),
+                "#contactUrl"
+             ));
+
+            return Ok();
         }
-
-        if (sale.User is not null)
+        catch (Exception)
         {
-            return BadRequest($"Sorry, the specified sale is already booked.");
-
+            await transaction.RollbackAsync();
+            return BadRequest("Could not book the sale at this time. Please try again later.");
         }
-
-        var user = await Context.Users.FindAsync(User.Id());
-        var finance = await Context.Finances.FirstOrDefaultAsync();
-        var loyalty = await Context.GetLoyaltyLevel(User.Id());
-
-        sale.Sell(user, loyalty?.DiscountPercentage ?? 0, finance.TaxPercentage);
-        user.LoyaltyPoints += finance.CustomerPoints;
-        await Context.SaveChangesAsync();
-
-        _mailer.Send(user, new ReservationCreated(
-            sale,
-            ImageUrl(sale.Business.Id, sale.Business.Images.FirstOrDefault()),
-            "#contactUrl"
-         ));
-
-        return Ok();
     }
 
 
@@ -700,22 +731,22 @@ public class BusinessController<
         return Ok(reservation.Report);
     }
 
+    // Conflicting Situation 1.1
     [Authorize(Roles = Role.Customer)]
     [HttpPost("{id}/make-reservation")]
     public async Task<ActionResult> MakeReservation([FromRoute] Guid id, [FromBody] MakeReservationDTO request)
     {
-        var business = await Context.Set<TBusiness>()
-                    .Include(b => b.Services)
-                    .FirstOrDefaultAsync(b => b.Id == id);
-
-        if (business is null)
-        {
-            return BadRequest($"The specified {BusinessType} does not exist.");
-        }
-
         await using var transaction = await Context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
         try
         {
+            var business = await Context.Set<TBusiness>()
+                        .Include(b => b.Services)
+                        .FirstOrDefaultAsync(b => b.Id == id);
+
+            if (business is null)
+            {
+                return BadRequest($"The specified {BusinessType} does not exist.");
+            }
 
             bool isAvailable = await Context.Set<TBusiness>()
                 .Where(b => b.Id == id)
@@ -757,7 +788,7 @@ public class BusinessController<
         catch (Exception)
         {
             await transaction.RollbackAsync();
-            return BadRequest($"The {BusinessType} is already occupied at that time.");
+            return BadRequest($"Could not make a reservation at this time. Please try again later.");
         }
     }
 
@@ -930,41 +961,52 @@ public class BusinessController<
         return Ok(reservations.Concat(slots));
     }
 
+    // Conflicting Situation 1.3
     [HttpPost("{id}/calendar/create-unavailability")]
     public virtual async Task<ActionResult> CreateUnavailability(Guid id, DateTimeOffset start, DateTimeOffset end)
     {
-        var business = await Context.Set<TBusiness>()
-            .Include(b => b.Owner)
-            .FirstOrDefaultAsync(b => b.Id == id);
-
-        if (business is null)
+        await using var transaction = await Context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+        try
         {
-            return BadRequest($"The specified {BusinessType} does not exist.");
+            var business = await Context.Set<TBusiness>()
+                .Include(b => b.Owner)
+                .FirstOrDefaultAsync(b => b.Id == id);
+
+            if (business is null)
+            {
+                return BadRequest($"The specified {BusinessType} does not exist.");
+            }
+
+            if (business.Owner.Id != User.Id())
+            {
+                return StatusCode(403);
+            }
+
+            Slot slot = new()
+            {
+                Start = start,
+                End = end,
+                Available = false
+            };
+
+            business.Availability.Add(slot);
+            await Context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return Ok(new
+            {
+                slot.Id,
+                slot.Start,
+                slot.End,
+                Type = "unavailable",
+                Name = "Unavailable"
+            });
         }
-
-        if (business.Owner.Id != User.Id())
+        catch (Exception)
         {
-            return StatusCode(403);
+            await transaction.RollbackAsync();
+            return BadRequest("Unavailability could not be created at this time. Please try again later.");
         }
-
-        Slot slot = new()
-        {
-            Start = start,
-            End = end,
-            Available = false
-        };
-
-        business.Availability.Add(slot);
-        Context.SaveChanges();
-
-        return Ok(new
-        {
-            slot.Id,
-            slot.Start,
-            slot.End,
-            Type = "unavailable",
-            Name = "Unavailable"
-        });
     }
 
     [HttpPost("{id}/calendar/delete-unavailability")]

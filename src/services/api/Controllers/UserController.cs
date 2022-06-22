@@ -14,6 +14,7 @@ using API.Services.Email.Messages;
 using API.Infrastructure.Extensions;
 using API.Core.Model;
 using API.Services;
+using System.Data;
 
 [Route("users")]
 [ApiController]
@@ -279,132 +280,172 @@ public class UserController : ControllerBase
             .ToListAsync();
     }
 
+    // Conflicting Situation 3.1
     [Authorize(Roles = Role.Admin)]
     [HttpPost("delete-requests/{email}/update")]
     public async Task<ActionResult> AcceptDeleteRequest([FromRoute] string email, [FromBody] string reason)
     {
-        var user = await _context.Users.Where(u => u.Email == email).FirstOrDefaultAsync();
-
-        if (user is null)
+        await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+        try
         {
-            return BadRequest("The email you entered doesn't belong to an account. Please check the email and try again.");
-        }
+            var user = await _context.Users.Where(u => u.Email == email).FirstOrDefaultAsync();
 
-        if (string.IsNullOrWhiteSpace(reason))
-        {
-            user.DeletionRequest.Approve();
-            user.Delete();
-        }
-        else
-        {
-            user.DeletionRequest.Deny(reason);
-        }
+            if (user is null)
+            {
+                return BadRequest("The email you entered doesn't belong to an account. Please check the email and try again.");
+            }
 
-        bool success = await _context.SaveChangesAsync() > 0;
+            if (user.DeletionRequest.Approved || user.DeletionRequest.Rejected)
+            {
+                return BadRequest("This request had already been processed.");
+            }
 
-        if (!success)
-        {
-            BadRequest("Could not delete your account at this time. Please try again later.");
-        }
+            if (string.IsNullOrWhiteSpace(reason))
+            {
+                user.DeletionRequest.Approve();
+                user.Delete();
+            }
+            else
+            {
+                user.DeletionRequest.Deny(reason);
+            }
 
-        if (user.DeletionRequest.Approved)
-        {
-            _mailer.Send(user, new AccountDeletionApproved(user.FirstName, "ctaUrl"));
-        }
-        else if (user.DeletionRequest.Rejected)
-        {
-            _mailer.Send(user, new AccountDeletionDeclined(
-                user.FirstName,
-                reason,
-                "#contactUrl"
-            ));
-        }
+            bool success = await _context.SaveChangesAsync() > 0;
+            await transaction.CommitAsync();
 
-        return Ok();
+            if (!success)
+            {
+                BadRequest("Could not delete your account at this time. Please try again later.");
+            }
+
+            if (user.DeletionRequest.Approved)
+            {
+                _mailer.Send(user, new AccountDeletionApproved(user.FirstName, "ctaUrl"));
+            }
+            else if (user.DeletionRequest.Rejected)
+            {
+                _mailer.Send(user, new AccountDeletionDeclined(
+                    user.FirstName,
+                    reason,
+                    "#contactUrl"
+                ));
+            }
+
+            return Ok();
+        }
+        catch (Exception)
+        {
+            await transaction.RollbackAsync();
+            return BadRequest("Could not update the request at this time. Please try again later.");
+        }
     }
 
+    // Conflicting Situation 3.3
     [Authorize(Roles = Role.Admin)]
     [HttpPost("reviews/{id}/update")]
     public async Task<ActionResult> ApproveReview([FromRoute] Guid id, [FromQuery] bool approve)
     {
-        var review = await _context.Reviews
-            .Include(r => r.Business)
-            .Include(r => r.Business.Owner)
-            .Include(r => r.User)
-            .FirstOrDefaultAsync(r => r.Id == id);
+        await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
 
-        if (review is null)
+        try
         {
-            return BadRequest();
-        }
+            var review = await _context.Reviews
+                .Include(r => r.Business)
+                .Include(r => r.Business.Owner)
+                .Include(r => r.User)
+                .FirstOrDefaultAsync(r => r.Id == id);
 
-        if (approve)
+            if (review is null)
+            {
+                return BadRequest();
+            }
+
+            if (approve)
+            {
+                review.Approve();
+            }
+            else
+            {
+                review.Deny();
+            }
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            // notify advertiser
+            _mailer.Send(review.Business.Owner, new NewReview(
+                review,
+                ImageUrl(review.Business.Id, review.Business.Images.FirstOrDefault()),
+                "#contactUrl"
+            ));
+
+            return Ok();
+        }
+        catch (Exception)
         {
-            review.Approve();
+            await transaction.RollbackAsync();
+            return BadRequest("Could not update the review at this time. Please try again later.");
         }
-        else
-        {
-            review.Deny();
-        }
-
-        await _context.SaveChangesAsync();
-        
-        // notify advertiser
-        _mailer.Send(review.Business.Owner, new NewReview(
-            review,
-            ImageUrl(review.Business.Id, review.Business.Images.FirstOrDefault()),
-            "#contactUrl"
-        ));
-
-        return Ok();
     }
 
+    // Conflicting Situation 3.2
     [Authorize(Roles = Role.Admin)]
     [HttpPost("reservations/{reservationId}/report/update")]
     public async Task<ActionResult> ApproveReport([FromRoute] Guid reservationId, [FromQuery] bool penalize)
     {
-        var reservation = await _context.Reservations
-            .Where(r => r.Id == reservationId)
-            .Include(r => r.Report)
-            .Include(r => r.User)
-            .Include(r => r.Business)
-                .ThenInclude(b => b.Owner)
-            .FirstOrDefaultAsync();
+        await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
 
-        if (reservation is null)
+        try
         {
-            return BadRequest("The reservation doesn't exist.");
-        }
+            var reservation = await _context.Reservations
+                .Where(r => r.Id == reservationId)
+                .Include(r => r.Report)
+                .Include(r => r.User)
+                .Include(r => r.Business)
+                    .ThenInclude(b => b.Owner)
+                .FirstOrDefaultAsync();
 
-        if (reservation.Report is null)
+            if (reservation is null)
+            {
+                return BadRequest("The reservation doesn't exist.");
+            }
+
+            if (reservation.Report is null)
+            {
+                return BadRequest("There are no reports for this reservation.");
+            }
+
+            reservation.Report.Approve();
+
+            if (penalize)
+            {
+                // penalize points
+                reservation.User.Penalty ??= new();
+                reservation.User.Penalty.Increment();
+
+                // notify client and advertiser
+                _mailer.Send(reservation.User, new ComplaintApproved(
+                    reservation,
+                    ImageUrl(reservation.Business.Id, reservation.Business.Images.FirstOrDefault()),
+                    "#contactUrl"
+                ));
+
+                _mailer.Send(reservation.Business.Owner, new ComplaintApproved(
+                  reservation,
+                  ImageUrl(reservation.Business.Id, reservation.Business.Images.FirstOrDefault()),
+                  "#contactUrl"
+              ));
+            }
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+            return Ok();
+        }
+        catch (Exception)
         {
-            return BadRequest("There are no reports for this reservation.");
+            await transaction.RollbackAsync();
+            return BadRequest("Could not update the report at this time. Please try again later.");
         }
-
-        reservation.Report.Approve();
-
-        if (penalize)
-        {
-            // penalize points
-            reservation.User.Penalty ??= new();
-            reservation.User.Penalty.Increment();
-
-            // notify client and advertiser
-            _mailer.Send(reservation.User, new ComplaintApproved(
-                reservation,
-                ImageUrl(reservation.Business.Id, reservation.Business.Images.FirstOrDefault()),
-                "#contactUrl"
-            ));
-
-            _mailer.Send(reservation.Business.Owner, new ComplaintApproved(
-              reservation,
-              ImageUrl(reservation.Business.Id, reservation.Business.Images.FirstOrDefault()),
-              "#contactUrl"
-          ));
-        }
-
-        await _context.SaveChangesAsync();
-        return Ok();
     }
 
     [Authorize(Roles = Role.Admin)]
