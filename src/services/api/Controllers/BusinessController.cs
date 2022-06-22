@@ -183,10 +183,9 @@ public class BusinessController<
 
 
         businessDTO.IsSubscribed = user?.IsSubscribed ?? false;
-        if(user.Penalty is not null)
+        if(user?.Penalty is not null)
         {
             businessDTO.IsPenalized = user.Penalty.Points >= 3 && !user.Penalty.HasExpired;
-
         }
 
         var sales = await Context.Sales
