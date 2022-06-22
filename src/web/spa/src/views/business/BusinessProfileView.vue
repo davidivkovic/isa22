@@ -444,7 +444,7 @@
             <p class="text-2xl font-bold text-emerald-600">Sales</p>
             <Button
               @click="subscribe()"
-              v-if="!isOwnersBusiness && !isSubscribed"
+              v-if="!isOwnersBusiness && !isSubscribed && isAuthenticated"
               class="flex space-x-2 border !py-2"
             >
               <div>Subscribe</div>
@@ -452,12 +452,15 @@
             </Button>
             <Button
               @click="unsubscribe()"
-              v-else-if="!isOwnersBusiness"
+              v-else-if="!isOwnersBusiness && isAuthenticated"
               class="flex space-x-2 border !py-2"
               ><div>Unsubscribe</div>
               <Loader v-if="isLoading" class="text-black" />
             </Button>
-            <Button @click="createNewSale()" class="border !py-2" v-else
+            <Button
+              @click="createNewSale()"
+              class="border !py-2"
+              v-else-if="isAuthenticated"
               >Create new sale</Button
             >
           </div>

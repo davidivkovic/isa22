@@ -30,9 +30,6 @@
               {{ report.user.firstName }} {{ report.user.lastName }}
             </h2>
             <h4 class="text-[13.5px] leading-4 text-neutral-500">
-              {{ report.user.email }}
-            </h4>
-            <h4 class="text-[13.5px] leading-4 text-neutral-500">
               {{ report.user.roles[0] }}
             </h4>
           </div>
