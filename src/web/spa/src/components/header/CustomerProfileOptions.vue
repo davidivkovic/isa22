@@ -38,7 +38,7 @@
             </div>
           </RouterLink>
         </MenuItem>
-        <MenuItem as="div" v-slot="{ active }">
+        <MenuItem v-if="!props.isAdmin" as="div" v-slot="{ active }">
           <RouterLink
             :to="'/my-reservations'"
             class="z-20 space-x-0.5"
@@ -63,4 +63,12 @@ import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
 import userDefaultImg from '@/assets/images/user-default.png'
 import { user } from '@/stores/userStore.js'
 import { UserIcon, Map2Icon } from 'vue-tabler-icons'
+
+const props = defineProps({
+  isAdmin: {
+    type: Boolean,
+    required: false,
+    default: false
+  }
+})
 </script>

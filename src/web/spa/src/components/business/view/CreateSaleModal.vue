@@ -183,6 +183,7 @@ const symbols = {
 }
 
 const previewSale = async () => {
+  if (start.value == null || end.value == null) return
   const [data, error] = await api.business.previewCreateSale(
     props.businessId,
     props.businessType,

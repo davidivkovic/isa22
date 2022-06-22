@@ -19,35 +19,36 @@ metadata:
   labels:
     app: api
 spec:
-  storageClassName: manual
+  volumeName: api-volume
+  storageClassName: ""
   accessModes:
     - ReadWriteMany
   resources:
     requests:
-      storage: 4Gi
+      storage: 1Ti
 ---
 kind: PersistentVolume
 apiVersion: v1
 metadata:
   name: api-volume
   labels:
-    type: local
     app: api
 spec:
-  storageClassName: manual
   capacity:
-    storage: 4Gi
+    storage: 1Ti
   accessModes:
     - ReadWriteMany
-  hostPath:
-    path: /var/lib/data
+  nfs:
+    path: /isamrs_fileshare
+    server: 10.142.81.162
+
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: api-deployment
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: api
@@ -77,3 +78,4 @@ spec:
       - name: api-volume-claim
         persistentVolumeClaim:
           claimName: api-volume-claim
+          readOnly: false

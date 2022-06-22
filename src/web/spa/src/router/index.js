@@ -5,13 +5,7 @@ import SignInModal from '../components/registration/SignInModal.vue'
 const modalRouteFunc = (to, from, component) => {
   const fromMatch = from.matched[0]
   const toMatch = to.matched[0]
-
-  if (typeof component == 'string') {
-    toMatch.components['modal-router'] = () =>
-      import(/* @vite-ignore */ component)
-  } else {
-    toMatch.components['modal-router'] = component
-  }
+  toMatch.components['modal-router'] = component
   fromMatch && (toMatch.components.default = fromMatch.components.default)
   !fromMatch &&
     (toMatch.components.default = () => import('../views/HomeView.vue'))
@@ -61,17 +55,17 @@ const router = createRouter({
       name: 'verification',
       props: true,
       beforeEnter: (to, from) =>
-        modalRouteFunc(
-          to,
-          from,
-          '../components/registration/VerificationCodeModal.vue'
+        modalRouteFunc(to, from, () =>
+          import('../components/registration/VerificationCodeModal.vue')
         )
     },
     {
       path: '/admin-verification',
       name: 'admin-verification',
       beforeEnter: (to, from) =>
-        modalRouteFunc(to, from, '../components/NewAdminPasswordModal.vue')
+        modalRouteFunc(to, from, () =>
+          import('../components/registration/NewAdminPasswordModal.vue')
+        )
     },
     {
       path: '/adventure-profile/:id',
@@ -192,10 +186,8 @@ const router = createRouter({
       path: '/admin-signup',
       name: 'admin-signup',
       beforeEnter: (to, from) =>
-        modalRouteFunc(
-          to,
-          from,
-          '../components/registration/AdminSignUpModal.vue'
+        modalRouteFunc(to, from, () =>
+          import('../components/registration/AdminSignUpModal.vue')
         )
     },
     {

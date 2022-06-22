@@ -6,19 +6,21 @@
     <FlyoutMenu title="Money" :items="earningsMenuItems" />
   </div>
   <div class="flex space-x-3">
+    <CustomerProfileOptions :is-admin="true" />
+
     <SignInButton />
   </div>
 </template>
 <script setup>
 import Logo from './Logo.vue'
 import SignInButton from './SignInButton.vue'
+import CustomerProfileOptions from './CustomerProfileOptions.vue'
 import {
   UserPlusIcon,
   PencilIcon,
   FileAnalyticsIcon,
   UserIcon,
   BusinessplanIcon,
-  CashIcon,
   GiftIcon,
   CircleCheckIcon
 } from 'vue-tabler-icons'

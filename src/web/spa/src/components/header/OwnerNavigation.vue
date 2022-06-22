@@ -11,7 +11,10 @@
       </RouterLink>
     </div>
     <div class="relative cursor-pointer">
-      <RouterLink :to="`/my-${businessName}`" v-slot="{ isActive }">
+      <RouterLink
+        :to="`/my-${businessName.toLowerCase()}`"
+        v-slot="{ isActive }"
+      >
         <div :class="{ 'font-medium text-emerald-600': isActive }">
           {{ businessName }}
         </div>
@@ -22,7 +25,10 @@
       </RouterLink>
     </div>
     <div class="relative cursor-pointer">
-      <RouterLink :to="`/${businessName}-reservations`" v-slot="{ isActive }">
+      <RouterLink
+        :to="`/${businessName.toLowerCase()}-reservations`"
+        v-slot="{ isActive }"
+      >
         <div :class="{ 'font-medium text-emerald-600': isActive }">
           Resevations
         </div>
@@ -34,7 +40,7 @@
     </div>
   </div>
   <div class="flex space-x-3">
-    <RouterLink :to="`/business/${businessName}/create`">
+    <RouterLink :to="`/business/${businessName.toLowerCase()}/create`">
       <Button class="bg-emerald-600 text-white"> List your business </Button>
     </RouterLink>
     <SignInButton />
