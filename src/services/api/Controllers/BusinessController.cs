@@ -770,6 +770,8 @@ public class BusinessController<
                 finance.TaxPercentage
             );
 
+            var loyalty = await Context.GetLoyaltyLevel(User.Id());
+            reservation.Payment.DiscountPercentage = loyalty?.DiscountPercentage ?? 0;
             user.LoyaltyPoints += finance.CustomerPoints;
             Context.Add(reservation);
 
