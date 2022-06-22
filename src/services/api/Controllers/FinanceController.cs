@@ -77,10 +77,15 @@ public class FinanceController : ControllerBase
         var isAdmin = role == Role.Admin;
         var delta = (endDate - startDate).TotalDays;
 
-        var query = _context.Reservations
-            .AsNoTracking()
-            .Where(r => r.Payment != null)
-            .Where(r => r.Status != Reservation.ReservationStatus.Cancelled)
+        var startingQuery = _context.Reservations
+            .AsNoTracking();
+
+        if (!isAdmin)
+        {
+            startingQuery = startingQuery.Where(r => r.Business.Owner.Id == User.Id());
+        }
+
+        var query = startingQuery.Where(r => r.Status != Reservation.ReservationStatus.Cancelled)
             .Where(r => r.Payment != null)
             .Select(r => r.Payment)
             .Where(p => p.Timestamp >= startDate)
