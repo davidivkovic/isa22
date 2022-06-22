@@ -305,10 +305,7 @@
         </span>
       </p>
     </div>
-    <div
-      v-if="!user.roles.includes('Admin')"
-      class="mx-auto max-w-4.5xl space-y-2"
-    >
+    <div v-if="isCustomer" class="mx-auto max-w-4.5xl space-y-2">
       <h1 class="text-2xl font-medium">Subscriptions</h1>
       <h2 class="text-gray-600">
         These are businesses you are subscribed to. You will get notified by
@@ -393,6 +390,7 @@ import Modal from '@/components/ui/Modal.vue'
 import Dropdown from '@/components/ui/Dropdown.vue'
 import ChangePasswordModal from '@/components/registration/ChangePasswordModal.vue'
 import api from '@/api/api'
+import { isCustomer } from '@/stores/userStore'
 
 const editMode = ref(false)
 const loading = ref(false)
