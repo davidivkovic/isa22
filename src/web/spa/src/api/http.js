@@ -5,7 +5,7 @@ import { setUser } from '../stores/userStore'
 
 const baseURL = import.meta.env.DEV
   ? `http://${window.location.hostname}:5000/`
-  : 'https://api.ftnstudents.com'
+  : 'https://api.ftnstudents.com/'
 
 const instance = axios.create({
   baseURL,

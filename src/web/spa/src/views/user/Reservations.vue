@@ -425,7 +425,7 @@ const saveData = reservation => {
     parseISO(reservation.start)
   )
   unit.value =
-    currentBusinessType.value == 'Cabins'
+    currentBusinessType.value == 'cabins'
       ? duration.value == 1
         ? 'day'
         : 'days'
