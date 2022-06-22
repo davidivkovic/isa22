@@ -300,6 +300,13 @@ const fetchEarnings = async () => {
   )
   if (!error) {
     data.forEach(p => (p.total = Number(p.total)))
+    if (currentIncomeOption.value == 'yearly') {
+      data.sort((a, b) => Number(a.year) - Number(b.year))
+    } else if (currentIncomeOption.value == 'monthly') {
+      data.sort((a, b) => Number(a.month) - Number(b.month))
+    } else {
+      data.sort((a, b) => Number(a.week) - Number(b.week))
+    }
     earnings.value = {
       values: data,
       total: data
@@ -321,6 +328,13 @@ const fetchAttendance = async () => {
   )
   if (!error) {
     data.forEach(p => (p.total = Number(p.total)))
+    if (currentIncomeOption.value == 'yearly') {
+      data.sort((a, b) => Number(a.year) - Number(b.year))
+    } else if (currentIncomeOption.value == 'monthly') {
+      data.sort((a, b) => Number(a.month) - Number(b.month))
+    } else {
+      data.sort((a, b) => Number(a.week) - Number(b.week))
+    }
     attendance.value = {
       values: data,
       total: data.reduce((sum, point) => sum + point.total, 0)
