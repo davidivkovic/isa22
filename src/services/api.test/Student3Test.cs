@@ -99,7 +99,8 @@ public class Student3Tests
         using var scope = _app.Services.GetService<IServiceScopeFactory>().CreateScope();
         using var context = scope.ServiceProvider.GetService<AppDbContext>();
         var review = context.Reviews.FirstOrDefault();
-        var cabin = context.Cabins.FirstOrDefault();
+        var cabin = context.Cabins.FirstOrDefault(c => c.Name == "Kabina");
+
         review.Business = cabin;
 
         Assert.AreEqual(3.5, cabin.Rating);
