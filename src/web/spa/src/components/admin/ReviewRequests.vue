@@ -27,10 +27,6 @@
             <h2 class="text-lg leading-5">
               {{ request.user.firstName }} {{ request.user.lastName }}
             </h2>
-            <h3 class="text-sm text-neutral-500">
-              {{ request.user.email }}
-            </h3>
-
             <h4 class="text-[13.5px] leading-4 text-neutral-500">
               {{ request.user.roles[0] }}
             </h4>
