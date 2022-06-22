@@ -152,7 +152,8 @@ public class AuthenticationController : ControllerBase
 
         if (token is null)
         {
-            return BadRequest($"No refresh-token cookie found.");
+            return Ok();
+            //return BadRequest($"No refresh-token cookie found.");
         }
 
         RefreshToken refreshToken = await _context.UserTokens.FindAsync(token.ToGuid());
