@@ -41,7 +41,6 @@ spec:
   nfs:
     path: /isamrs_fileshare
     server: 10.142.81.162
-
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -64,8 +63,8 @@ spec:
         imagePullPolicy: Always
         resources:
           limits:
-            memory: 512Mi
-            cpu: 256m
+            memory: 1024Mi
+            cpu: 512m
         ports:
         - containerPort: 80
         env:
