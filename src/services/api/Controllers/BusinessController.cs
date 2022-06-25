@@ -59,7 +59,7 @@ public class BusinessController<
     [HttpGet("{id}/test")]
     public ActionResult Test(Guid id)
     {
-        return Ok(Context.Businesses.Where(b => b.Id == id).Select(b => b.Name));
+        return Ok(Context.Businesses.AsNoTracking().Where(b => b.Id == id).Select(b => b.Name));
     }
 
     protected async Task<ActionResult> GetBusinesses([FromQuery] SearchRequest request)
